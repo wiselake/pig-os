@@ -137,7 +137,8 @@ def resolve(
             gate = Gate(reason_code=f"OVERRIDE_{group}")
 
     if gate.signup_blocked:
-        notes.append("signup blocked (CN, D-07 HOLD)")
+        # 사유는 게이트가 들고 있다. 예전엔 CN 문구를 그대로 붙여 KR 에도 "CN, D-07 HOLD" 가 찍혔다.
+        notes.append(f"signup blocked ({country}, {gate.reason_code})")
 
     return Jurisdiction(
         code=code,
@@ -149,3 +150,48 @@ def resolve(
         doc_addendum=_ADDENDUM.get(group),
         notes=notes,
     )
+
+
+# --- 가입 게이트 공용 진입점 -------------------------------------------------
+# 계정을 만드는 경로는 **전부** 여기를 통과해야 한다. 예전엔 게이트가 /consent/record
+# 한 곳에만 걸려 있어서, 차단 법역에서도 계정은 생성되고 동의만 451 로 실패했다
+# (= 동의 없는 계정이 남는다). 클라이언트 UI 를 유일한 방어선으로 두면 안 된다.
+
+def signup_overrides(extra: dict[str, bool] | None = None) -> dict[str, bool]:
+    """운영 기본 해제 스위치(env). 서버 값이라 클라이언트가 우회할 수 없다."""
+    from app.core.config import settings  # 지연 import — 설정 로딩 순서 의존 회피
+    return {"KR_signup": settings.allow_kr_signup, **(extra or {})}
+
+
+def resolve_for_signup(
+    *,
+    selected_country: str,
+    farm_country: str | None = None,
+    farm_state: str | None = None,
+    feature_overrides: dict[str, bool] | None = None,
+) -> Jurisdiction:
+    """가입 맥락의 법역 판별 — env 해제 스위치를 적용한 뒤 resolve 한다."""
+    return resolve(
+        selected_country=selected_country,
+        farm_country=farm_country,
+        farm_state=farm_state,
+        feature_overrides=signup_overrides(feature_overrides),
+    )
+
+
+def assert_signup_allowed(
+    *,
+    selected_country: str,
+    farm_country: str | None = None,
+    farm_state: str | None = None,
+) -> None:
+    """차단 법역이면 451(Unavailable For Legal Reasons). 사유코드를 그대로 실어 보낸다."""
+    from fastapi import HTTPException  # 지연 import — 이 모듈은 순수 정책 계층
+
+    j = resolve_for_signup(
+        selected_country=selected_country,
+        farm_country=farm_country,
+        farm_state=farm_state,
+    )
+    if j.gate.signup_blocked:
+        raise HTTPException(451, f"SIGNUP_BLOCKED:{j.gate.reason_code}")

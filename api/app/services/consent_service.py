@@ -16,7 +16,6 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
 from app.db.models.consent import ConsentRecord
 from app.policy import consent_matrix as cm
 from app.schemas.consent import (
@@ -55,14 +54,13 @@ def build_signup_plan(
     include_body: bool = True,
     feature_overrides: dict[str, bool] | None = None,
 ) -> SignupPlan:
-    # KR 가입은 운영 기본 차단(레퍼런스 전용). allow_kr_signup(env)이 켜진 환경(대표 확인용)에서만 해제.
-    # 서버 env 기반이라 클라이언트가 우회 불가. 명시 feature_overrides가 우선.
-    overrides = {"KR_signup": settings.allow_kr_signup, **(feature_overrides or {})}
-    j = jz.resolve(
+    # 게이트 판정은 jurisdiction.resolve_for_signup 이 SSOT — 가입 경로 전부가 같은 판정을 쓴다.
+    # (KR 은 운영 기본 차단=레퍼런스 전용, allow_kr_signup env 로만 해제. 서버 값이라 우회 불가.)
+    j = jz.resolve_for_signup(
         selected_country=selected_country,
         farm_country=farm_country,
         farm_state=farm_state,
-        feature_overrides=overrides,
+        feature_overrides=feature_overrides,
     )
     use_lang = lang or tr.language_for(j.group)
     doc_set = tr.build_document_set(jurisdiction_code=j.code, group=j.group, lang=use_lang)

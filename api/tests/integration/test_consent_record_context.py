@@ -45,7 +45,9 @@ async def test_vn_transaction_matching_hidden_not_recorded(db: AsyncSession, tes
 
 async def test_kr_signup_blocked_when_allow_off(db: AsyncSession, test_user, test_farm, monkeypatch):
     # 운영 기본(allow_kr_signup=False) → KR 실고객 가입 차단(451). autouse override를 이 테스트만 끔.
-    monkeypatch.setattr("app.services.consent_service.settings.allow_kr_signup", False)
+    # 게이트 판정이 jurisdiction.signup_overrides 로 모이면서 설정을 지연 조회한다 → 정본 settings 를 패치.
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "allow_kr_signup", False)
     req = RecordConsentRequest(
         farm_id=test_farm.id, selected_country="KR", farm_country="KR",
         terms_ack=True, privacy_ack=True, choices=[],
