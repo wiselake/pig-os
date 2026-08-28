@@ -11,6 +11,7 @@ from sqlalchemy import select
 
 from app.db.models.platform import Farm
 from app.db.session import AsyncSessionLocal
+from app.jobs._result import job_result
 from app.services import device_service, notification_service, push_service
 
 log = logging.getLogger(__name__)
@@ -84,9 +85,8 @@ async def generate_notifications_job(ctx: dict) -> str:
             log.error("generate_notifications farm=%s error=%s", farm_id, e)
             errors += 1
 
-    result = (
-        f"notification generation done: {processed} farms, "
-        f"{total_created} created, {total_pushed} pushed, {errors} errors"
+    return job_result(
+        "generate_notifications_job",
+        expected=len(farm_ids), success=processed, errors=errors,
+        detail=f"{total_created} created, {total_pushed} pushed",
     )
-    log.info(result)
-    return result

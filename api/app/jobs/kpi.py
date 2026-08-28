@@ -16,6 +16,7 @@ from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy import func, select
+from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.farm_time import today_in_tz
@@ -24,8 +25,54 @@ from app.db.models.ops import KpiSnapshot
 from app.db.models.platform import Farm
 from app.db.models.sow import Sow
 from app.db.session import AsyncSessionLocal
+from app.jobs._result import job_result
 
 log = logging.getLogger(__name__)
+
+
+# -- Snapshot supported-field contract ----------------------------------------
+# 2026-08-28 런타임 감사: 이 잡은 2026-05-29(26c2e68) 이래 한 번도 성공한 적이 없다.
+#   _calculate_farm_kpi 가 "farrowing_rate" 를 반환하는데 KpiSnapshot 에 그 컬럼이 없어
+#   TypeError 로 71농장 전건 실패했고, 잡은 성공으로 보고했다.
+#   두 파일이 같은 커밋에서 태어나면서 어긋났다 - 표류가 아니라 처음부터 안 맞았다.
+#   근거: docs/runs/RUNTIME_INTEGRITY_AUDIT_20260828.md A4
+#
+#   재발 방지: 모델 컬럼을 런타임에 읽어 그것만 저장한다. 페이로드에 새 키가 생겨도
+#   전건 실패로 번지지 않고 그 필드만 빠진다(per-field fail-safe).
+
+_SNAPSHOT_COLUMNS: frozenset[str] = frozenset(
+    c.key for c in sa_inspect(KpiSnapshot).mapper.column_attrs
+)
+
+# 컬럼이 있더라도 아직 영속하면 안 되는 필드. 이유 없이 추가하지 말 것.
+_WITHHELD_FIELDS: dict[str, str] = {
+    "farrowing_rate": (
+        "canonical formula AMBIGUOUS - 산식 4개가 live 다(D-13 재실사 1-3). "
+        "P0-2/D-13 확정 전에는 어느 산식의 값인지 말할 수 없으므로 영속 금지."
+    ),
+    "psy": (
+        "이 잡의 PSY 는 canonical(kpi_service.calculate_psy) 과 분모가 다르다"
+        "(D-13 재실사 1-4: point-in-time 재고, parity 필터 없음). "
+        "정렬 전에 저장하면 대시보드와 다른 PSY 가 영속된다."
+    ),
+}
+
+
+def _snapshot_payload(kpi: dict) -> tuple[dict, dict[str, str]]:
+    """KpiSnapshot 에 실제로 넣을 수 있고, 넣어도 되는 필드만 남긴다.
+
+    반환 (persisted, dropped) - dropped 는 {필드: 사유}.
+    """
+    persisted: dict = {}
+    dropped: dict[str, str] = {}
+    for k, v in kpi.items():
+        if k in _WITHHELD_FIELDS:
+            dropped[k] = _WITHHELD_FIELDS[k]
+        elif k not in _SNAPSHOT_COLUMNS:
+            dropped[k] = "KpiSnapshot 에 해당 컬럼이 없다"
+        else:
+            persisted[k] = v
+    return persisted, dropped
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -163,8 +210,13 @@ async def _upsert_snapshot(
             KpiSnapshot.period_start == period_start,
         )
     )
+    persisted, dropped = _snapshot_payload(kpi)
+    if dropped:
+        # 조용히 버리지 않는다 - 무엇을 왜 안 넣었는지 보이게 한다.
+        log.debug("snapshot fields withheld farm=%s: %s", farm_id, sorted(dropped))
+
     if existing:
-        for k, v in kpi.items():
+        for k, v in persisted.items():
             setattr(existing, k, v)
         existing.is_stale = False
         existing.calculated_at = datetime.now(UTC)
@@ -175,7 +227,7 @@ async def _upsert_snapshot(
             period_start=period_start,
             period_end=period_end,
             is_stale=False,
-            **kpi,
+            **persisted,
         ))
     await db.commit()
 
@@ -215,9 +267,11 @@ async def daily_kpi_aggregation(ctx: dict) -> str:
             log.error("daily_kpi farm=%s error=%s", farm_id, e)
             errors += 1
 
-    result = f"daily KPI done: {processed} farms, {errors} errors, period={last_period}"
-    log.info(result)
-    return result
+    return job_result(
+        "daily_kpi_aggregation",
+        expected=len(farms), success=processed, errors=errors,
+        detail=f"period={last_period}",
+    )
 
 
 async def weekly_kpi_aggregation(ctx: dict) -> str:
@@ -225,7 +279,7 @@ async def weekly_kpi_aggregation(ctx: dict) -> str:
     async with AsyncSessionLocal() as db:
         farms = await _active_farms(db)
 
-    processed = 0
+    processed = errors = 0
     last_period = (None, None)
     for farm_id, tz in farms:
         try:
@@ -237,8 +291,13 @@ async def weekly_kpi_aggregation(ctx: dict) -> str:
             processed += 1
         except Exception as e:
             log.error("weekly_kpi farm=%s error=%s", farm_id, e)
+            errors += 1
 
-    return f"weekly KPI done: {processed} farms, period={last_period[0]}~{last_period[1]}"
+    return job_result(
+        "weekly_kpi_aggregation",
+        expected=len(farms), success=processed, errors=errors,
+        detail=f"period={last_period[0]}~{last_period[1]}",
+    )
 
 
 async def monthly_kpi_aggregation(ctx: dict) -> str:
@@ -246,7 +305,7 @@ async def monthly_kpi_aggregation(ctx: dict) -> str:
     async with AsyncSessionLocal() as db:
         farms = await _active_farms(db)
 
-    processed = 0
+    processed = errors = 0
     last_period = (None, None)
     for farm_id, tz in farms:
         try:
@@ -258,8 +317,13 @@ async def monthly_kpi_aggregation(ctx: dict) -> str:
             processed += 1
         except Exception as e:
             log.error("monthly_kpi farm=%s error=%s", farm_id, e)
+            errors += 1
 
-    return f"monthly KPI done: {processed} farms, period={last_period[0]}~{last_period[1]}"
+    return job_result(
+        "monthly_kpi_aggregation",
+        expected=len(farms), success=processed, errors=errors,
+        detail=f"period={last_period[0]}~{last_period[1]}",
+    )
 
 
 async def recalculate_farm_kpi(ctx: dict, farm_id: str, period_start: str, period_end: str) -> str:
@@ -271,12 +335,20 @@ async def recalculate_farm_kpi(ctx: dict, farm_id: str, period_start: str, perio
     ps = date.fromisoformat(period_start)
     pe = date.fromisoformat(period_end)
 
-    for period_type in ("DAILY", "WEEKLY", "MONTHLY"):
+    periods = ("DAILY", "WEEKLY", "MONTHLY")
+    processed = errors = 0
+    for period_type in periods:
         try:
             async with AsyncSessionLocal() as db:
                 kpi = await _calculate_farm_kpi(db, fid, period_type, ps, pe)
                 await _upsert_snapshot(db, fid, period_type, ps, pe, kpi)
+            processed += 1
         except Exception as e:
             log.error("recalc_kpi farm=%s period=%s error=%s", farm_id, period_type, e)
+            errors += 1
 
-    return f"recalculated KPI farm={farm_id} period={period_start}~{period_end}"
+    return job_result(
+        "recalculate_farm_kpi",
+        expected=len(periods), success=processed, errors=errors,
+        detail=f"farm={farm_id} period={period_start}~{period_end}",
+    )
