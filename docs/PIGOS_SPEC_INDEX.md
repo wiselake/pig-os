@@ -21,6 +21,8 @@
 
 **런 프롬프트** (`docs/runs/`): RUN_PROMPT_A(정책 벡터) / B(Envelope) / C(KPI v0.4+evidence+대표 결정요청서) / D(국가·주별 법무 리서치). 플레이스홀더(baseline 해시·테스트 수·런로그 경로) 채운 후 실행.
 
+**프로젝트 정본 브리프**: `docs/PIGOS_PROJECT_BRIEF.md` — PigOS 가 무엇인지·타겟·경쟁 지형·실측 운영 상태를 한 곳에. PART A 는 외부 리서치 도구에 붙이는 컨텍스트 프롬프트, PART B 는 수집 정보를 개발 방향 결정으로 옮기는 규칙(정보→대표 결정→Decision Register→구현 순서 고정).
+
 **법무 실측 감사 2건** (#7 의 근거): `docs/legal/LEGAL_PUBLICATION_GAP_REPORT_20260902.md`(문서·구현·승인 gap — publish_candidate v1.0-rc 가 정본이고 runtime 은 placeholder) · `docs/legal/PRODUCTION_CONSENT_LEDGER_AUDIT_20260902.md`(운영 원장 0행 → `PLACEHOLDER_CONSENT_PROD = NOT_FOUND`).
 
 **기존 문서 연결**: `docs/specs/2026-06-17_country-kpi-differences.md`(런 C 입력, v0.4 대조 필수) · `docs/specs/2026-07-10_signup-onboarding-spec.md`(#1 §11과 정합 확인) · `docs/KPI_DEFINITIONS.md` · `docs/RULE_ENGINE_CATALOG.md` · `docs/legal-review-notes.md` · BILLING_ARCHITECTURE_NOTE.
