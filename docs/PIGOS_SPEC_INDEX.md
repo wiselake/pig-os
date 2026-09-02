@@ -17,8 +17,11 @@
 | 4 | ANONYMIZATION_RELEASE_GATE_SPEC | `docs/specs/ANONYMIZATION_RELEASE_GATE_SPEC.md` | **Data Asset Policy 소유 (A-rule 집행 SSOT)** + 판매 게이트 체크리스트 | v0.1 스켈레톤 — PigSignal 판매 게이트 |
 | 5 | MEETING_NOTES_2026-07-21 | `docs/meetings/MEETING_NOTES_2026-07-21.md` | 회의 기록 + 액션 트래커. **결정 아님 — 확정은 Decision Register만** | v1.0 |
 | 6 | MASTER_SCHEDULE | `docs/planning/MASTER_SCHEDULE_2026-07.md` | 통합 일정 (대표 미팅 날짜 변수형) | v0.1 |
+| 7 | PIGOS_COUNTRY_LEGAL_ONBOARDING_SPEC v1.0 | `docs/legal/PIGOS_COUNTRY_LEGAL_ONBOARDING_SPEC_v1.0.md` | 국가별 가입·약관·동의·증빙 통합 baseline. Legal document ↔ Consent decision 분리, 문서 lifecycle(PUBLISHED only), promotion 파이프라인, **LEGAL-/KPI- ID namespace 분리** | v1.0 — DEVELOPMENT BASELINE / **LEGAL APPROVAL PENDING** |
 
 **런 프롬프트** (`docs/runs/`): RUN_PROMPT_A(정책 벡터) / B(Envelope) / C(KPI v0.4+evidence+대표 결정요청서) / D(국가·주별 법무 리서치). 플레이스홀더(baseline 해시·테스트 수·런로그 경로) 채운 후 실행.
+
+**법무 실측 감사 2건** (#7 의 근거): `docs/legal/LEGAL_PUBLICATION_GAP_REPORT_20260902.md`(문서·구현·승인 gap — publish_candidate v1.0-rc 가 정본이고 runtime 은 placeholder) · `docs/legal/PRODUCTION_CONSENT_LEDGER_AUDIT_20260902.md`(운영 원장 0행 → `PLACEHOLDER_CONSENT_PROD = NOT_FOUND`).
 
 **기존 문서 연결**: `docs/specs/2026-06-17_country-kpi-differences.md`(런 C 입력, v0.4 대조 필수) · `docs/specs/2026-07-10_signup-onboarding-spec.md`(#1 §11과 정합 확인) · `docs/KPI_DEFINITIONS.md` · `docs/RULE_ENGINE_CATALOG.md` · `docs/legal-review-notes.md` · BILLING_ARCHITECTURE_NOTE.
 
