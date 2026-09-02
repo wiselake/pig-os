@@ -431,7 +431,7 @@ legal_approval_ready     = NO
 promotion 파이프라인·검증 코드는 지금 만들 수 있다. 단 실제 `PUBLISHED` 승격은
 `legal_approval_ready = YES` 전까지 **HOLD** 다.
 
-기타 P1: Android `lang` 전달 · Web withdrawal server-driven 전환 · revision/re-consent 구현 ·
+기타 P1: Web withdrawal server-driven 전환 · revision/re-consent 구현 ·
 unsupported country fail-closed · per-document evidence 강화 · Web/Android/iOS parity test
 
 ---
@@ -553,6 +553,13 @@ B2B DPA 구조 (§6)
                                         purpose_2_eligible=false 기본값
 
 D 번호 충돌 (§17)  실제로 D-8 · D-13 이 두 트랙에 동시 존재
+
+철회된 관찰
+  "Android 가 lang 을 안 보낸다" 는 오독이었다 — ViewModel 호출부만 보고
+  리포지토리 기본값을 따라가지 않았다. ConsentRepository.kt:45,67 이
+  `lang ?: appLang()` 으로 채운다. Android 는 lang 을 정상 전송한다.
+  BR/TH/VN 이 영어로 폴백되는 원인은 클라이언트가 아니라 manifest 에
+  pt/th/vi 파일이 없는 것이다.
 ```
 
 ## 부록 B. 관련 문서
