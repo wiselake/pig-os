@@ -1,0 +1,579 @@
+{
+ "BR": {
+  "docs": [
+   "MASTER_TERMS@0.1-draft",
+   "GLOBAL_PRIVACY_NOTICE@0.1-draft",
+   "ADDENDUM_BR@0.1-draft"
+  ],
+  "gate": {
+   "paid_blocked": false,
+   "reason_code": "OPEN_BR_SCC",
+   "release_hold": true,
+   "signup_blocked": false
+  },
+  "group": "BR",
+  "purposes": {
+   "AI_MODEL_TRAINING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "ANON_AGG_STATS": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "LEGITIMATE_INTEREST",
+    "ui_kind": "LI_OBJECT",
+    "visible": true
+   },
+   "EXTERNAL_AI_PROCESSING": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "PROCESSOR_TRANSFER",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "NAMED_RESEARCH": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "SERVICE_OPERATION": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "CONTRACT",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "TRANSACTION_MATCHING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   }
+  }
+ },
+ "CN": {
+  "docs": [
+   "MASTER_TERMS@0.1-draft",
+   "GLOBAL_PRIVACY_NOTICE@0.1-draft"
+  ],
+  "gate": {
+   "paid_blocked": false,
+   "reason_code": "HOLD_D07",
+   "release_hold": false,
+   "signup_blocked": true
+  },
+  "group": "CN",
+  "purposes": {
+   "AI_MODEL_TRAINING": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "BLOCKED",
+    "visible": false
+   },
+   "ANON_AGG_STATS": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "ANONYMIZED_EXEMPT",
+    "ui_kind": "BLOCKED",
+    "visible": false
+   },
+   "EXTERNAL_AI_PROCESSING": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "BLOCKED",
+    "visible": false
+   },
+   "NAMED_RESEARCH": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "BLOCKED",
+    "visible": false
+   },
+   "SERVICE_OPERATION": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "CONTRACT",
+    "ui_kind": "BLOCKED",
+    "visible": false
+   },
+   "TRANSACTION_MATCHING": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "BLOCKED",
+    "visible": false
+   }
+  }
+ },
+ "DE": {
+  "docs": [
+   "MASTER_TERMS@0.1-draft",
+   "GLOBAL_PRIVACY_NOTICE@0.1-draft",
+   "ADDENDUM_EU@0.1-draft"
+  ],
+  "gate": {
+   "paid_blocked": false,
+   "reason_code": "OPEN_EU_REP",
+   "release_hold": true,
+   "signup_blocked": false
+  },
+  "group": "EU",
+  "purposes": {
+   "AI_MODEL_TRAINING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "ANON_AGG_STATS": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "LEGITIMATE_INTEREST",
+    "ui_kind": "LI_OBJECT",
+    "visible": true
+   },
+   "EXTERNAL_AI_PROCESSING": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "PROCESSOR_TRANSFER",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "NAMED_RESEARCH": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "SERVICE_OPERATION": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "CONTRACT",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "TRANSACTION_MATCHING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   }
+  }
+ },
+ "GB": {
+  "docs": [
+   "MASTER_TERMS@0.1-draft",
+   "GLOBAL_PRIVACY_NOTICE@0.1-draft",
+   "ADDENDUM_GB@0.1-draft"
+  ],
+  "gate": {
+   "paid_blocked": false,
+   "reason_code": "OPEN_UK_REP",
+   "release_hold": true,
+   "signup_blocked": false
+  },
+  "group": "GB",
+  "purposes": {
+   "AI_MODEL_TRAINING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "ANON_AGG_STATS": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "LEGITIMATE_INTEREST",
+    "ui_kind": "LI_OBJECT",
+    "visible": true
+   },
+   "EXTERNAL_AI_PROCESSING": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "PROCESSOR_TRANSFER",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "NAMED_RESEARCH": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "SERVICE_OPERATION": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "CONTRACT",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "TRANSACTION_MATCHING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   }
+  }
+ },
+ "KR": {
+  "docs": [
+   "MASTER_TERMS@0.1-draft",
+   "GLOBAL_PRIVACY_NOTICE@0.1-draft"
+  ],
+  "gate": {
+   "paid_blocked": false,
+   "reason_code": "OVERRIDE_KR",
+   "release_hold": false,
+   "signup_blocked": false
+  },
+  "group": "KR",
+  "purposes": {
+   "AI_MODEL_TRAINING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "ANON_AGG_STATS": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "ANONYMIZED_EXEMPT",
+    "ui_kind": "NOTICE_EXCLUSION",
+    "visible": true
+   },
+   "EXTERNAL_AI_PROCESSING": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "PROCESSOR_TRANSFER",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "NAMED_RESEARCH": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "SERVICE_OPERATION": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "CONTRACT",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "TRANSACTION_MATCHING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   }
+  }
+ },
+ "MX": {
+  "docs": [
+   "MASTER_TERMS@0.1-draft",
+   "GLOBAL_PRIVACY_NOTICE@0.1-draft"
+  ],
+  "gate": {
+   "paid_blocked": false,
+   "reason_code": null,
+   "release_hold": false,
+   "signup_blocked": false
+  },
+  "group": "OTHER",
+  "purposes": {
+   "AI_MODEL_TRAINING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "ANON_AGG_STATS": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "ANONYMIZED_EXEMPT",
+    "ui_kind": "NOTICE_EXCLUSION",
+    "visible": true
+   },
+   "EXTERNAL_AI_PROCESSING": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "PROCESSOR_TRANSFER",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "NAMED_RESEARCH": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "SERVICE_OPERATION": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "CONTRACT",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "TRANSACTION_MATCHING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   }
+  }
+ },
+ "TH": {
+  "docs": [
+   "MASTER_TERMS@0.1-draft",
+   "GLOBAL_PRIVACY_NOTICE@0.1-draft",
+   "ADDENDUM_TH@0.1-draft"
+  ],
+  "gate": {
+   "paid_blocked": true,
+   "reason_code": "GATE_D09",
+   "release_hold": false,
+   "signup_blocked": false
+  },
+  "group": "TH",
+  "purposes": {
+   "AI_MODEL_TRAINING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "ANON_AGG_STATS": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "LEGITIMATE_INTEREST",
+    "ui_kind": "NOTICE_EXCLUSION",
+    "visible": true
+   },
+   "EXTERNAL_AI_PROCESSING": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "PROCESSOR_TRANSFER",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "NAMED_RESEARCH": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "SERVICE_OPERATION": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "CONTRACT",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "TRANSACTION_MATCHING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   }
+  }
+ },
+ "US": {
+  "docs": [
+   "MASTER_TERMS@0.1-draft",
+   "GLOBAL_PRIVACY_NOTICE@0.1-draft",
+   "ADDENDUM_US@0.1-draft"
+  ],
+  "gate": {
+   "paid_blocked": false,
+   "reason_code": null,
+   "release_hold": false,
+   "signup_blocked": false
+  },
+  "group": "US",
+  "purposes": {
+   "AI_MODEL_TRAINING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "ANON_AGG_STATS": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "DEIDENTIFIED_EXEMPT",
+    "ui_kind": "NOTICE_EXCLUSION",
+    "visible": true
+   },
+   "EXTERNAL_AI_PROCESSING": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "PROCESSOR_TRANSFER",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "NAMED_RESEARCH": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "SERVICE_OPERATION": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "CONTRACT",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "TRANSACTION_MATCHING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   }
+  }
+ },
+ "US-NE": {
+  "docs": [
+   "MASTER_TERMS@0.1-draft",
+   "GLOBAL_PRIVACY_NOTICE@0.1-draft",
+   "ADDENDUM_US@0.1-draft"
+  ],
+  "gate": {
+   "paid_blocked": false,
+   "reason_code": null,
+   "release_hold": false,
+   "signup_blocked": false
+  },
+  "group": "US",
+  "purposes": {
+   "AI_MODEL_TRAINING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "ANON_AGG_STATS": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "DEIDENTIFIED_EXEMPT",
+    "ui_kind": "WRITTEN_OPT_IN",
+    "visible": true
+   },
+   "EXTERNAL_AI_PROCESSING": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "PROCESSOR_TRANSFER",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "NAMED_RESEARCH": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "WRITTEN_OPT_IN",
+    "visible": true
+   },
+   "SERVICE_OPERATION": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "CONTRACT",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "TRANSACTION_MATCHING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   }
+  }
+ },
+ "VN": {
+  "docs": [
+   "MASTER_TERMS@0.1-draft",
+   "GLOBAL_PRIVACY_NOTICE@0.1-draft",
+   "ADDENDUM_VN@0.1-draft"
+  ],
+  "gate": {
+   "paid_blocked": true,
+   "reason_code": "GATE_D08",
+   "release_hold": false,
+   "signup_blocked": false
+  },
+  "group": "VN",
+  "purposes": {
+   "AI_MODEL_TRAINING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "ANON_AGG_STATS": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "EXTERNAL_AI_PROCESSING": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "TRANSFER_CONSENT",
+    "visible": true
+   },
+   "NAMED_RESEARCH": {
+    "default_on": false,
+    "is_toggle": true,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "OPT_IN",
+    "visible": true
+   },
+   "SERVICE_OPERATION": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "CONTRACT",
+    "ui_kind": "NOTICE",
+    "visible": true
+   },
+   "TRANSACTION_MATCHING": {
+    "default_on": false,
+    "is_toggle": false,
+    "lawful_basis": "CONSENT",
+    "ui_kind": "HIDDEN",
+    "visible": false
+   }
+  }
+ }
+}

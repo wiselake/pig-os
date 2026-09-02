@@ -110,7 +110,12 @@ MATRIX: dict[str, dict[str, PurposePolicy]] = {
         GROUP_VN: _opt_in("ANON_AGG_STATS", tag="COUNSEL_CONFIRMATION_REQUIRED"),
         GROUP_CN: PurposePolicy("ANON_AGG_STATS", "ANONYMIZED_EXEMPT", "BLOCKED", None,
                                 status_tag="HOLD_D07"),
-        GROUP_OTHER: PurposePolicy("ANON_AGG_STATS", "ANONYMIZED_EXEMPT", "NOTICE_EXCLUSION",
+        # ★ 미지원국(부속조항 없음) — 마스터 약관 제10조③: ②③④⑤ 기본 OFF,
+        #   옵트아웃 자동적용 금지. 이전에는 "NOTICE_EXCLUSION"(고지+제외요청)이었는데
+        #   그건 TERMS_DISPLAY_SPEC §2 "기타 국가" 행을 따른 것이고, 마스터가 우선한다.
+        #   법역 검토를 마치지 않은 국가에서 익명·집계 처리를 고지만으로 시작하지 않는다.
+        #   ※ 이 값은 어떤 국가도 legal-ready 로 만들지 않는다 — 비활성화일 뿐이다.
+        GROUP_OTHER: PurposePolicy("ANON_AGG_STATS", "ANONYMIZED_EXEMPT", "BLOCKED",
                                    "NOTICE_GIVEN", status_tag="COUNSEL_CONFIRMATION_REQUIRED"),
     },
     # ③ AI_MODEL_TRAINING — 옵트인 공통(D-02)
