@@ -468,6 +468,115 @@ class                          = CORRECTNESS_DEFECT   (parity gap 아님)
 
 ---
 
+### P0-ANDROID-DETAIL-SEVERITY. Android `KpiDetailScreen` benchmark 유래 판정
+
+> ★ **P0-1 과 합치지 않는다.** 뿌리는 같지만(판정 권한 누수) 결함 위치·수정 SHA·
+> 회귀 테스트·runtime 검증·종료 시점이 모두 다르다. 한 항목으로 묶으면 한쪽만
+> merge·검증됐는데 전체 P0 가 닫힌 것처럼 보인다.
+>
+> ★ **번호를 `P0-2` 로 쓰지 않는다.** 그 번호는 KPI 트랙에서 이미 다른 의미로 쓰이고 있다
+> (`docs/kpi/CANONICAL_FORMULA_SPEC.md` §10 "AMBIGUOUS Items → P0-2 Decision",
+> `D19_THRESHOLD_SOURCE_AUDIT.md` §6 "사산 P0-2"). 번호 재사용은 금지한다.
+
+```
+root_cause    client-side decision authority leakage
+class         CORRECTNESS_DEFECT   (parity gap 아님)
+risk          SERVER_DECISION_OVERRIDE
+```
+
+**finding**
+
+`KpiDetailScreen.BenchmarkGauge` 가 농장값과 벤치마크 평균을 비교해 색을 직접 만들었다.
+
+```kotlin
+// KpiDetailScreen.kt:123  (수정 전)
+val meetsAvg = if (higherIsBetter) myValue >= avg else myValue <= avg
+val dotColor = when (meetsAvg) { true -> Success; false -> Warning; null -> TextMuted }
+```
+
+PR #1 이 대시보드에서 걷어낸 패턴이 상세 화면에 남아 있었다. 이 `dotColor` 는 게이지 점과
+값 텍스트를 함께 칠하므로, 같은 KPI 가 두 화면에서 다른 판정으로 보일 수 있었다.
+
+```
+대시보드   서버 kpi_status = critical   →  빨강
+상세       myValue >= avg               →  초록
+```
+
+**왜 단순 제거로 끝나지 않았는가**
+
+`/kpi/psy` · `/kpi/npd` 응답에는 `kpi_status` 가 없다(benchmark 값만 있다). 상세 화면은
+판정 재료 없이 화면을 그려야 했고 손에 있던 benchmark 로 자체 판정했다. 코드를 지우는 것이
+아니라 **판정 소스를 연결**해야 했다 — 값은 상세 엔드포인트, 판정은 대시보드와 같은
+`kpi_status` 맵(`KpiDetail.decisions`). 조회 실패 시 빈 맵 → `INSUFFICIENT`(무채색)이며
+초록으로 승격하지 않는다.
+
+**invariant**
+
+```
+server kpi_status  =  sole severity authority
+benchmark          =  comparison context only
+Dashboard severity == Detail severity          같은 소스 + 같은 decisionColor 함수
+NO_VERDICT         →  INSUFFICIENT (초록 승격 금지)
+```
+
+`decisionColor` 를 `private` → `internal` 로 바꿔 두 화면이 같은 함수를 쓰게 했다.
+매핑을 복제하면 한쪽만 고쳐져 다시 갈라진다.
+
+**remediation**
+
+```
+PR                wiselake/pigos-android#4  fix/kpi-detail-server-severity
+base              fix/kpi-status-consumption (#1)   — PR #2(presentation)와 무의존
+diff              3 files · +49 −23
+```
+
+**상태 — 축을 분리한다**
+
+```
+implementation_status           DONE
+implementation_sha              183aaa8
+delivery_status                 NOT_MERGED
+platform_implementation_status  IN_PROGRESS
+    ★ CLAUDE.md §5 열거형은 DONE 에 implementation commit SHA 를 요구하고,
+      그 SHA 는 main 에 있어야 한다. 183aaa8 은 아직 branch 위에 있다.
+      "DONE_ON_BRANCH" 는 열거형에 없으므로 축을 나눠 표기한다.
+regression_test_status          PASS
+runtime_reproduction_status     NOT_RUNTIME_VERIFIED
+```
+
+**regression_evidence**
+
+```
+① behavioral conflict fixture   server=CRITICAL · myValue=29.0 · benchmark avg=28.0
+                                (PSY 는 높을수록 좋음 → 로컬 계산은 초록을 냈다)
+                                역방향(server=normal, 벤치마크 미달)과 NPD 방향도 함께 잠금
+② structural guard              주석 제거 후 banned 패턴 검사
+                                banned: meetsAvg · higherIsBetter · ">= avg" · "<= avg"
+                                현재 브랜치 0건 · base 브랜치 5건 검출 확인
+③ shared-function guard         decisionColor 정의가 DashboardScreen 에 1개,
+                                상세 화면에 0개 — 매핑 복제 금지
+파일                            KpiDetailSeverityTest.kt (8건)
+로컬                            441 tests · 0 failures
+CI                              run 33588525343 · build-and-test pass 4m44s
+```
+
+★ **①과 ②를 함께 유지한다.** 처음 작성한 계약 테스트(①만)는 **구 코드에서도 통과했다** —
+구 코드는 `KpiDecision` 을 거치지 않고 `dotColor` 를 직접 만들었기 때문에 제거된 경로를
+지나지 않는다. 그것을 확인한 뒤 ②를 추가했다. 반대로 ②만 남기면 소스 패턴은 피하면서
+동작이 어긋나는 변형을 놓친다. 둘은 서로를 대체하지 않는다.
+
+**closure_condition**
+
+```
+PR merge
++ target build / runtime verification
++ 대시보드와 상세가 같은 server decision 을 표시하는 것을 실기기에서 확인
+```
+
+세 조건이 모두 충족되기 전에는 `platform_implementation_status` 를 올리지 않는다.
+
+---
+
 ## 9-1. `OPEN_BLOCKERS`
 
 | # | blocker | 영향 |
