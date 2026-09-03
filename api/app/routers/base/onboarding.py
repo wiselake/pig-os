@@ -16,7 +16,7 @@ from fastapi import APIRouter
 from app.core.dependencies import CurrentUser, DbDep, FarmDep, require_farm_role, require_role
 from app.schemas.auth import OnboardingCompleteRequest, OnboardingCompleteResponse
 from app.schemas.farm import FarmConfigSet, FarmCreate, FarmResponse, OnboardingStatus
-from app.services import auth_service, farm_service
+from app.services import auth_service, eligibility, farm_service
 
 router = APIRouter(prefix="/onboarding", tags=["Onboarding"])
 
@@ -27,6 +27,12 @@ async def onboarding_complete(body: OnboardingCompleteRequest, db: DbDep):
     One-step onboarding: create org + user + farm in a single call.
     Returns tokens immediately — no follow-up steps required.
     """
+    # 계정 국가와 농장 국가를 함께 넣는다 — 이 엔드포인트는 org+user+farm 을 한 번에
+    # 만들므로 둘 다 판정 대상이다(현재 계약상 같은 값이지만 resolver 의미를 유지한다).
+    # ★ 첫 DB write 이전에 막는다 — rollback 에 기대지 않는다.
+    eligibility.assert_country_entry_allowed(
+        selected_country=body.country, farm_country=body.country,
+    )
     return await auth_service.complete_onboarding(db, body)
 
 
@@ -39,6 +45,12 @@ async def create_farm(body: FarmCreate, db: DbDep, current_user: CurrentUser):
     org-스코프 작업 — 농장소유주/조직관리자만(QA 보안 H3: VIEWER/WORKER 등 무권한 생성 차단).
     farm_code is auto-generated: FARM-{COUNTRY}-{ORG_PREFIX}-{RAND}.
     """
+    # ★ 추가 농장은 계정 국가와 농장 국가가 다를 수 있다(US 계정 + BR 농장).
+    #   farm.country 만 넣으면 cross-jurisdiction 판정(더 엄격한 쪽 + counsel)이 사라진다.
+    account_country = await farm_service.org_country(db, current_user.org_id)
+    eligibility.assert_country_entry_allowed(
+        selected_country=account_country or body.country, farm_country=body.country,
+    )
     farm = await farm_service.create_farm(db, current_user.org_id, current_user.id, body)
     return FarmResponse.model_validate(farm)
 

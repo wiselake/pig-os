@@ -31,6 +31,7 @@ from app.schemas.consent import (
     StateFlagsOut,
     WithdrawRequest,
 )
+from app.services import eligibility
 from app.services import jurisdiction as jz
 from app.services import terms_renderer as tr
 
@@ -55,14 +56,13 @@ def build_signup_plan(
     include_body: bool = True,
     feature_overrides: dict[str, bool] | None = None,
 ) -> SignupPlan:
-    # KR 가입은 운영 기본 차단(레퍼런스 전용). allow_kr_signup(env)이 켜진 환경(대표 확인용)에서만 해제.
-    # 서버 env 기반이라 클라이언트가 우회 불가. 명시 feature_overrides가 우선.
-    overrides = {"KR_signup": settings.allow_kr_signup, **(feature_overrides or {})}
-    j = jz.resolve(
+    # override 구성은 eligibility 파사드가 단일 출처다. 여기서 따로 만들면
+    # "동의 화면은 막는데 가입은 뚫리는" 상태가 다시 생긴다(LEGAL-P0-CONSENT-AUTHORITY).
+    j = eligibility.resolve_entry(
         selected_country=selected_country,
         farm_country=farm_country,
         farm_state=farm_state,
-        feature_overrides=overrides,
+        extra_overrides=feature_overrides,
     )
     use_lang = lang or tr.language_for(j.group)
     doc_set = tr.build_document_set(jurisdiction_code=j.code, group=j.group, lang=use_lang)

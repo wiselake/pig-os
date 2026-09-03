@@ -16,7 +16,7 @@ from app.schemas.auth import (
     RegisterRequest,
     TokenResponse,
 )
-from app.services import account_deletion_service, auth_service
+from app.services import account_deletion_service, auth_service, eligibility
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 log = logging.getLogger(__name__)
@@ -28,6 +28,10 @@ async def register(body: RegisterRequest, db: DbDep):
     Create organization + user account. Returns tokens immediately.
     Next step: POST /onboarding/complete
     """
+    # ★ 국가 진입 판정을 서버가 강제한다. 클라이언트가 /consent/record 를 호출하지
+    #   않아도 CN·KR hard block 을 우회할 수 없어야 한다(LEGAL-P0-CONSENT-AUTHORITY).
+    #   첫 DB write 이전에 막는다 — rollback 에 기대지 않는다.
+    eligibility.assert_country_entry_allowed(selected_country=body.country)
     user, org = await auth_service.register(db, body)
     return await auth_service.issue_tokens(db, user)
 
