@@ -87,11 +87,30 @@ src/components/consent/AmendmentBanner.tsx:48   if (dismissed || !outdated) retu
 차단 국가 기존 계정             signup_blocked 무력화 (로그인은 안 막힘)
 iOS main (동의 호출 0건)        가입·로그인 양쪽 다 원장 없이 사용
 Android 구버전                  배포 주기가 길어 오래 남는다
-동의 철회 후                    철회했는데 계속 로그인된다 (미확인 — 아래 참조)
+동의 철회 후                    철회해도 세션은 그대로 유효하다 (2026-09-03 실측)
 ```
 
-★ **마지막 항목은 아직 검증하지 않았다.** `/consent/withdraw` 이후 세션이 어떻게
-되는지 확인하지 않았으므로 사실로 적지 않는다. 확인 전까지 `UNVERIFIED`.
+★ 마지막 항목은 **UNVERIFIED 였으나 닫혔다.**
+`api/tests/integration/test_consent_http_contract.py::test_withdrawal_does_not_end_the_session`
+이 실제 요청으로 확인한다 — 철회 200 직후 같은 토큰으로 `/auth/me` 가 200 이다.
+
+이것 자체를 버그로 단정하지는 않는다. 선택 목적 하나를 철회했다고 서비스가 끊기면
+그게 더 이상하다. 다만 게이트 설계 시 **"동의한 적 없음" 과 "동의했다가 철회함" 을
+반드시 구분**해야 한다는 근거가 된다.
+
+### 부수 발견 — 동의 기록에 농장 소속 검증이 없다
+
+```
+api/app/services/consent_service.py:163   farm_id=req.farm_id   (소속 확인 없음)
+```
+
+남의 `farm_id` 로 자기 동의 행을 남길 수 있다. 읽기는 `user_id` 로 걸리므로 남의
+동의를 보거나 바꾸지는 못한다. 그러나 원장은 법적 증거물이고, 관계없는 농장에
+귀속된 행이 섞이면 증거로서의 값이 떨어진다.
+
+권한 경계 변경이라 이번 RUN 에서 고치지 않았다. 현재 동작은
+`test_record_does_not_verify_farm_membership` 이 고정하고 있으며, 고칠 때 그
+테스트가 반드시 함께 바뀐다.
 
 ---
 
