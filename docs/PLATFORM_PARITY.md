@@ -596,6 +596,7 @@ PR merge
 | **B-13** | `ALERT_DECISION_REPRODUCIBILITY` | 고객 대면 알림 468건에 threshold · authority · formula version 미저장 |
 | **B-14** | `UNAUDITED_AUTHORITY_CONFIG_CHANGE` | `use_governance_benchmarks` 는 GLOBAL scope 인데 변경 기록이 남는 곳이 없다 |
 | **B-15** | `CONSENT_FARM_AUTHORITY_403` — **API 계약 변경** | `POST /consent/record`·`/consent/withdraw` 가 접근 불가 `farm_id` 에 **403** 을 반환하기 시작했다(LEGAL-P0-CONSENT-FARM-AUTHORITY). 기존에는 무조건 성공. 웹은 `PROD_NOT_DEPLOYED` 상태로 대응 완료, **모바일 2개 저장소는 미대응** — 403 을 처리하지 않으면 동의 화면이 원인 불명으로 실패한다. 계약 변경이라 기능보다 위험(§CLAUDE.md 5) |
+| **B-16** | `CONSENT_PERSISTENCE_5XX` | consent write 가 커밋되도록 고쳐지면서 (LEGAL-P0-CONSENT-LEDGER-PERSISTENCE), **커밋 실패 시 5xx** 가 나올 수 있다. 이전에는 실패해도 200 이었다. 성공 응답 스키마는 변화 없음. 모바일이 record 를 무조건 성공으로 가정하고 있다면 그 가정이 이제 틀리다 |
 
 ---
 

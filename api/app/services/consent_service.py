@@ -224,7 +224,16 @@ async def record_consents(
 
     for rec in written:
         db.add(rec)
-    await db.flush()
+    # ★ commit 한다 (LEGAL-P0-CONSENT-LEDGER-PERSISTENCE).
+    #
+    #   flush 만 하면 요청 종료 시 `get_db` 가 세션을 닫으면서 전부 rollback 된다.
+    #   200 을 받고도 원장이 비는 상태였다. 이 저장소는 **서비스가 트랜잭션을
+    #   소유**하고 커밋한다 — event_service·auth_service·farm_service 전부 그렇다.
+    #   consent_service 만 쓰기를 하면서 커밋하지 않는 유일한 서비스였다.
+    #
+    #   여기서 커밋해도 다른 업무의 atomicity 를 깨지 않는다: 이 함수의 호출자는
+    #   consent 라우터 하나뿐이고, 다른 서비스 트랜잭션 안에서 불리지 않는다.
+    await db.commit()
     return [_to_status(r) for r in written]
 
 
@@ -288,7 +297,8 @@ async def withdraw(
         evidence_ref=(req.reason or prev.evidence_ref),
     )
     db.add(rec)
-    await db.flush()
+    # 철회도 남아야 한다 — 저장되지 않는 철회는 기록하지 않은 것과 같다.
+    await db.commit()
     return _to_status(rec)
 
 
