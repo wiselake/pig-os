@@ -2099,7 +2099,9 @@
     "phSows": "예: 500",
     "phName": "예: 홍길동",
     "phUsername": "예: farmowner",
-    "phEmail": "farmer@example.com"
+    "phEmail": "farmer@example.com",
+    "consentPlanUnavailable": "해당 국가에 적용되는 약관을 불러오지 못했습니다. 동의 없이는 가입을 완료할 수 없습니다. 이전 단계로 돌아가 다시 시도해 주세요.",
+    "consentRecordFailed": "동의 내용을 기록하지 못했습니다. 가입이 완료되지 않았습니다. 다시 시도해 주세요."
   },
   "kpiCards": {
     "labelPSY": "PSY",

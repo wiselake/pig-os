@@ -2099,7 +2099,9 @@
     "phSows": "e.g. 500",
     "phName": "e.g. John Kim",
     "phUsername": "e.g. farmowner",
-    "phEmail": "farmer@example.com"
+    "phEmail": "farmer@example.com",
+    "consentPlanUnavailable": "We couldn't load the terms that apply to your country. You can't complete sign-up without agreeing to them — please go back and try again.",
+    "consentRecordFailed": "We couldn't record your agreement. Your sign-up isn't complete. Please try again."
   },
   "kpiCards": {
     "labelPSY": "PSY",

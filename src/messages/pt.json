@@ -2099,7 +2099,9 @@
     "phSows": "ex. 500",
     "phName": "ex. João Silva",
     "phUsername": "ex. farmowner",
-    "phEmail": "farmer@example.com"
+    "phEmail": "farmer@example.com",
+    "consentPlanUnavailable": "Não conseguimos carregar os termos aplicáveis ao seu país. Você não pode concluir o cadastro sem concordar com eles — volte e tente novamente.",
+    "consentRecordFailed": "Não conseguimos registrar o seu consentimento. Seu cadastro não foi concluído. Tente novamente."
   },
   "kpiCards": {
     "labelPSY": "PSY",

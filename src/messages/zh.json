@@ -2099,7 +2099,9 @@
     "phSows": "如：500",
     "phName": "如：张伟",
     "phUsername": "如：farmowner",
-    "phEmail": "farmer@example.com"
+    "phEmail": "farmer@example.com",
+    "consentPlanUnavailable": "无法加载适用于您所在国家/地区的条款。未同意条款则无法完成注册，请返回上一步重试。",
+    "consentRecordFailed": "未能记录您的同意。注册尚未完成，请重试。"
   },
   "kpiCards": {
     "labelPSY": "PSY",

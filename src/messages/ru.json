@@ -2099,7 +2099,9 @@
     "phSows": "напр. 500",
     "phName": "напр. Иван Иванов",
     "phUsername": "напр. farmowner",
-    "phEmail": "farmer@example.com"
+    "phEmail": "farmer@example.com",
+    "consentPlanUnavailable": "Не удалось загрузить условия, применимые к вашей стране. Без согласия завершить регистрацию нельзя — вернитесь назад и повторите попытку.",
+    "consentRecordFailed": "Не удалось записать ваше согласие. Регистрация не завершена. Повторите попытку."
   },
   "kpiCards": {
     "labelPSY": "PSY",

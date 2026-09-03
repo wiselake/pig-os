@@ -2099,7 +2099,9 @@
     "phSows": "เช่น 500",
     "phName": "เช่น สมชาย",
     "phUsername": "เช่น farmowner",
-    "phEmail": "farmer@example.com"
+    "phEmail": "farmer@example.com",
+    "consentPlanUnavailable": "ไม่สามารถโหลดข้อกำหนดที่ใช้กับประเทศของคุณได้ คุณไม่สามารถสมัครให้เสร็จสิ้นได้หากยังไม่ยอมรับ — โปรดย้อนกลับแล้วลองใหม่",
+    "consentRecordFailed": "ไม่สามารถบันทึกการยินยอมของคุณได้ การสมัครยังไม่เสร็จสมบูรณ์ โปรดลองอีกครั้ง"
   },
   "kpiCards": {
     "labelPSY": "PSY",

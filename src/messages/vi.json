@@ -2099,7 +2099,9 @@
     "phSows": "vd: 500",
     "phName": "vd: Nguyễn Văn A",
     "phUsername": "vd: farmowner",
-    "phEmail": "farmer@example.com"
+    "phEmail": "farmer@example.com",
+    "consentPlanUnavailable": "Không tải được các điều khoản áp dụng cho quốc gia của bạn. Bạn không thể hoàn tất đăng ký nếu chưa đồng ý — vui lòng quay lại và thử lại.",
+    "consentRecordFailed": "Không ghi nhận được sự đồng ý của bạn. Việc đăng ký chưa hoàn tất. Vui lòng thử lại."
   },
   "kpiCards": {
     "labelPSY": "PSY",
