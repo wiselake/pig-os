@@ -16,8 +16,10 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
+from app.core.exceptions import ForbiddenError
+from app.core.permissions import can_access_farm
 from app.db.models.consent import ConsentRecord
+from app.db.models.platform import User
 from app.policy import consent_matrix as cm
 from app.schemas.consent import (
     ConsentChoice,
@@ -37,6 +39,40 @@ from app.services import terms_renderer as tr
 
 _TOGGLE_KINDS = {"OPT_IN", "WRITTEN_OPT_IN", "TRANSFER_CONSENT"}
 _WITHDRAW_ACTIONS = {"WITHDRAWN", "OBJECTED", "EXCLUSION_REQUESTED"}
+
+
+async def _assert_farm_authority(
+    db: AsyncSession, *, user_id: UUID, farm_id: UUID | None,
+) -> None:
+    """farm_id 가 주어졌으면 그 농장에 대한 접근 권한을 확인한다 (LEGAL-P0-CONSENT-FARM-AUTHORITY).
+
+    ## 왜 필요한가
+
+    이전에는 요청 본문의 `farm_id` 를 그대로 원장에 썼다. 인증만 하면 **남의 농장에
+    귀속된 동의 행**을 만들 수 있었다. 읽기는 user_id 로 걸려 유출은 없었지만,
+    원장은 "누가 · 어느 농장에 대해 · 무엇에 동의했는가" 의 법적 증거물이다.
+    귀속이 틀린 행이 섞이면 그 원장으로는 아무것도 증명하지 못한다.
+
+    ## 판정 기준 — 새 규칙을 만들지 않는다
+
+    법무 전용 membership 규칙을 따로 만들면 기존 권한 모델과 갈라진다. farm-scoped
+    API 가 이미 쓰는 canonical semantics(`can_access_farm`)를 그대로 재사용한다 —
+    SUPER_ADMIN 전체, 조직레벨 롤은 org 서브트리, 농장레벨 롤은 user_farms 멤버십.
+    `get_farm_context` 가 판정에 쓰는 것과 같은 함수다.
+
+    실패도 같은 예외를 쓴다. `get_farm_context` 는 없는 농장·비활성 농장·접근 불가
+    농장을 모두 ForbiddenError(403) 로 처리하며 404 로 존재를 숨기지 않는다.
+    동의 엔드포인트만 새 status 를 발명하지 않는다.
+
+    ★ farm_id 가 None 이면 검사하지 않는다. 계정 단위 목적(①⑥)은 농장 스코프가
+      없는 것이 정상이다(`ConsentRecord.farm_id` 가 nullable 인 이유). 이 변경은
+      모든 동의를 farm-scoped 로 강제하지 않는다.
+    """
+    if farm_id is None:
+        return
+    user = await db.get(User, user_id)
+    if user is None or not await can_access_farm(user, farm_id, db):
+        raise ForbiddenError("No access to this farm")
 
 
 def _effective_ui_kind(base_kind: str, purpose: str, sf: jz.StateFlags) -> str:
@@ -133,6 +169,9 @@ async def record_consents(
     db: AsyncSession, *, user_id: UUID, req: RecordConsentRequest,
 ) -> list[ConsentStatusOut]:
     """가입/설정 동의 선택을 원장에 기록. 필수 동의 미체크면 422."""
+    # 인가 먼저 — 남의 농장인지 여부는 본문 유효성보다 앞선 질문이다.
+    await _assert_farm_authority(db, user_id=user_id, farm_id=req.farm_id)
+
     if req.collection_context == "UI_SIGNUP" and not (req.terms_ack and req.privacy_ack):
         raise HTTPException(422, "TERMS_AND_PRIVACY_ACK_REQUIRED")
 
@@ -213,6 +252,9 @@ async def withdraw(
     db: AsyncSession, *, user_id: UUID, req: WithdrawRequest,
 ) -> ConsentStatusOut:
     """철회/이의/제외요청 append. 이전 근거·법역 승계."""
+    # record 만 막으면 이 경로로 같은 일을 할 수 있다 — 두 경로 모두 검증한다.
+    await _assert_farm_authority(db, user_id=user_id, farm_id=req.farm_id)
+
     if req.action not in _WITHDRAW_ACTIONS:
         raise HTTPException(422, f"INVALID_ACTION:{req.action}")
 
@@ -227,6 +269,14 @@ async def withdraw(
     prev = (await db.execute(stmt)).scalars().first()
     if prev is None:
         raise HTTPException(404, f"NO_CONSENT_RECORD:{req.purpose_code}")
+
+    # ★ farm_id 를 생략하면 아래에서 prev.farm_id 를 상속한다(`req.farm_id or prev.farm_id`).
+    #   상속분을 검사하지 않으면 "farm_id 를 빼는 것"만으로 위 검증을 건너뛰고, 접근할 수
+    #   없는 농장에 귀속된 행을 **새로** 하나 더 만들 수 있다. 결함기에 만들어진 행이나
+    #   농장 비활성화(account_deletion_service 가 owner 삭제 시 farm.active=False)로
+    #   접근을 잃은 경우가 실제 경로다. 상속할 값도 같은 기준으로 검증한다.
+    if req.farm_id is None and prev.farm_id is not None:
+        await _assert_farm_authority(db, user_id=user_id, farm_id=prev.farm_id)
 
     now = datetime.now(UTC)
     rec = ConsentRecord(

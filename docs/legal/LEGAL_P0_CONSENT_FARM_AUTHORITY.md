@@ -1,9 +1,10 @@
 # LEGAL-P0-CONSENT-FARM-AUTHORITY
 
-> **상태**: `OPEN — AWAITING DEV APPROVAL`
+> **상태**: `CODE_COMPLETE / TESTED` · `PROD_NOT_DEPLOYED`
 > **발견**: 2026-09-03, consent HTTP 계층 테스트 작성 중
-> **차단 요인**: 사람 결정이 아니라 **개발 승인**. 법무 빈칸에 종속되지 않는다.
-> **성격**: 이 문서는 문제를 해결하지 않는다. 현재 결함은 characterization 테스트로만 재현되어 있다.
+> **승인**: 2026-09-03 개발 승인 (판단 4건 고정)
+> **주의**: 코드가 닫혔다는 뜻이지 **서비스가 고쳐졌다는 뜻이 아니다.**
+> push·deploy 0건이라 라이브 PigOS 는 여전히 임의 `farm_id` 를 받는다.
 
 ---
 
@@ -13,6 +14,11 @@
 동의 원장 행을 만들 수 있다.
 
 ---
+
+> ⚠️ **아래 「종결 기록」 전까지는 발견 시점(2026-09-03 오전)에 쓴 원본이다.**
+> 현재형으로 읽히지만 이미 지난 상태다 — "왜 지금 고치지 않았나"·characterization
+> 테스트 언급은 **당시 기록**이며, 그 테스트는 예고대로 정상 계약으로 교체됐다.
+> 지금 상태는 문서 맨 아래 「종결 기록」이다. 원본은 판단 근거로 보존한다.
 
 ## 결함
 
@@ -138,3 +144,78 @@ api/tests/integration/test_consent_http_contract.py      characterization 재현
 docs/legal/PRODUCTION_CONSENT_LEDGER_AUDIT_20260902.md   프로덕션 원장 0행 실측
 ef739d1                                                  결함을 기록한 커밋
 ```
+
+
+---
+
+# 종결 기록 (2026-09-03)
+
+## 승인된 판단 4건 → 구현 결과
+
+| # | 결정 | 구현 |
+|---|---|---|
+| 1 | 기존 farm-scoped API 의 canonical semantics 재사용 | `can_access_farm` 을 그대로 호출. 법무 전용 규칙·UserFarm 직접 조회 **신설 없음** |
+| 2 | `get_farm_context` 의 실패 semantics 재사용 | **403** (`ForbiddenError`). ★ 조건부 지시("404로 숨긴다면 404")의 전제는 성립하지 않았다 — canonical 은 없는 농장·비활성·접근불가를 **모두 403** 으로 처리하며 404 로 숨기지 않는다 |
+| 3 | `withdraw(farm_id=None)` 허용 유지 | 유지. 계정 스코프 철회 경로 보존 |
+| 4 | 기존 잘못 귀속 행 — prod SELECT-only 선행 | **`HISTORICAL_MISATTRIBUTION = NOT_FOUND`** (아래) |
+
+## prod 집계 — 코드 변경 **전** 실행
+
+```
+read_only_probe         ReadOnlySQLTransactionError   ← 쓰기가 DB 에서 거부됨을 증명
+transaction_read_only   on
+consent_ledger rows     0
+attribution buckets     (분류할 행 없음)
+
+대조군   farms 75 · users 85 · user_farms 78 · orgs 73
+```
+
+대조군이 0 이 아니므로 스키마를 잘못 본 0 이 아니다. 임시 스크립트는 서버·컨테이너
+양쪽에서 삭제했다. 과거 관측을 근거로 "없음" 처리하지 않고 실제로 조회했다.
+
+## 듀얼 리뷰에서 잡힌 것 — 1차 구현은 불완전했다
+
+context-aware · fresh-context 리뷰어를 병렬로 돌렸고, **양쪽이 독립적으로**
+1차 구현의 결함 2건을 찾았다. 재검증 후 전부 수정했다.
+
+```
+C1  consent_service 의 "미사용" settings import 제거가 테스트를 깨뜨렸다
+    test_consent_record_context 가 monkeypatch 문자열로 그 이름을 짚고 있었다.
+    ruff 는 문자열 patch 대상을 볼 수 없다. → patch 대상을 실제 소유 모듈
+    (app.core.config.settings)로 정정. 그 alias 는 4a64da8 이후 무관해진 것이었다
+
+C2  withdraw(farm_id=None) 이 prev.farm_id 를 무검증 상속했다
+    farm_id 를 빼는 것만으로 검증을 건너뛰고 접근 불가 농장에 귀속된 행을
+    새로 만들 수 있었다. 도달 경로가 실재한다 — 결함기 행, 그리고
+    account_deletion_service 가 owner 삭제 시 farm.active=False 로 만들어
+    남은 공동 멤버가 접근을 잃는 경우. → 상속분도 같은 기준으로 검증
+```
+
+테스트 2건은 docstring 이 실제 assert 보다 과장돼 있어 바로잡았다
+(`..._keeps_account_scope` 는 직전 행이 farm-scoped 라 정반대를 기록하고 있었다).
+
+## 남은 결정 — 개발이 단독으로 정하지 않는다
+
+```
+INACTIVE_FARM_WITHDRAWAL   canonical 은 f.active = TRUE 를 요구한다. 그래서 농장이
+                           비활성화되면 그 농장 스코프 동의를 **철회**할 수도 없다(403).
+                           record 는 그게 맞지만, 철회는 정보주체의 권리라
+                           테넌트 수명주기에 종속시키는 게 옳은지는 법무 판단이다.
+                           현재는 canonical 을 그대로 따랐다(일관성·fail-closed).
+
+ORG_ADMIN_ATTRIBUTION      canonical 은 조직레벨 롤(VENDOR/DISTRIBUTOR/DEALER_ADMIN)
+                           에게 서브트리 농장 접근을 준다. 따라서 대리점 관리자가
+                           고객 농장에 귀속된 자기 동의 행을 남길 수 있다.
+                           승인 조건이 "canonical 을 그대로 따른다" 였으므로
+                           의도된 결과이나, 원장 귀속 관점에서 좁힐지는 별도 판단.
+                           현재 소비자는 없다(current_consents 는 user_id 로 거른다).
+
+ACCOUNT_SCOPE_PURPOSE_SET  farm_id=None 이면 **모든** 가시 목적이 NULL 로 기록된다.
+                           모델 주석은 farm 단위 목적(②③④⑤)에 farm_id 필수라고
+                           적고 있어 서로 어긋난다. LEGAL-P0-CONSENT-EVIDENCE 소관.
+```
+
+## ★ 이 P0 를 닫는 과정에서 발견된 별건
+
+`LEGAL-P0-CONSENT-LEDGER-NOT-PERSISTED` — consent 라우터가 commit 을 하지 않는다.
+**귀속을 옳게 만들어도 애초에 저장되지 않으면 의미가 없다.** 별도 문서 참조.

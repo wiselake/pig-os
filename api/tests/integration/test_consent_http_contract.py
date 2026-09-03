@@ -25,12 +25,10 @@
         `LEGAL_P0_MANDATORY_CONSENT_LOGIN_GATE.md` 에 UNVERIFIED 로 남겨둔
         항목이다. 추정으로 닫지 않고 실제 요청으로 확인해 여기 고정한다.
 
-★ 이 파일은 동작을 바꾸지 않는다.
-
-★★ 단, 마지막 테스트 하나는 **계약이 아니라 결함 재현(CHARACTERIZATION)** 이다.
-   나머지 8건은 "이렇게 동작해야 한다"이고, 그 1건은 "지금 이렇게 잘못
-   동작한다"이다. 섞어 읽으면 몇 달 뒤 결함이 사양으로 굳는다.
-   이름에 `characterization_known_defect_` 접두사를 붙여 구분한다.
+★ 마지막 절은 farm_id 귀속 권한(LEGAL-P0-CONSENT-FARM-AUTHORITY)이다.
+  2026-09-03 까지 여기에는 `characterization_known_defect_...` 라는 이름의
+  **결함 재현** 테스트가 있었다. 결함이 닫히면서 예고대로 정상 계약으로
+  교체됐다 — 이제 전부 "이렇게 동작해야 한다"이다.
 """
 import uuid
 
@@ -182,43 +180,111 @@ async def test_withdrawal_does_not_end_the_session(client: AsyncClient):
     assert me.status_code == 200, "철회가 세션을 끊는다면 이 테스트를 갱신하고 이유를 적을 것"
 
 
-# ── 5. CHARACTERIZATION / KNOWN_DEFECT — 계약이 아니다 ──────────────────────
+# ── 5. farm_id 귀속 권한 (LEGAL-P0-CONSENT-FARM-AUTHORITY) ─────────────────
+#
+# 동의 원장은 "누가 · 어느 농장에 대해 · 무엇에 동의했는가" 의 법적 증거물이다.
+# 귀속 농장이 틀린 행이 섞이면 그 원장으로는 아무것도 증명하지 못한다.
+#
+# 판정은 **새 법무 전용 규칙을 만들지 않고** farm-scoped API 의 canonical access
+# semantics(`app/core/permissions.can_access_farm`)를 그대로 재사용한다.
+# 실패 semantics 도 `get_farm_context` 와 동일하게 403 이다 — 그 dependency 는
+# 없는 농장·비활성 농장·접근 불가 농장을 모두 ForbiddenError(403)로 처리하며
+# 404 로 존재를 숨기지 않는다.
 
-async def test_characterization_known_defect_record_accepts_foreign_farm_id(
-    client: AsyncClient, db: AsyncSession,
-):
-    """CHARACTERIZATION / KNOWN_DEFECT — **이것은 사양이 아니다.**
-
-    ┌──────────────────────────────────────────────────────────────────────┐
-    │ 이 테스트는 "임의의 farm_id 가 허용되어야 한다" 고 말하지 않는다.      │
-    │ **현재 이 결함이 존재한다는 사실을 재현**할 뿐이다.                   │
-    │ LEGAL-P0-CONSENT-FARM-AUTHORITY 에서 교체 예정.                       │
-    └──────────────────────────────────────────────────────────────────────┘
-
-    결함: `consent_service.record_consents` 가 `farm_id=req.farm_id` 를 그대로
-    쓴다(`api/app/services/consent_service.py:163`). 인증된 사용자가 자신의 소속
-    농장인지 검증 없이 임의의 farm_id 를 제출할 수 있다.
-
-        기밀성 유출        현재 확인된 바 없음 (읽기는 user_id 로 걸린다)
-        원장 무결성        깨질 수 있음 — 잘못된 농장에 귀속된 증빙이 남는다
-
-    ★ 이것을 CONSENT-EVIDENCE(locale·hash·plan snapshot) 보다 **먼저** 닫아야
-      한다. 증빙을 아무리 정교하게 저장해도 귀속 농장이 틀리면 법적 원장 자체가
-      틀린 것이다.
-
-    고치는 것은 권한 경계 변경이므로 자율 RUN 범위 밖이다 — 명시적 승인 후
-    별도 변경으로 닫는다. 그때 이 테스트는 **삭제되거나 403 기대로 교체**된다.
-
-    참조: docs/legal/LEGAL_P0_CONSENT_FARM_AUTHORITY.md
-    """
+async def test_record_rejects_foreign_farm_id(client: AsyncClient, db: AsyncSession):
+    """★ 이 P0 의 핵심. 남의 farm_id 로는 원장에 한 줄도 남기지 못한다."""
     _t1, farm_a = await _signup(client)
     token_b, _farm_b = await _signup(client)
 
     r = await client.post(f"{CONSENT}/record", json=_body(farm_a),
                           headers={"Authorization": f"Bearer {token_b}"})
-    assert r.status_code == 200, (
-        "이 테스트가 실패했다면 농장 소속 검증이 추가된 것이다 — 좋은 변화다. "
-        "결함이 닫혔으므로 이 characterization 테스트를 삭제하거나 403 기대로 "
-        "교체하고, LEGAL_P0_CONSENT_FARM_AUTHORITY.md 를 RESOLVED 로 갱신하라."
-    )
-    assert await _ledger_count(db, farm_a) > 0
+    assert r.status_code == 403, r.text
+    assert await _ledger_count(db, farm_a) == 0, "거부됐는데 원장에 행이 남았다"
+
+
+async def test_record_accepts_own_farm_id(client: AsyncClient, db: AsyncSession):
+    """★ 회귀 방지. 방금 만든 자기 농장은 반드시 통과해야 한다.
+
+    여기서 403 이 나면 LEGAL-P0-WEB-CONSENT-FAIL-CLOSED 때문에 **정상 가입이
+    전부 막힌다**(record 성공이 로그인 확정 조건이다). 권한을 조인 이 테스트가
+    그 폭발을 잡는다."""
+    token, farm_id = await _signup(client)
+    r = await client.post(f"{CONSENT}/record", json=_body(farm_id),
+                          headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 200, r.text
+    assert await _ledger_count(db, farm_id) > 0
+
+
+async def test_record_allows_null_farm_id_and_writes_null(
+    client: AsyncClient, db: AsyncSession,
+):
+    """farm_id 없음 = 계정 스코프. 검증 대상이 아니며, 실제로 NULL 로 저장된다.
+
+    ★ 200 만 확인하면 부족하다 — 그러면 서버가 farm_id 를 어딘가에서 채워 넣어도
+      통과한다. 기록된 행의 farm_id 가 정말 NULL 인지 본다.
+
+    ※ 현재는 **모든** 가시 목적이 NULL 로 기록된다. 모델 주석
+      (`db/models/consent.py`)은 farm 단위 목적(②③④⑤)에 farm_id 가 필수라고
+      적고 있어 서로 어긋난다. 이 P0 는 그 불일치를 해소하지 않는다 —
+      아래 assert 는 "옳다"가 아니라 **현재 이렇다**를 고정한 것이고,
+      LEGAL-P0-CONSENT-EVIDENCE 에서 다뤄야 한다.
+    """
+    token, _farm_id = await _signup(client)
+    body = _body("")
+    body["farm_id"] = None
+    r = await client.post(f"{CONSENT}/record", json=body,
+                          headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 200, r.text
+
+    written = (await db.execute(
+        select(ConsentRecord.farm_id).where(ConsentRecord.notice_version.isnot(None))
+        .order_by(ConsentRecord.created_at.desc()).limit(len(r.json()))
+    )).scalars().all()
+    assert written and all(f is None for f in written), f"farm_id 가 NULL 이 아니다: {written}"
+
+
+async def test_withdraw_rejects_foreign_farm_id(client: AsyncClient):
+    """record 만 막으면 withdraw 로 같은 일을 할 수 있다 — 두 경로 다 막는다."""
+    token_a, farm_a = await _signup(client)
+    auth_a = {"Authorization": f"Bearer {token_a}"}
+    await client.post(f"{CONSENT}/record", json=_body(farm_a, choices=[
+        {"purpose_code": "AI_MODEL_TRAINING", "granted": True},
+    ]), headers=auth_a)
+
+    token_b, _farm_b = await _signup(client)
+    r = await client.post(f"{CONSENT}/withdraw", json={
+        "purpose_code": "AI_MODEL_TRAINING", "action": "WITHDRAWN", "farm_id": farm_a,
+    }, headers={"Authorization": f"Bearer {token_b}"})
+    assert r.status_code == 403, r.text
+
+
+async def test_withdraw_without_farm_id_inherits_the_prior_rows_farm(
+    client: AsyncClient, db: AsyncSession,
+):
+    """farm_id 를 생략한 철회는 **직전 행의 farm_id 를 상속**한다.
+
+    ★ 이 테스트의 이전 이름은 `..._keeps_account_scope` 였고 200 만 확인했다.
+      그런데 직전 행이 farm-scoped 였으므로 새 행도 그 농장에 귀속된다 —
+      이름이 주장하는 것과 정반대였다. 무엇이 기록되는지까지 확인한다.
+
+    상속 자체는 정상이다(자기 농장이다). 무검증 상속이 문제였고 그건 아래
+    `test_withdraw_cannot_launder_inaccessible_farm_via_null` 이 막는다."""
+    token, farm_id = await _signup(client)
+    auth = {"Authorization": f"Bearer {token}"}
+    await client.post(f"{CONSENT}/record", json=_body(farm_id, choices=[
+        {"purpose_code": "AI_MODEL_TRAINING", "granted": True},
+    ]), headers=auth)
+
+    r = await client.post(f"{CONSENT}/withdraw", json={
+        "purpose_code": "AI_MODEL_TRAINING", "action": "WITHDRAWN",
+    }, headers=auth)
+    assert r.status_code == 200, r.text
+
+    latest = (await db.execute(
+        select(ConsentRecord)
+        .where(ConsentRecord.purpose_code == "AI_MODEL_TRAINING",
+               ConsentRecord.consent_status == "WITHDRAWN")
+        .order_by(ConsentRecord.created_at.desc()).limit(1)
+    )).scalars().first()
+    assert latest is not None
+    assert str(latest.farm_id) == farm_id, "상속된 farm_id 가 직전 행과 다르다"
