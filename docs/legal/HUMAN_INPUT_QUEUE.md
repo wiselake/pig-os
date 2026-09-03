@@ -32,6 +32,9 @@
 | H8 | D-12 데이터 수익 배분(농장 share) 약관 포함 여부 | OPEN(사업 결정) |
 | H9 | D-13 controller/processor 역할 확정(처리유형별) | OPEN — 변호사 |
 | H10 | D-15 유료/무료 경계 확정 | OPEN(사업) |
+| H11 | **원장 없는 기존 계정 처리** — 프로덕션에 동의 원장 0행인 계정이 이미 있다. 전면 차단 / 다음 로그인에서 동의 수집 / 유예 중 무엇인가 | OPEN(사업+법무) — `LEGAL_P0_MANDATORY_CONSENT_LOGIN_GATE.md` |
+| H12 | **차단 국가 기존 계정의 로그인 허용 여부** — KR 5건·CN 계정은 `signup_blocked` 이지만 로그인은 막히지 않는다. 막으면 레퍼런스 사용이 끊긴다 | OPEN(대표) — 같은 문서 |
+| H13 | **CURRENT_PUBLICATION_SET** — 로그인 동의 게이트가 '무엇에 대한 동의'를 요구할지의 선행 결정. 승인 문서가 없으면 게이트를 켜는 순간 아무도 로그인할 수 없다 | OPEN(대표+법무) — `KNOWN_PUBLICATION_EXPOSURE.md` 해소 조건과 동일 |
 > D-01~D-04는 조건부 BUSINESS_APPROVED(2026-07-21) — 변호사 반대 시 자동 REOPEN.
 
 ## 3. 변호사 회신 필요 ([COUNSEL] — LAWYER_BRIEF 30건 요지)
