@@ -25,9 +25,12 @@
         `LEGAL_P0_MANDATORY_CONSENT_LOGIN_GATE.md` 에 UNVERIFIED 로 남겨둔
         항목이다. 추정으로 닫지 않고 실제 요청으로 확인해 여기 고정한다.
 
-★ 이 파일은 동작을 바꾸지 않는다. 현재 계약을 그대로 기록할 뿐이다.
-  아래 `test_record_does_not_verify_farm_membership` 는 **바람직한 동작이
-  아니라 현재 동작**을 고정한 것이다 — 주석 참조.
+★ 이 파일은 동작을 바꾸지 않는다.
+
+★★ 단, 마지막 테스트 하나는 **계약이 아니라 결함 재현(CHARACTERIZATION)** 이다.
+   나머지 8건은 "이렇게 동작해야 한다"이고, 그 1건은 "지금 이렇게 잘못
+   동작한다"이다. 섞어 읽으면 몇 달 뒤 결함이 사양으로 굳는다.
+   이름에 `characterization_known_defect_` 접두사를 붙여 구분한다.
 """
 import uuid
 
@@ -179,24 +182,34 @@ async def test_withdrawal_does_not_end_the_session(client: AsyncClient):
     assert me.status_code == 200, "철회가 세션을 끊는다면 이 테스트를 갱신하고 이유를 적을 것"
 
 
-# ── 5. 현재 동작 고정 (개선 대상 — 여기서 고치지 않는다) ────────────────────
+# ── 5. CHARACTERIZATION / KNOWN_DEFECT — 계약이 아니다 ──────────────────────
 
-async def test_record_does_not_verify_farm_membership(client: AsyncClient, db: AsyncSession):
-    """★ 이것은 **바람직한 동작이 아니라 현재 동작**이다.
+async def test_characterization_known_defect_record_accepts_foreign_farm_id(
+    client: AsyncClient, db: AsyncSession,
+):
+    """CHARACTERIZATION / KNOWN_DEFECT — **이것은 사양이 아니다.**
 
-    `consent_service.record_consents` 는 `farm_id=req.farm_id` 를 그대로 쓴다
-    (`api/app/services/consent_service.py:163`). 호출자가 그 농장 소속인지 확인하지
-    않는다. 따라서 남의 farm_id 로 자기 동의 행을 남길 수 있다.
+    ┌──────────────────────────────────────────────────────────────────────┐
+    │ 이 테스트는 "임의의 farm_id 가 허용되어야 한다" 고 말하지 않는다.      │
+    │ **현재 이 결함이 존재한다는 사실을 재현**할 뿐이다.                   │
+    │ LEGAL-P0-CONSENT-FARM-AUTHORITY 에서 교체 예정.                       │
+    └──────────────────────────────────────────────────────────────────────┘
 
-    읽기는 user_id 로 걸리므로 남의 동의를 훔쳐보거나 바꾸지는 못한다. 그래도
-    원장은 법적 증거물이고, 관계없는 농장에 귀속된 행이 섞이면 증거로서의 값이
-    떨어진다.
+    결함: `consent_service.record_consents` 가 `farm_id=req.farm_id` 를 그대로
+    쓴다(`api/app/services/consent_service.py:163`). 인증된 사용자가 자신의 소속
+    농장인지 검증 없이 임의의 farm_id 를 제출할 수 있다.
 
-    여기서 고치지 않는 이유: 권한 경계 변경이다. 어떤 관계를 요구할지
-    (farm membership / org 소속 / 둘 다), 기존 행을 어떻게 볼지가 먼저 정해져야
-    한다. 지금은 사실만 고정해 두고, 고칠 때 이 테스트가 반드시 함께 바뀌게 한다.
+        기밀성 유출        현재 확인된 바 없음 (읽기는 user_id 로 걸린다)
+        원장 무결성        깨질 수 있음 — 잘못된 농장에 귀속된 증빙이 남는다
 
-    FOUND_OUT_OF_SCOPE: api/app/services/consent_service.py:163
+    ★ 이것을 CONSENT-EVIDENCE(locale·hash·plan snapshot) 보다 **먼저** 닫아야
+      한다. 증빙을 아무리 정교하게 저장해도 귀속 농장이 틀리면 법적 원장 자체가
+      틀린 것이다.
+
+    고치는 것은 권한 경계 변경이므로 자율 RUN 범위 밖이다 — 명시적 승인 후
+    별도 변경으로 닫는다. 그때 이 테스트는 **삭제되거나 403 기대로 교체**된다.
+
+    참조: docs/legal/LEGAL_P0_CONSENT_FARM_AUTHORITY.md
     """
     _t1, farm_a = await _signup(client)
     token_b, _farm_b = await _signup(client)
@@ -204,7 +217,8 @@ async def test_record_does_not_verify_farm_membership(client: AsyncClient, db: A
     r = await client.post(f"{CONSENT}/record", json=_body(farm_a),
                           headers={"Authorization": f"Bearer {token_b}"})
     assert r.status_code == 200, (
-        "농장 소속 검증이 추가됐다면 좋은 변화다. 이 테스트를 403 기대로 바꾸고 "
-        "LEGAL_P0_MANDATORY_CONSENT_LOGIN_GATE.md 의 관련 기록도 갱신할 것."
+        "이 테스트가 실패했다면 농장 소속 검증이 추가된 것이다 — 좋은 변화다. "
+        "결함이 닫혔으므로 이 characterization 테스트를 삭제하거나 403 기대로 "
+        "교체하고, LEGAL_P0_CONSENT_FARM_AUTHORITY.md 를 RESOLVED 로 갱신하라."
     )
     assert await _ledger_count(db, farm_a) > 0

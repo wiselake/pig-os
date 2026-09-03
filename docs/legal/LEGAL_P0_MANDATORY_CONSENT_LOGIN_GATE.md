@@ -98,7 +98,7 @@ Android 구버전                  배포 주기가 길어 오래 남는다
 그게 더 이상하다. 다만 게이트 설계 시 **"동의한 적 없음" 과 "동의했다가 철회함" 을
 반드시 구분**해야 한다는 근거가 된다.
 
-### 부수 발견 — 동의 기록에 농장 소속 검증이 없다
+### 부수 발견 — 별도 P0 로 승격됨: `LEGAL-P0-CONSENT-FARM-AUTHORITY`
 
 ```
 api/app/services/consent_service.py:163   farm_id=req.farm_id   (소속 확인 없음)
@@ -108,9 +108,16 @@ api/app/services/consent_service.py:163   farm_id=req.farm_id   (소속 확인 �
 동의를 보거나 바꾸지는 못한다. 그러나 원장은 법적 증거물이고, 관계없는 농장에
 귀속된 행이 섞이면 증거로서의 값이 떨어진다.
 
-권한 경계 변경이라 이번 RUN 에서 고치지 않았다. 현재 동작은
-`test_record_does_not_verify_farm_membership` 이 고정하고 있으며, 고칠 때 그
-테스트가 반드시 함께 바뀐다.
+권한 경계 변경이라 이번 RUN 에서 고치지 않았다. 현재 결함은
+`test_characterization_known_defect_record_accepts_foreign_farm_id` 가
+**사양이 아니라 결함으로 명시해** 재현하고 있다.
+
+★ 이 건은 이 문서와 **차단 요인이 다르다.** 로그인 게이트는 대표·법무 결정
+(H11~H13)을 기다리지만, 농장 귀속은 **개발 승인만 있으면 닫을 수 있다** —
+스키마 변경 없이 기존 `UserFarm`·`get_accessible_farm_ids` 재사용으로 가능함을
+확인했다. 그래서 별도 문서로 분리했다.
+
+전문: `LEGAL_P0_CONSENT_FARM_AUTHORITY.md`
 
 ---
 
