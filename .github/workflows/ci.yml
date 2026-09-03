@@ -29,7 +29,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          # ★ 정확히 핀한다. "22" 로 두면 로컬(.nvmrc 고정)과 CI(부동)가 갈라진다 —
+          #   실제로 그 드리프트 때문에 로컬에서 npm ci 가 notsup 으로 죽었다.
+          node-version: "22.23.2"
           cache: npm
           cache-dependency-path: src/package-lock.json
       - run: npm ci
