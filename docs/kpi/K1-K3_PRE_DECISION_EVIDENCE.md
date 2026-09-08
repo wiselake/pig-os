@@ -77,7 +77,7 @@ False 라는 것까지가 확인된 사실이다. 플래그가 프로덕션에�
 
 ```
 benchmark_seed.py:47   stillbirth_rate  = 사산 + 미라
-benchmark_seed.py:49   mummy_rate       = 미라
+benchmark_seed.py:50   mummy_rate       = 미라
 ```
 
 두 행을 함께 쓰면 **미라가 두 번 세어진다.** 어떤 선택을 하든 이 중복은 정리
@@ -88,11 +88,41 @@ benchmark_seed.py:49   mummy_rate       = 미라
 
 | 안 | 내용 | 코드 영향 | 문서 영향 | 값 변화 방향 |
 |---|---|---|---|---|
-| **A** 미라 제외 (NPB 관행) | `stillbirth_rate` = 사산만. 미라는 `mummy_rate`, 합계는 `birth_loss_rate` | 없음 (①-a 유지) | `benchmark_seed.py:47` `numerator_def` 정정 | 표시값 불변 |
+| **A** 미라 제외 (NPB 관행) | `stillbirth_rate` = 사산만. 미라는 `mummy_rate`, 합계는 `birth_loss_rate` | 계산 경로 불변 (①-a 유지) | `benchmark_seed.py:47` + **정의·벤치마크 마이그레이션** | 표시값 불변 |
 | **B** 미라 포함 | `stillbirth_rate` = 사산+미라 | ①-a·①-c 변경 | 없음 | **상승** — 정확히 미라율만큼 |
 
-★ A 는 코드 0줄, B 는 표시값이 즉시 올라간다. **비용이 대칭이 아니다.**
-다만 이것은 A 를 권하는 근거가 아니다 — 싼 쪽이 옳은 쪽이라는 보장은 없다.
+### ★ 2026-09-08 정정 — 안 A 를 "코드 0줄"로 적었던 것은 틀렸다
+
+초판은 A 의 비용을 "`numerator_def` 1줄"로 적었다. **적재된 벤치마크 행을 보지 않고
+쓴 판단이었다.**
+
+```
+alembic/versions/e1a3c5d7f9b2_work_us_pigchamp_load.py:70-77
+    kpi_code="stillbirth_rate"
+    transform_formula = "(stillborn+mummified)/total_born*100"
+    benchmark_status  = "normalized_verified"
+    notes             = "PigCHAMP 사산·미라 분리 → (사산+미라)/총산 재계산.
+                         PigOS stillbirth_rate 정의일치."
+```
+
+이 행은 **우리 정의가 "사산+미라"라는 전제 위에서 정규화된 값**이다. 정의를 "사산만"으로
+바꾸면 이 값은 더 이상 그 정의의 값이 아니다. 방치하면 위조 0 위반이 벤치마크 쪽에서
+그대로 발생한다.
+
+★ **다만 재도출에 새 외부 조사는 필요 없다.** 원자료가 분리 보존돼 있다.
+
+```
+:49-52  source_observations.raw_fields_json
+        {"total_born": …, "stillborn": …, "mummified": …}
+```
+
+`Benchmark` 모델 주석의 `★⑩ 분리항목 보존` 설계가 정확히 이 상황을 위해 있었고,
+의도대로 작동한다. 재도출하면 `transform_formula` 가 필요 없어져
+`normalized_verified` → **`verified`(exact)** 로 오히려 올라간다. 보존된 미라 수치로
+`mummy_rate` 벤치마크를 새로 세울 수도 있다(현재 US 행 없음).
+
+**결론: A 의 비용은 "1줄"이 아니라 "마이그레이션 1건"이다.** 그래도 B 보다 싸고,
+결과물의 등급은 더 높다. 정정 후에도 방향은 바뀌지 않는다.
 
 ---
 
@@ -278,14 +308,26 @@ FROM matings
 WHERE deleted_at IS NULL AND mating_date > CURRENT_DATE - 365
 GROUP BY farm_id;
 
--- K-3  모집단 크기 차이 (농장별)
-SELECT farm_id,
-       count(*) FILTER (WHERE parity >= 1) AS parous,
-       count(*) FILTER (WHERE parity = 0)  AS gilts
-FROM sows
-WHERE status NOT IN ('CULLED','DEAD') AND deleted_at IS NULL
-GROUP BY farm_id;
+-- K-3  모집단 3종 비교 (농장별)
+--   ★ 2026-09-08 교체. 초판은 경산 vs 후보만 셌으나, 검토 결과 유력안이
+--     '교배모돈(mated female) 기준'이라 그 모집단을 같이 세지 않으면 결정에 못 쓴다.
+SELECT s.farm_id,
+       count(*)                                              AS active_all,
+       count(*) FILTER (WHERE s.parity >= 1)                 AS parous,        -- 현 라이브
+       count(*) FILTER (WHERE m.hit IS NOT NULL)             AS mated_ever,    -- 안 D
+       count(*) FILTER (WHERE s.parity = 0 AND m.hit IS NOT NULL) AS gilt_mated
+FROM sows s
+LEFT JOIN LATERAL (
+    SELECT 1 AS hit FROM matings m2
+    WHERE m2.sow_id = s.id AND m2.deleted_at IS NULL LIMIT 1
+) m ON TRUE
+WHERE s.status NOT IN ('CULLED','DEAD') AND s.deleted_at IS NULL
+GROUP BY s.farm_id;
 ```
+
+★ K-3 결과는 시점 스냅샷이므로 PSY 감도의 **근사**다. PSY 분모는 12개월 월별
+평균재고이고 이 쿼리는 현재 시점 1회다. 배수(`parous / mated_ever`)의 크기를 보는
+용도이지 PSY 값을 직접 환산하는 용도가 아니다.
 
 ★ K-2 의 본 비교(코호트 vs 동기간 실값)는 위 선행 확인이 통과한 뒤에 붙인다.
 `mating_number` 가 비어 있으면 어떤 수치를 내도 산식 차이가 아니라 데이터 결손을
