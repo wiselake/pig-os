@@ -18,6 +18,41 @@ PigOS 열    CANONICAL_FORMULA_SPEC 과 kpi_definitions 에서만 채운다
             ★ 코드를 읽어 역산하지 않는다
 ```
 
+### ★★ T6 해석 원칙 — 3축 구분 (2026-09-08 확정)
+
+**이 절이 이 문서에서 가장 먼저 읽혀야 한다.** 지금까지의 오진 대부분이 아래 세 층을
+섞은 데서 나왔다.
+
+```
+① RUNTIME
+   실제 프로덕션 코드가 계산·서빙하는 값과 산식.
+
+② DOCUMENTED
+   CANONICAL_FORMULA_SPEC 및 kpi_definitions 등 현재 문서에 명시된 정의.
+
+③ CANONICAL DECISION
+   PigOS 가 향후 정본으로 채택할 정의. K-1~K-4 의 사람 결정으로 확정한다.
+```
+
+**본 T6 레지스터의 PigOS 비교 열은 원칙적으로 ② DOCUMENTED 만을 기록한다.**
+코드를 읽어 ①을 역산하여 빈 문서 정의를 보충하지 않는다.
+따라서 T6 의 `MATCH`/`CONFLICT`/`UNVERIFIED` 판정은 곧바로 런타임 정확성이나
+canonical 확정을 의미하지 않는다.
+
+D-19 에서 ①과 ②의 간극을 증거로 확정하고, **③ 결정에 따라 코드 또는 문서를
+수렴시킨다.** ★ 수렴 방향을 ③이 정한다 — 기존 코드를 정본으로 전제하지 않는다.
+
+```
+CONFIRMED 조건
+    ① RUNTIME = ② DOCUMENTED = ③ CANONICAL
+    + automated test
+    + manual reconciliation
+```
+
+★ 이 문서의 `NOT SPECIFIED`(예: T6-10 양모돈 귀속)는 **②에 규칙이 없다**는 뜻이지
+"런타임이 아무 처리도 안 한다"는 뜻이 아니다. 코드는 무언가를 하고 있을 것이고,
+그것이 무엇인지는 D-19 ①에서 확정한다.
+
 ### ★ 가장 중요한 사실 — PigOS 열의 대부분이 UNVERIFIED 인 이유
 
 `CANONICAL_FORMULA_SPEC` §3 의 현재 상태다.
@@ -434,6 +469,29 @@ CODE_DRIFT 건수   7
 
 ★ K-1~K-3 은 **국가 정책이 아니라 canonical 정본**을 정하는 결정이다. `ADR-KPI-00` 의
 국가별 표시 정책은 그 위에 얹히는 층이므로, 이 넷이 먼저다.
+
+★ **K-4 도 착수 게이트에 포함한다.** 산식만 맞고 명칭이 틀리면 `①=②=③` 이 되어도
+사용자가 읽는 의미는 계속 어긋난다(T6-22).
+
+### 실행 흐름에서의 위치
+
+```
+09-10 격리 만료
+  → 법무 P0 5건 배포
+    → 동의 공백 관찰
+
+      → PRE-DECISION EVIDENCE
+         K-1~K-3 현재 런타임(①) + 선택지별 영향 실측
+         ※ 정의 확정·CONFIRMED 판정 금지 — 결재 입력자료일 뿐이다
+
+        → K-1~K-4 대표 결정  (③ 확정)
+          → D-19 PSY   reference implementation
+            → NPD → 분만율 → 나머지 KPI
+```
+
+`PRE-DECISION EVIDENCE` 는 D-19 가 아니다. "현재 런타임이 무엇을 하는가 / 선택지별로
+실제 값이 얼마나 달라지는가"까지만 보여주고 멈춘다. 그래야 결재자가 **개념적 근거와
+실제 제품 영향을 함께** 보고 정의를 고를 수 있다.
 
 ---
 
