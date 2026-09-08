@@ -12,9 +12,11 @@
 | # | 항목 | 상태 | 비고 |
 |---|---|---|---|
 | **K-1** | 사산율 분자 | **APPROVED** 2026-09-08 | 안 A — 사산만 |
-| **K-2** | 분만율 정본 | **APPROVED** 2026-09-08 | 안 C — 병존 + 이름 분리 |
+| **K-1b** | 정의 버전 처리 | **APPROVED** 2026-09-08 | V2 신설 · V1 RETIRED |
+| **K-2** | 분만율 정본 | **APPROVED** 2026-09-08 | 안 C — 병존 |
+| **K-2b** | 필드 전략 | **APPROVED** 2026-09-08 | 기존 필드명 유지 · 신규 필드 추가 |
 | **K-3** | NPD·PSY 모집단 | **PENDING** | 유력안 = 안 D(교배모돈). §5-1 쿼리 결과 대기 |
-| **K-4** | 라벨 정책 | **PENDING** | K-1~K-3 확정 후 |
+| **K-4** | 명칭 | **조건부 APPROVED** | 내부 정의 ID 확정. 표시명은 K-3 확정 후 |
 
 ★ **APPROVED 는 ③ 확정이지 배포가 아니다.** 아래 구현 항목은 전부 미착수이며,
 `kpi_definitions`·`benchmarks` 를 건드리는 마이그레이션은 별도 승인이 필요하다
@@ -50,12 +52,9 @@ birth_loss_rate  = (사산 + 미라) / 총산           ← 합성 지표로 유
    notes          "PigOS 비표준 분자(미라 포함)" 제거
                   ★ 제거해야 한다. 이 문장이 남으면 정정된 정의와 모순된다.
 
-2  ★ definition_id 승격 검토
-   benchmarks 는 (kpi_code, definition_id) 복합 FK 로 정의에 묶여 있다
-   (models/benchmark.py:108-113 ★④). definition_id 는
-   PIGOS_<UPPER>_V1 로 고정 생성된다(benchmark_seed.py:73-74).
-   V1 의 분자를 제자리에서 바꾸면 **버전이 의미를 잃는다.**
-   → PIGOS_STILLBIRTH_RATE_V2 신설이 맞는지 결정 필요.
+2  definition_id — K-1b 로 결정됨(아래). V2 신설 · V1 RETIRED.
+   ★ 그러므로 1 은 "V1 의 numerator_def 를 고치는 것"이 아니라
+     "V2 행을 새로 넣는 것"이다.
 
 3  US PigCHAMP 벤치마크 재도출  (alembic e1a3c5d7f9b2:70-77)
    현재  transform_formula "(stillborn+mummified)/total_born*100"
@@ -75,6 +74,28 @@ birth_loss_rate  = (사산 + 미라) / 총산           ← 합성 지표로 유
 이 줄을 문제 지점으로 지목했기 때문에, 손대지 않는 판단을 남기지 않으면 다음
 작업자가 "누락"으로 읽는다.
 
+### K-1b — 정의 버전 처리 (APPROVED)
+
+```
+PIGOS_STILLBIRTH_RATE_V1   RETIRED       분자 "사산+미라" — 의미 보존
+PIGOS_STILLBIRTH_RATE_V2   신설·정본     분자 "사산"
+```
+
+**V1 을 제자리에서 고치지 않는다.** `benchmarks` 가 `(kpi_code, definition_id)`
+복합 FK 로 정의를 가리키므로, V1 의 분자를 바꾸면 그 id 를 가리키는 **과거 벤치마크와
+리포트가 무엇을 뜻했는지가 사라진다.** 버전은 그러라고 있다.
+
+```
+US PigCHAMP 벤치마크
+  raw_fields_json 에서 사산만으로 재도출 → V2 에 바인딩
+  transform 불필요 → mapping/comparison = exact → benchmark_status = verified
+  ★ 같은 마이그레이션에서 mummy_rate 벤치마크도 함께 세운다(보존된 미라 수치)
+```
+
+★ `definition_id_for()` 가 `PIGOS_<UPPER>_V1` 을 **하드코딩 생성**한다
+(`benchmark_seed.py:73-74`). V2 를 도입하려면 이 함수가 버전을 고정 반환하지 못한다 —
+정의별 버전 테이블/맵이 필요하다. **K-1b 구현의 실제 진입점은 이 함수다.**
+
 ### 배포 게이트 (★ 조건부)
 
 ```
@@ -92,63 +113,72 @@ use_governance_benchmarks = True 로 켜기 전에 위 1~3 이 완료돼야 한�
 
 ## 2. K-2 — 분만율 정본
 
-### 결정
+### 결정 (K-2 + K-2b)
 
-**두 산식은 서로 다른 KPI다. 병존시키고 이름을 분리한다.**
+**두 산식은 서로 다른 KPI다. 병존시킨다. 단 API 필드명은 바꾸지 않는다.**
 
 ```
-FARROWING_RATE_FIRST_SERVICE_COHORT
-    초교배 분만율. mating_number = 1, 115일 내 폐사 모돈 분모 제외
-    현 kpi_service.py:370-387 = 이 지표
+farrowing_rate                 기존 필드명 유지
+                               개념 = 총교배 분만율 (전 교배 대비 분만)
+                               ★ 산식은 동월 나눗셈 → 코호트 창으로 교체 = 값이 바뀐다
 
-FARROWING_RATE_ALL_SERVICES
-    총교배 분만율. 전 교배 대비 분만
-    현 trend SQL · report_service · jobs/kpi.py = 이 지표
+farrowing_rate_first_service   신규 필드
+                               개념 = 초교배 분만율 (mating_number = 1)
+                               현 kpi_service.py:370-387 이 이 지표
 
-외부 비교 정본 = FARROWING_RATE_ALL_SERVICES
+외부 비교 정본 = farrowing_rate (총교배)
     pig333 · PigCHAMP "mated females … reach farrowing" = 전 교배 기준
 ```
 
-국가 표시 정책이 어느 쪽을 "분만율"로 보여줄지는 **K-4 이후**에 정한다.
+### ★ K-2b 가 바꾸는 것 — 이름이 아니라 의미를 고정한다
 
-### 근거
-
-두 산식은 창이 다른 게 아니라 **모집단이 다르다** — 하나는 재발정 재교배를 전부
-빼고, 다른 하나는 전부 넣는다. 서로 다른 질문에 답하므로 하나로 합치면 정보가
-사라진다. 지금의 결함은 **둘이 같은 `farrowing_rate` 이름을 쓰는 것**이다.
-
-### 고칠 것 — ★ 이름 하나가 아니다
+초판 결정문은 `kpi_code` 를 `FARROWING_RATE_ALL_SERVICES` /
+`_FIRST_SERVICE_COHORT` 로 **양쪽 다 개명**하는 안이었다. K-2b 는 그것을 뒤집는다.
 
 ```
-정의·벤치마크 (마이그레이션 — 별도 승인 필요)
-  db/benchmark_seed.py:28              kpi_code="farrowing_rate" → 2행으로 분리
-  alembic e1a3c5d7f9b2:62-69           US 분만율 벤치마크(verified) 는
-                                       ALL_SERVICES 로 귀속. 복합 FK 갱신 필요
-
-metric_code 사용처 (백엔드)
-  db/global_policy_defaults.py:28      GLOBAL_VISIBLE
-  db/global_presentation_seed.py:25    display_order
-  db/br_pilot_seed.py:23               "Taxa de Parto" 현지 라벨
-  engine/rules/base.py:156,160,175     farrowing.low_rate 룰
-  services/kpi_status_assembler.py:32  DASHBOARD_POLICY_KPIS
-  services/report_service.py:291,298   metric_code IN (...) SQL 리터럴
-  services/scorecard_service.py:9
-  services/benchmark_service.py:226    거버넌스 매핑
-  schemas/kpi.py:45,117 · schemas/report.py:230,238 · schemas/scorecard.py:14
-
-프론트 / i18n
-  src/types/api.types.ts               응답 필드
-  src/messages/*.json                  ★ 8개 로케일 전부 (CLAUDE.md §4)
-                                       en/ko/zh/es/vi/th/pt/ru — "farrowingRate" 라벨
+개명한다     구버전 모바일이 읽던 필드가 사라진다 — API 계약 파괴
+의미 고정    필드명은 그대로, "이 이름은 총교배를 뜻한다"를 확정하고
+             왜곡 요인(동월 나눗셈)만 제거한다
 ```
 
-★ **API 계약 변경이다.** `CLAUDE.md` §5 — 모바일은 독립 저장소 2개이고 배포 주기가
-길어 구버전이 오래 남는다. 필드명 변경은 기능 변경보다 위험하다.
-→ `docs/PLATFORM_PARITY.md` 한 줄 추가 대상이며, **기존 `farrowing_rate` 필드를
-당분간 유지하는 이행 경로**를 설계에 포함해야 한다.
+**구버전 모바일은 기존 필드로 계속 읽는다.** 값은 달라지지만 계약은 유지된다.
+이쪽이 `CLAUDE.md` §5(모바일 배포 주기가 길다 · API 계약 변경이 기능보다 위험)와
+정합한다.
 
-★ 스냅샷 잡(`jobs/kpi.py:185-187`)은 현재 전건 실패 중이므로 이 분리에서 제외하지
-말 것. 지금 안 맞춰두면 파이프라인 복구 시 세 번째 값이 생긴다.
+★ **대신 값이 조용히 바뀐다.** 같은 이름 · 같은 필드에서 숫자만 달라지므로
+**What Changed 고지가 필수**다. 이것은 버그 수정이 아니라 정의 변경이다.
+
+### 고칠 것
+
+```
+계산
+  kpi_service.py:370-387   _cohort_farrowing_rate 를 둘로
+                           (a) 전 교배 코호트   → farrowing_rate       ★ 신규 산식
+                           (b) 초교배 코호트    → farrowing_rate_first_service
+                           = 현행 SQL 에서 mating_number = 1 조건만 뺀 것이 (a)
+                             115일 내 폐사 제외는 양쪽 모두 유지
+  kpi_service.py:786-797   trend SQL — 동월 나눗셈 → 코호트 창
+  report_service.py:182    기간 나눗셈 → 코호트
+  jobs/kpi.py:185-187      ★ 같은 코호트로. 지금 안 맞추면 복구 시 세 번째 값이 생긴다
+
+정의·벤치마크 (마이그레이션 — 별도 승인)
+  db/benchmark_seed.py:28  farrowing_rate 정의에 "전 교배" 명시 + 신규 지표 1행
+  alembic e1a3c5d7f9b2:62-69
+                           US 분만율 벤치마크(verified)는 farrowing_rate(총교배)에
+                           그대로 귀속 — ★ 이 행은 손대지 않아도 된다
+                           (PigCHAMP 도 전 교배 기준이므로 정의 정합이 유지된다)
+
+노출
+  schemas/kpi.py · report.py · scorecard.py    신규 필드 추가(기존 유지)
+  src/types/api.types.ts                        〃
+  src/messages/*.json                           ★ 8 로케일 — 신규 라벨 1개 추가
+                                                기존 "farrowingRate" 는 유지
+  docs/PLATFORM_PARITY.md                       신규 필드 1행
+```
+
+★ 기존 필드를 유지하므로 **8 로케일은 개명이 아니라 추가**다. 초판이 예상한
+개명 작업(정책·표현 시드 · 룰 · SQL 리터럴 · 스코어카드의 metric_code 일괄 변경)은
+**대부분 불필요해진다.**
 
 ---
 
@@ -193,6 +223,37 @@ PigPlan 035001(경산돈) 정합 상실
   KR 은 PigOS 공개 타겟이 아니므로(CLAUDE.md) 비용이 작다 — Brian 판단
 ```
 
+### ★ 안 D 채택 조건 — 모집단이 NPB 정의와 같은가 (1줄 명시)
+
+US PWMFY 벤치마크의 `missing` 을 푸는 것은 **모집단이 NPB
+`Average Mated Sow Inventory` 와 정확히 같을 때만** 정당하다. 대조한다.
+
+```
+NPB       편입 = 초교배 시점 (후보돈은 교배 순간 편입)
+          이탈 = 제적 시점
+          집계 = 기간 평균
+
+안 D      편입 = 첫 mating 행 (deleted_at IS NULL)           → 일치
+          이탈 = sows.exit_date                              → 일치 (아래)
+          집계 = 12개월 월별 평균 (라이브 PSY 분모와 동일)   → 일치
+```
+
+**이탈 판정이 일치하는 근거**: 종료 4종(`CULLED`·`DEAD`·`SOLD`·`TRANSFER_OUT`)이
+모두 `exit_date` 를 설정한다(`event_service.py:591,602,609`). 라이브 PSY·NPD 는
+`exit_date` 로만 판정한다(`kpi_service.py:88,138,146,172,198`).
+
+★ **그러므로 `status NOT IN ('CULLED','DEAD')` 를 쓰면 안 된다.** 부정 목록이라
+`SOLD`·`TRANSFER` 가 재고에 남아 NPB 정의와 어긋난다. 증거 문서 **발견 4** 참조 —
+`§5-1` K-3 쿼리를 `exit_date IS NULL` 로 교체했다.
+
+```
+남는 유일한 차이   시점 스냅샷 vs 기간 평균
+                   → §5-1 결과는 배수(감도) 용도. PSY 값 환산 불가
+                   mated_ever 에 날짜 필터가 없는 것도 같은 이유의 근사다
+```
+
+**결론**: 위 3행이 확인되면 `missing` 해제가 정당하다. 확인 전에는 풀지 않는다.
+
 ### 대기 중인 것
 
 `§5-1` 쿼리 3건(전부 SELECT, Brian 직접 실행). K-3 쿼리는 **경산돈 vs 교배모돈 vs
@@ -204,20 +265,48 @@ PigPlan 035001(경산돈) 정합 상실
 ### 확정 후 따라오는 것
 
 ```
-스냅샷 잡(후보돈 포함) vs 라이브(parity>=1) 를 한쪽으로 통일
+스냅샷 잡 vs 라이브 를 한쪽으로 통일 — ★ exit_date 기준으로
+  현재 스냅샷 잡 분모 오염은 후보돈만이 아니다(증거문서 발견 4)
+    jobs/kpi.py:135  status NOT IN ('CULLED','DEAD')
+    → 후보돈 + 판 모돈(SOLD) + 전출 모돈(TRANSFER) 이 전부 잔류
 ★ 반드시 K-3 확정 이후. 순서를 뒤집으면 "스냅샷을 고쳤더니 PSY 가 떨어졌다"가 된다
 ```
 
 ---
 
-## 4. K-4 — 라벨 정책 (PENDING)
+## 4. K-4 — 명칭 (조건부 APPROVED)
 
-K-1~K-3 이 만든 명칭 부채를 여기서 정리한다.
+### 결정 — 내부 정의 ID
 
 ```
-K-2  FARROWING_RATE_FIRST_SERVICE_COHORT / _ALL_SERVICES 중
+WEANED_PER_MATED_FEMALE_YEAR      = PWMFY 개념
+    안 D 채택 시 PSY 를 대체하는 내부 정의 ID
+```
+
+산식이 맞아도 이름이 틀리면 사용자가 읽는 의미는 계속 어긋난다(T6-22).
+분모가 mated female 인 지표를 `PSY` 로 부르는 것이 정확히 그 경우다.
+
+### 국가 표시명 — 정책층 (K-3 확정 후)
+
+```
+US    "PWMFY" 직결 — NPB 용어와 그대로 맞는다
+
+BR    ★ 주의. Agriness `DFA` 는 역산 개념이라
+      "PSY/DFA" 로 표시하면 T6-22 가 재발한다
+      → "desmamados/fêmea coberta/ano" 계열로 표시하거나 배지로 구분
+
+전 국가  ★ 정의 배지 필수 — 배지 없이 이름만 쓰면
+         같은 라벨이 시장마다 다른 것을 뜻한다
+```
+
+★ 표시명은 `ADR-KPI-00` 의 **CKPRES(표현)** 계층이다. 내부 정의 ID 는
+**계산·거버넌스** 계층이다. 둘을 같은 결정으로 묶지 않는다 — I-1 이 그 경계다.
+
+### 아직 안 정한 것
+
+```
+K-2  farrowing_rate / farrowing_rate_first_service 중
      국가별로 무엇을 "분만율"로 표시할 것인가
-K-3  안 D 채택 시 — 분모가 mated female 인 지표를 계속 PSY 로 부를 것인가
 K-1  stillbirth / mummy / birth loss 3종의 표시 라벨
 ```
 
@@ -226,12 +315,14 @@ K-1  stillbirth / mummy / birth loss 3종의 표시 라벨
 ## 5. 실행 순서
 
 ```
-1  Brian — §5-1 SELECT 3건 실행                                    ← 현재 대기
+1  Brian — §5-1 SELECT 3건 + 프로덕션 use_governance_benchmarks   ← 현재 대기
+     ★ env 가 True 면 K-1 은 P0 격상 (현재 오노출)
 2  결과 → K-3 영향표 작성 → K-3 확정
 3  K-4 확정
 4  구현 착수 (마이그레이션 승인 별도)
-     K-1 정의 정정 + 벤치마크 재도출
-     K-2 kpi_code 분리 + 8로케일 + PLATFORM_PARITY
+     K-1/K-1b  V2 신설 + V1 RETIRED + 벤치마크 재도출(+mummy_rate)
+     K-2/K-2b  코호트 산식 통일 + 신규 필드 추가 + What Changed 고지
+               ★ 기존 필드명 유지 — 개명 아님
 5  D-19 검증 3건 — PSY(reference implementation) → NPD → 분만율
 ```
 

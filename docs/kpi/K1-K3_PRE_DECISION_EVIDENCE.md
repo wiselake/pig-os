@@ -225,6 +225,39 @@ PSY 분모가 두 가지다.**
 이 비대칭은 K-3 을 "제외"로 결정하더라도 남는다 — **"언제부터 경산인가"**는
 별개 질문이기 때문이다. 결정문에 이 문장이 함께 들어가야 한다.
 
+### ★ 발견 4 — 제적 판정이 두 갈래이고, status 쪽은 SOLD·TRANSFER 를 놓친다
+
+`§5-1` K-3 쿼리 초안을 `status NOT IN ('CULLED','DEAD')` 로 썼다가 **틀린 것을
+확인했다.** 종료 사유는 넷이다.
+
+```
+event_service.py:591   _REPRO_TERMINAL = ("CULLED","DEAD","SOLD","TRANSFER_OUT")
+event_service.py:595   → status  CULLED / DEAD / SOLD / TRANSFER
+event_service.py:602   종료 시 status 전이 + exit_date + soft-delete + Removal 기록
+event_service.py:609   sow.exit_date = event_date            ← 넷 모두 설정된다
+```
+
+`NOT IN ('CULLED','DEAD')` 는 **부정 목록**이라 `SOLD`·`TRANSFER` 가 그대로 남는다.
+즉 **판 모돈과 전출 모돈이 재고에 계속 잡힌다.**
+
+```
+라이브 PSY·NPD   exit_date 기반          kpi_service.py:88,138,146,172,198
+                 → 종료 4종 모두 이탈. 정확
+스냅샷 잡        status 부정 목록        jobs/kpi.py:135
+                 → SOLD·TRANSFER 잔류. 부정확
+정상 양성 목록   ("GILT","OPEN","PREGNANT","LACTATING","ACCIDENT")
+                 alert_service.py:42 · report_service.py:757
+```
+
+★ **발견 2 를 확장한다.** 스냅샷 잡의 PSY 분모 오염은 후보돈만이 아니다 —
+**후보돈 + 판 모돈 + 전출 모돈**이다. 둘 다 분모를 부풀리므로 방향은 같다(PSY ↓).
+K-3 확정 후 스냅샷 잡을 맞출 때 `exit_date` 기준으로 가야 한다.
+
+★ 그래서 `§5-1` K-3 쿼리도 `exit_date IS NULL` 로 교체했다. 이러면 `parous` 열이
+**라이브 PSY 분모(ref=오늘)를 그대로 재현**하므로, `mated_ever` 와의 비교가
+안 D 의 실제 감도가 된다. `deleted_at` 은 쓰지 않는다 — 라이브 PSY 가 의도적으로
+무시하기 때문이다(`kpi_service.py:68` "deleted_at 무관하게 exit_date로만 판정").
+
 ### 이미 기록된 대조 (2026-07) — ★ 2차 증거
 
 `kpi_service.py:81-82` 주석이 PigPlan 대조 결과를 남겨두었다.
@@ -321,7 +354,7 @@ LEFT JOIN LATERAL (
     SELECT 1 AS hit FROM matings m2
     WHERE m2.sow_id = s.id AND m2.deleted_at IS NULL LIMIT 1
 ) m ON TRUE
-WHERE s.status NOT IN ('CULLED','DEAD') AND s.deleted_at IS NULL
+WHERE s.exit_date IS NULL        -- ★ status 아님. 아래 발견 4 참조
 GROUP BY s.farm_id;
 ```
 
