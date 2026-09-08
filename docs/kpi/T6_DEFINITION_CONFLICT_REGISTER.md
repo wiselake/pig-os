@@ -467,6 +467,18 @@ CODE_DRIFT 건수   7
 | **K-3** | NPD·PSY 모집단 — **후보돈 제외 유지 여부** | `DRIFT-3` (스펙은 제외 단정, 레지스트리는 플래그) | 제외하면 NPB `Mated Female` 과도 InterPIG `present sow` 와도 다른 **제3의 정의**가 된다 |
 | **K-4** | 라벨 정책 — 내부 정의명 노출 여부 | `T6-22` | 예: 내부는 `WEANED_PER_SOWINV_YEAR`, `PSY` 는 **국가 표시명으로만**. 정의 배지 없이 `PSY` 라벨을 쓰면 세 시장에서 세 가지를 뜻한다 |
 
+### 결정 상태 (2026-09-08)
+
+```
+K-1  APPROVED — 사산만. mummy/birth_loss 는 별도 지표
+K-2  APPROVED — 병존 + 이름 분리. 외부 비교 정본 = 총교배
+K-3  PENDING  — 유력안 D(교배모돈 기준). 영향 실측 대기
+K-4  PENDING
+```
+
+결정문: **`docs/kpi/K1-K4_DECISION_RECORD.md`**
+★ APPROVED 는 ③ 확정이며 배포가 아니다. 구현·마이그레이션은 전부 미착수.
+
 ★ K-1~K-3 은 **국가 정책이 아니라 canonical 정본**을 정하는 결정이다. `ADR-KPI-00` 의
 국가별 표시 정책은 그 위에 얹히는 층이므로, 이 넷이 먼저다.
 
