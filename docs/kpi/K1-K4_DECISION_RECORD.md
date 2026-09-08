@@ -15,6 +15,8 @@
 | **K-1b** | 정의 버전 처리 | **APPROVED** 2026-09-08 | V2 신설 · V1 RETIRED |
 | **K-2** | 분만율 정본 | **APPROVED** 2026-09-08 | 안 C — 병존 |
 | **K-2b** | 필드 전략 | **APPROVED** 2026-09-08 | 기존 필드명 유지 · 신규 필드 추가 |
+| **K-2c** | 분모 단위 | **PENDING** | 권고 female-cycle. ★ 현행 코호트가 이미 그것 |
+| ★ **K-2 재확인** | 병존이 맞는가 | **REOPENED** | 전제였던 `mating_number` 해석이 틀렸다 |
 | **K-3** | NPD·PSY 모집단 | **PENDING** | 유력안 = 안 D(교배모돈). §5-1 쿼리 결과 대기 |
 | **K-4** | 명칭 | **조건부 APPROVED** | 내부 정의 ID 확정. 표시명은 K-3 확정 후 |
 
@@ -113,7 +115,67 @@ use_governance_benchmarks = True 로 켜기 전에 위 1~3 이 완료돼야 한�
 
 ## 2. K-2 — 분만율 정본
 
-### 결정 (K-2 + K-2b)
+### ★★ REOPENED — K-2 의 전제가 틀렸다 (2026-09-08)
+
+K-2 를 "두 산식은 서로 다른 KPI 다"로 결정한 근거는 **`mating_number = 1` 이
+개체 생애 초교배를 뜻한다**는 내 판독이었다. 그 판독이 틀렸다.
+
+```
+event_service.py:236-247   mating_number 는 breeding_cycle_id 범위 안에서 매겨진다
+event_service.py:249-258   새 사이클 → 1
+→ 사이클마다 정확히 1건이 mating_number = 1
+→ mating_number = 1 은 female-cycle 단위다 (초교배가 아니다)
+```
+
+사고(RTS·EMPTY·INFERTILE·ABORTION) 시 사이클이 `FAILED` 로 닫히고 재교배는 새
+사이클을 연다(`event_service.py:603,616,622,705`). **실패한 사이클은 분모에 남고
+분자에 안 잡힌다** — 실패로 정확히 계산된다. 빠지는 것은 같은 사이클 안의
+중복 교배뿐이다.
+
+### 그래서 실제 대비는 이렇다
+
+```
+                  집계 창           분모 단위
+①-a  코호트       코호트 창         female-cycle
+①-b/c/d  동기간   동월·동기간       service
+```
+
+**두 축이 동시에 다르고, ①-a 가 양쪽 다 관행에 가깝다.** 동기간식은 관찰 미완료를
+실패로 처리하고(창), 재교배로 분모를 부풀린다(단위).
+
+★ **그러므로 "다른 질문에 답하는 두 KPI" 라는 병존 근거가 약하다.**
+①-a 는 ①-b/c/d 의 **더 나은 구현**일 수 있다. 그렇다면 K-2 는 병존(C)이 아니라
+**코호트 정본 통일(A)** 이 맞고, 신규 필드 `farrowing_rate_first_service` 는
+**만들 대상이 없어진다** — 진짜 "초교배 분만율"은 현재 어느 경로도 계산하지 않는다.
+
+```
+Brian 재확인 필요
+  (가) 코호트 정본 통일 — 지표 1개. 신규 필드 없음
+  (나) 병존 유지 — 단, 두 번째 지표를 새로 정의해야 한다
+       (예: 초산돈 초교배 분만율 · 생애 초교배 분만율)
+       ★ 현행 코드에는 없다. 신규 산식이다
+```
+
+★ 코드 주석도 같은 오류다 — `kpi_service.py:371` "초교배(mating_number=1)".
+SPEC_DRIFT 로 등록 대상.
+
+### K-2c — 분모 단위 (PENDING · 권고 female-cycle)
+
+```
+service 단위        같은 주기 재교배 2회 → 분모 2
+female-cycle 단위   같은 주기 재교배 2회 → 분모 1, 분만 1
+```
+
+pig333("sows mated in period")과 PigCHAMP("% of mated females")가 갈리는 지점이며
+`T6-09` 에 다시 걸린다. **권고는 female-cycle** — 재교배가 분모를 부풀려 분만율을
+낮추는 왜곡이 없고 PigCHAMP 정의와 정합한다.
+
+★ **현행 코호트 경로가 이미 female-cycle 이다.** 즉 K-2c 권고를 채택하면
+`_cohort_farrowing_rate` 는 **그대로 두는 것이 맞다.** 아래 "고칠 것"에서
+"`mating_number = 1` 조건을 뺀다"고 적었던 것은 **service 단위로 되돌리는
+행위**이므로 K-2c 와 정면으로 충돌한다 — 철회한다.
+
+### 결정 (K-2 + K-2b) — ★ 위 재확인 결과에 따라 달라짐
 
 **두 산식은 서로 다른 KPI다. 병존시킨다. 단 API 필드명은 바꾸지 않는다.**
 
@@ -152,11 +214,10 @@ farrowing_rate_first_service   신규 필드
 
 ```
 계산
-  kpi_service.py:370-387   _cohort_farrowing_rate 를 둘로
-                           (a) 전 교배 코호트   → farrowing_rate       ★ 신규 산식
-                           (b) 초교배 코호트    → farrowing_rate_first_service
-                           = 현행 SQL 에서 mating_number = 1 조건만 뺀 것이 (a)
-                             115일 내 폐사 제외는 양쪽 모두 유지
+  kpi_service.py:370-387   ★ 철회 — 초판은 "mating_number = 1 조건을 빼서
+                           전 교배 코호트를 만든다"고 적었다. 그것은 분모를
+                           service 단위로 되돌리는 것이라 K-2c 권고와 충돌한다.
+                           현행 코호트 SQL 은 그대로 둔다.
   kpi_service.py:786-797   trend SQL — 동월 나눗셈 → 코호트 창
   report_service.py:182    기간 나눗셈 → 코호트
   jobs/kpi.py:185-187      ★ 같은 코호트로. 지금 안 맞추면 복구 시 세 번째 값이 생긴다

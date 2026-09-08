@@ -137,24 +137,55 @@ alembic/versions/e1a3c5d7f9b2_work_us_pigchamp_load.py:70-77
 | ①-c | `report_service.py:182` | 기간 `farrowings / matings` | 리포트 |
 | ①-d | `jobs/kpi.py:185-187` | 기간 `farrowings / matings` | 스냅샷 잡 (**현재 전건 실패 — CLAUDE.md**) |
 
-### ★ 두 방식은 창(window)만 다른 게 아니다 — 모집단이 다르다
+### ★★ 2026-09-08 정정 — `mating_number = 1` 은 "초교배"가 아니다
 
-이것이 이 항목에서 가장 중요한 사실이다.
+**초판의 이 항목은 틀렸다.** `mating_number` 를 개체 생애 기준 교배 순번으로 읽고
+"코호트는 재발정 재교배를 전부 뺀다 → 초교배 수태율"이라고 적었다. 실제 범위는
+**번식 사이클 안**이다.
 
 ```
-코호트(①-a)      mating_number = 1 만       → 재발정 재교배가 분모·분자에서 전부 빠진다
-                 교배 후 115일 내 폐사 제외  → 관찰 불능 개체를 실패로 세지 않는다
-
-동기간(①-b/c/d)  모든 교배                  → 재교배 포함
-                 폐사 보정 없음              → 관찰 미완료·중도 이탈을 실패로 처리
+event_service.py:236-247   existing_matings = COUNT(matings WHERE breeding_cycle_id = cycle.id)
+                           mating_number = existing_matings + 1
+event_service.py:249-258   새 사이클 시작 시 → mating_number = 1
+                           주석 "피그플랜 gyobae_cnt 방식"
 ```
 
-따라서 ①-a 는 **초교배 수태 성공률**에 가깝고, ①-b/c/d 는 **총 교배 대비
-분만 산출률**이다. 이름이 같을 뿐 **묻는 질문이 다르다.**
+즉 **사이클마다 정확히 한 건이 `mating_number = 1`** 이다.
 
-방향은 두 힘이 반대로 작용한다 — 재교배가 성공하는 만큼 동기간식이 올라가고,
-관찰 미완료를 실패로 세는 만큼 내려간다. **순효과의 부호조차 산식만으로는
-단정할 수 없다.** 실측이 필요한 이유가 여기 있다(§5).
+```
+같은 사이클 내 반복 교배(24h 재교배 등)   mating_number 2,3…  → 분모에서 제외
+사고 후 재교배                            사이클이 FAILED 로 종료되고
+  (RTS·EMPTY·INFERTILE·ABORTION)          새 사이클 시작 → mating_number = 1
+  event_service.py:603,616,622,705        → 분모에 다시 잡힌다
+```
+
+**그러므로 `mating_number = 1` 은 "교배 모돈-주기(female-cycle)" 단위다.**
+실패한 사이클은 분모에 남아 분자에 안 잡히고(=실패로 계산), 중복 교배만 제거된다.
+정확히 의도된 동작이다.
+
+### 정정된 대비 — 두 경로는 **축 두 개**에서 다르다
+
+```
+                    집계 창              분모 단위
+①-a  코호트         110~150일 코호트     female-cycle   ← 사이클당 1
+①-b/c/d  동기간     동월·동기간          service        ← 교배 건마다 1
+```
+
+초판은 이것을 "창은 같고 모집단만 다르다"가 아니라 "다른 질문에 답한다"로 적었다.
+**둘 다 부정확했다.** 두 축이 동시에 다르고, ①-a 는 양쪽 축 모두에서 관행에
+가깝다 — 동기간식은 관찰 미완료를 실패로 처리하고(창), 재교배로 분모를
+부풀린다(단위).
+
+★ 코드 주석도 같은 오류를 갖고 있다.
+
+```
+kpi_service.py:371   "'초교배(mating_number=1)' 중 분만 성공 비율"
+                     → 실제로는 '사이클 최초 교배'. SPEC_DRIFT 후보
+```
+
+★ **이 정정은 K-2 의 결론에 영향을 준다.** "서로 다른 두 KPI 라서 병존"이라는
+근거가 약해진다 — ①-a 가 ①-b/c/d 의 더 나은 구현일 뿐일 수 있다.
+`K1-K4_DECISION_RECORD.md` §2 참조.
 
 ### 선택지와 영향
 
@@ -348,7 +379,12 @@ SELECT s.farm_id,
        count(*)                                              AS active_all,
        count(*) FILTER (WHERE s.parity >= 1)                 AS parous,        -- 현 라이브
        count(*) FILTER (WHERE m.hit IS NOT NULL)             AS mated_ever,    -- 안 D
-       count(*) FILTER (WHERE s.parity = 0 AND m.hit IS NOT NULL) AS gilt_mated
+       count(*) FILTER (WHERE s.parity = 0 AND m.hit IS NOT NULL) AS gilt_mated,
+       -- ★ 소프트 삭제 비대칭 점검: 교배 행이 전부 소프트 삭제된 후보돈
+       count(*) FILTER (WHERE s.parity = 0 AND m.hit IS NULL AND EXISTS (
+           SELECT 1 FROM matings m3
+           WHERE m3.sow_id = s.id AND m3.deleted_at IS NOT NULL
+       )) AS gilt_mated_deleted_only
 FROM sows s
 LEFT JOIN LATERAL (
     SELECT 1 AS hit FROM matings m2
@@ -356,6 +392,15 @@ LEFT JOIN LATERAL (
 ) m ON TRUE
 WHERE s.exit_date IS NULL        -- ★ status 아님. 아래 발견 4 참조
 GROUP BY s.farm_id;
+```
+
+★ **소프트 삭제 비대칭.** 모돈은 `deleted_at` 을 무시하는데(하베스트 사유) 교배는
+`deleted_at IS NULL` 로 거른다. 교배 행이 소프트 삭제된 후보돈은 `mated_ever` 에서
+빠져 **미교배로 집계**된다. `gilt_mated_deleted_only` 가 그 규모다.
+
+```
+0 이면    닫는다 — 안 D 편입 규칙에 추가 단서 불필요
+0 이 아니면  안 D 편입 규칙에 "삭제된 교배 제외"를 명시해야 한다
 ```
 
 ★ K-3 결과는 시점 스냅샷이므로 PSY 감도의 **근사**다. PSY 분모는 12개월 월별
