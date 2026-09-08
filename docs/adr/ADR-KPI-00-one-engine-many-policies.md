@@ -208,7 +208,7 @@ CANONICAL_FORMULA_SPEC UNVERIFIED → CONFIRMED
 
 | # | 항목 | 소관 |
 |---|---|---|
-| O-1 | 정의 충돌 레지스터(어느 나라가 어느 정의를 쓰는가)가 없다 | 국가별 수요 리서치 산출물 |
+| O-1 | ~~정의 충돌 레지스터가 없다~~ → **초판 작성됨** `docs/kpi/T6_DEFINITION_CONFLICT_REGISTER.md` (2026-09-08). ★ 결과가 경고다 — 국가 간 충돌보다 **내부 충돌**(사산율 분자 정면 모순·분만율 이중 경로)이 먼저다 | T6 §4 DRIFT-2·DRIFT-4 |
 | O-2 | `production_stage`·`herd_size_band` 축이 실제로 쓰이는지 미확인 | 별도 실측 |
 | O-3 | 산식 버전과 정책 버전이 분석 결과에 함께 기록되지 않는다 | evidence 계약 |
 | O-4 | 치료·휴약·항생제 기록의 국가별 요구가 컬럼으로 증식 중 | `COUNTRY-HEALTH-MASTER` — `master.py:70` `vfd_required_us`·`eu_restricted` 를 읽는 코드 0건 |
