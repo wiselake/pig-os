@@ -489,6 +489,9 @@ CODE_DRIFT 건수   7
             → NPD → 분만율 → 나머지 KPI
 ```
 
+`PRE-DECISION EVIDENCE` 산출물: **`docs/kpi/K1-K3_PRE_DECISION_EVIDENCE.md`**
+(2026-09-08 — ① 런타임 확정 완료 · 실측 수치는 프로덕션 조회 차단으로 미완).
+
 `PRE-DECISION EVIDENCE` 는 D-19 가 아니다. "현재 런타임이 무엇을 하는가 / 선택지별로
 실제 값이 얼마나 달라지는가"까지만 보여주고 멈춘다. 그래야 결재자가 **개념적 근거와
 실제 제품 영향을 함께** 보고 정의를 고를 수 있다.
