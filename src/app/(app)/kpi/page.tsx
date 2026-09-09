@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { Sparkles, FileDown, Printer, BarChart3 } from "lucide-react";
+import { Sparkles, FileDown, Printer, BarChart3, Star } from "lucide-react";
 import { kpiApi } from "@/lib/api/endpoints/kpi";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { useAuthStore } from "@/store/auth.store";
@@ -169,7 +169,7 @@ function KpiCard({
     <div className="bg-surface border border-border rounded-xl p-4 flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-bold tracking-wide uppercase text-text3">
-          {headline && <span className="mr-1 text-primary" aria-hidden>★</span>}{label}
+          {headline && <Star size={11} className="mr-1 inline-block align-[1px] text-primary" fill="currentColor" strokeWidth={0} aria-hidden />}{label}
         </span>
         <span className={`w-2 h-2 rounded-full ${style.dot}`} />
       </div>

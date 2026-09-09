@@ -1,5 +1,6 @@
 "use client";
 import { useTranslations } from "next-intl";
+import { Wrench } from "lucide-react";
 
 export default function MaintenancePage() {
   const t = useTranslations("util");
@@ -7,7 +8,11 @@ export default function MaintenancePage() {
     <div className="min-h-screen flex items-center justify-center text-center px-6"
       style={{ background: "linear-gradient(170deg,#0D1B3E,#16264f)" }}>
       <div className="max-w-sm">
-        <div className="text-5xl mb-6">🔧</div>
+        <div className="mb-6 flex justify-center">
+          <span className="w-16 h-16 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center">
+            <Wrench size={30} className="text-white" strokeWidth={1.75} aria-hidden />
+          </span>
+        </div>
         <h1 className="text-3xl font-extrabold text-white tracking-tight mb-3">{t("mtTitle")}</h1>
         <p className="text-base text-white/70 leading-relaxed mb-6">
           {t("mtDesc")}

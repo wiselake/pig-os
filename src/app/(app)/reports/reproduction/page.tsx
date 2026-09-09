@@ -12,6 +12,7 @@ import { reportsApi } from "@/lib/api/endpoints/reports";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { useAuthStore } from "@/store/auth.store";
 import type { BenchmarkValue, ReproductionRow } from "@/types/api.types";
+import { AlertTriangle } from "lucide-react";
 
 function monthsAgoISO(n: number): string {
   const d = new Date();
@@ -176,7 +177,10 @@ export default function ReproductionReportPage() {
         </div>
       )}
 
-      <p className="text-[11px] text-text3 mt-3">{t("pwmrNote")}</p>
+      <p className="text-[11px] text-text3 mt-3 flex items-start gap-1.5">
+        <AlertTriangle size={13} className="shrink-0 mt-px text-warning" strokeWidth={2} aria-hidden />
+        <span>{t("pwmrNote")}</span>
+      </p>
       {benchByCode.size > 0 && (
         <p className="text-[11px] text-text3 mt-1">
           {t("benchLegend")}

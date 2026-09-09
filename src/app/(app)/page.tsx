@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Card, PipeItem } from "@/components/ui";
 import Link from "next/link";
-import { Brain, ArrowRight, CheckCircle2, ListTodo } from "lucide-react";
+import { Brain, ArrowRight, CheckCircle2, ListTodo, Star } from "lucide-react";
 import { SEVERITY_ICON, STAGE_ICON } from "@/lib/icons";
 import { kpiApi } from "@/lib/api/endpoints/kpi";
 import { alertsApi } from "@/lib/api/endpoints/alerts";
@@ -382,7 +382,7 @@ function KpiCard({ t, label, tier, value, rawTierLabel, benchmark, trend, headli
     <div className="rounded-2xl border border-border bg-surface px-4 py-3.5">
       <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] text-text3 font-semibold">
-          {headline && <span className="mr-1 text-primary" aria-hidden>★</span>}{label}
+          {headline && <Star size={11} className="mr-1 inline-block align-[1px] text-primary" fill="currentColor" strokeWidth={0} aria-hidden />}{label}
         </span>
         {trend && <Sparkline data={trend} />}
       </div>

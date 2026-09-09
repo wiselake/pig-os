@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
-import { Sparkles, ChevronRight, Info, ShieldAlert } from "lucide-react";
+import { Sparkles, ChevronRight, Info, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { alertsApi } from "@/lib/api/endpoints/alerts";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { useAuthStore } from "@/store/auth.store";
@@ -107,7 +107,8 @@ export default function AlertsPage() {
         </div>
       ) : signals.length === 0 ? (
         <div className="border border-border rounded-2xl py-14 text-center">
-          <p className="font-bold text-text">{t("emptyOverdueTitle")} 👏</p>
+          <CheckCircle2 size={28} className="mx-auto mb-3 text-success" strokeWidth={1.75} aria-hidden />
+          <p className="font-bold text-text">{t("emptyOverdueTitle")}</p>
           <p className="text-xs text-text3 mt-1">{t("emptyOverdueDesc")}</p>
         </div>
       ) : (

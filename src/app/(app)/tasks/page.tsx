@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Check, ListTodo, RefreshCw, X } from "lucide-react";
+import { ArrowRight, Check, ListTodo, RefreshCw, X, CheckCircle2 } from "lucide-react";
 import { tasksApi } from "@/lib/api/endpoints/tasks";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { useAuthStore } from "@/store/auth.store";
@@ -81,6 +81,7 @@ export default function TasksPage() {
 
       {data && tasks.length === 0 && (
         <div className="bg-green-soft border border-success/30 rounded-xl p-6 text-sm text-success text-center">
+          <CheckCircle2 size={26} className="mx-auto mb-2.5" strokeWidth={1.75} aria-hidden />
           {t("allClear")}
         </div>
       )}

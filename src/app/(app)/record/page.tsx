@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, PiggyBank } from "lucide-react";
+import { Check, PiggyBank, X } from "lucide-react";
 import { eventsApi } from "@/lib/api/endpoints/events";
 import { track } from "@/lib/analytics";
 import { sowsApi } from "@/lib/api/endpoints/sows";
@@ -331,8 +331,8 @@ export default function RecordPage() {
               </div>
               <button
                 onClick={() => setSelectedSow(null)}
-                className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-text3 hover:bg-border transition text-sm"
-              >✕</button>
+                className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-text3 hover:bg-border transition"
+              ><X size={15} strokeWidth={2.25} aria-hidden /></button>
             </div>
 
             {/* Event type chips */}

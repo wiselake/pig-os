@@ -229,7 +229,7 @@ function PilotsTab({ t }: { t: (k: string, v?: Record<string, string | number>) 
                       {t("actApproveAccount")}
                     </button>
                   ) : (
-                    <span className="text-[11px] text-success font-semibold">✓ {t("psOnboarded")}</span>
+                    <span className="inline-flex items-center gap-1 text-[11px] text-success font-semibold"><Check size={12} strokeWidth={3} aria-hidden />{t("psOnboarded")}</span>
                   )}
                 </td>
               </tr>

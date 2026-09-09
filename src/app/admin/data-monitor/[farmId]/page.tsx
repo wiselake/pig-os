@@ -3,14 +3,31 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, PiggyBank, Activity, Calendar } from "lucide-react";
+import {
+  ArrowLeft, PiggyBank, Activity, Calendar, Check,
+  Heart, Baby, Milk, Syringe, LogOut, Wheat, type LucideIcon,
+} from "lucide-react";
 import { adminApi } from "@/lib/api/endpoints/admin";
 
 // admin 콘솔은 ko 전용(내부 운영팀). 이벤트 유형 라벨은 한국어 고정 — 일반 사용자 노출 없음.
-const EVENT_LABEL: Record<string, string> = {
-  mating: "🐷 교배", farrowing: "👶 분만", weaning: "🍼 이유", health: "💉 건강",
-  removal: "📤 도폐사", piglet: "🐖 자돈", feed: "🌾 사료",
+const EVENT_LABEL: Record<string, [LucideIcon, string]> = {
+  mating: [Heart, "교배"], farrowing: [Baby, "분만"], weaning: [Milk, "이유"],
+  health: [Syringe, "건강"], removal: [LogOut, "도폐사"], piglet: [PiggyBank, "자돈"],
+  feed: [Wheat, "사료"],
 };
+
+/** 유형 배지 — 미등록 유형은 원문 코드를 그대로 보여준다(빈칸으로 삼키지 않는다). */
+function EventLabel({ type }: { type: string }) {
+  const hit = EVENT_LABEL[type];
+  if (!hit) return <>{type}</>;
+  const [Icon, label] = hit;
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <Icon size={13} className="text-text3 shrink-0" strokeWidth={1.75} aria-hidden />
+      {label}
+    </span>
+  );
+}
 
 export default function FarmDataDetailPage() {
   const t = useTranslations("adminFarmDetail");
@@ -90,7 +107,7 @@ export default function FarmDataDetailPage() {
                     <tr><td colSpan={4} className="py-4 text-center text-text3 text-xs">{t("none")}</td></tr>
                   ) : data.event_breakdown.map((e) => (
                     <tr key={e.type} className="border-t border-border">
-                      <td className="py-1.5">{EVENT_LABEL[e.type] ?? e.type}</td>
+                      <td className="py-1.5"><EventLabel type={e.type} /></td>
                       <td className="py-1.5 text-right font-mono">{e.total.toLocaleString()}</td>
                       <td className="py-1.5 text-right font-mono">{e.count_30d}</td>
                       <td className="py-1.5 text-right font-mono text-xs text-text3">{e.last_at ?? "—"}</td>
@@ -105,7 +122,7 @@ export default function FarmDataDetailPage() {
           <div className={`border rounded-2xl p-5 mt-5 ${data.integrity.total > 0 ? "bg-red-soft border-danger/40" : "bg-surface border-border"}`}>
             <h2 className="text-sm font-bold mb-3">{t("quality")}</h2>
             {data.integrity.total === 0 ? (
-              <p className="text-xs text-success font-semibold">✓ {t("clean")}</p>
+              <p className="inline-flex items-center gap-1 text-xs text-success font-semibold"><Check size={13} strokeWidth={3} aria-hidden />{t("clean")}</p>
             ) : (
               <div className="grid grid-cols-3 gap-3">
                 {[
@@ -131,7 +148,7 @@ export default function FarmDataDetailPage() {
               <div className="flex flex-wrap gap-2">
                 {data.recent_events.map((r, i) => (
                   <span key={i} className="inline-flex items-center gap-1.5 bg-bg2 border border-border rounded-full px-2.5 py-1 text-xs">
-                    <span>{EVENT_LABEL[r.type] ?? r.type}</span>
+                    <span><EventLabel type={r.type} /></span>
                     <span className="font-mono text-text3">{r.date}</span>
                   </span>
                 ))}

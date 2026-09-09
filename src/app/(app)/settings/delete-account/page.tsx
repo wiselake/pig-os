@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { authApi } from "@/lib/api/endpoints/auth";
 import { resolveApiError, withRequestId } from "@/lib/api/errors";
 import { useAuthStore } from "@/store/auth.store";
+import { X } from "lucide-react";
 
 /**
  * 계정 삭제 — Apple Guideline 5.1.1(v) / PIPA §21 / GDPR Art.17.
@@ -74,7 +75,7 @@ export default function DeleteAccountPage() {
           <div className="text-xs font-bold text-danger mb-2">{t("lostTitle")}</div>
           {[t("l1"), t("l2"), t("l3")].map((x, i) => (
             <div key={i} className="text-xs text-text2 flex items-start gap-2 py-1">
-              <span className="text-danger font-bold leading-5">✕</span>
+              <X size={14} className="text-danger shrink-0 mt-0.5" strokeWidth={2.75} aria-hidden />
               <span>{x}</span>
             </div>
           ))}

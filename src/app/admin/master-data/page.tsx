@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
 import { adminApi } from "@/lib/api/endpoints/admin";
 import { apiError } from "@/lib/api/error";
+import type { ReactNode } from "react";
 
 // 운영자 코드데이터 관리 (G4). admin은 ko 전용 운영자 콘솔 → 라벨 한글 직접 사용.
 type Col = { key: string; label: string; type: "text" | "num" | "bool" | "textarea"; pk?: boolean; required?: boolean };
@@ -166,9 +167,11 @@ export default function AdminMasterDataPage() {
   );
 }
 
-function fmt(v: unknown): string {
+function fmt(v: unknown): ReactNode {
   if (v === null || v === undefined) return "—";
-  if (typeof v === "boolean") return v ? "✓" : "—";
+  if (typeof v === "boolean") {
+    return v ? <Check size={14} className="text-success" strokeWidth={3} aria-hidden /> : "—";
+  }
   if (Array.isArray(v)) return v.join(", ");
   if (typeof v === "object") return JSON.stringify(v);
   return String(v);
