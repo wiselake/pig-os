@@ -35,8 +35,6 @@ from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
-import pytest
-
 _API = Path(__file__).resolve().parents[2]
 _REPO = _API.parent
 _MANIFEST = _REPO / "docs/legal/KNOWN_PUBLICATION_EXPOSURE.md"

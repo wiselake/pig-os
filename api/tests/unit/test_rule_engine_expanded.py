@@ -5,8 +5,11 @@ DB 없이 RuleContext를 직접 생성해 규칙 함수를 호출(국가 중립 
 import asyncio
 from uuid import uuid4
 
-from app.engine.rule_engine import RuleContext, Severity
+from app.engine.rule_engine import Finding, RuleContext, Severity
 from app.engine.rules._common import resolve, sev_above, sev_below
+from app.engine.rules.batch import _batch_aiao_detect
+from app.engine.rules.boar import _boar_farrow_rate_low
+from app.engine.rules.composite import _farm_health_class, _farm_weakest_kpi
 from app.engine.rules.grow_finish import _adg_low, _fcr_high, _finish_mortality_high
 from app.engine.rules.litter import (
     _born_alive_low,
@@ -19,10 +22,6 @@ from app.engine.rules.litter import (
     _total_born_low,
     _weaned_low,
 )
-from app.engine.rule_engine import Finding
-from app.engine.rules.batch import _batch_aiao_detect
-from app.engine.rules.boar import _boar_farrow_rate_low
-from app.engine.rules.composite import _farm_health_class, _farm_weakest_kpi
 from app.engine.rules.loss import (
     _loss_npd,
     _loss_pregnancy_accident,
