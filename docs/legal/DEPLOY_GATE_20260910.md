@@ -1,7 +1,9 @@
 # 2026-09-10 법무 P0 배포 게이트 — 배포 전 확정 사항
 
 > **작성**: 2026-09-09 · machine `bjh` · 실측 기반
-> **성격**: 배포 판단용 사실 정리. **코드 수정 0건 · 배포 0건**
+> **성격**: **법무 배포의 기준 문서.** 앞으로 진행 상황은 "P0 5건" 이 아니라
+> **G-1~G-6 중 무엇이 충족됐는가**로 말한다 (2026-09-09 확정).
+> 코드 수정 0건 · 배포 0건
 > **결론 한 줄**: **지금 코드만 배포하면 "약관 배포"가 아니라
 > "미승인 초안에 대한 동의 기록 생성 개시"가 된다.**
 
@@ -101,37 +103,88 @@ KNOWN_PUBLICATION_EXPOSURE.md:10
 
 ---
 
-## 5. 배포 범위 — P0 5건이 아니다
+## 5. 배포 범위 — 실측 (2026-09-09)
 
-### 5-1. 미배포 커밋은 66개다
-
-```
-배포본 2e372b1 .. HEAD   66 커밋
-그중 법무 계열            약 16 커밋
-나머지                    KPI·환경·i18n·UI 아이콘·가드 등
-```
-
-법무 P0 만 올라가는 것이 아니다. **KPI trend 억제, 심각도 라벨 변경, 아이콘 전면
-교체, Node 환경 변경이 같은 배포에 실린다.** 롤백 단위를 미리 정해야 한다.
-
-### 5-2. ★ P0 정본 목록이 없다
-
-문서에 흩어진 식별자가 **9종**이고, 이름이 서로 다르게 쓰인 것도 있다.
+### 5-1. 67커밋 중 런타임에 닿는 것은 15건이다
 
 ```
-LEGAL-P0-CONSENT-FARM-AUTHORITY      6회   ← LEGAL-P0-CONSENT-AUTHORITY(2회) 와 동일?
+배포본 2e372b1 .. HEAD      67 커밋
+  런타임 영향                15
+  문서·테스트 전용           52
+  ★ 마이그레이션             0        ← prod alembic 실행할 것이 없다
+```
+
+★ 이 사실이 위험도를 크게 낮춘다. 초판에 "66커밋이 통째로 실린다"고 적었으나
+**대부분이 문서와 테스트**다. 스키마 변경은 없다.
+
+### 5-2. ★ "법무 P0 5건" 의 실체 — 이 5개다
+
+```
+90e1284  api/app/policy/consent_matrix.py
+         미지원국 기본 목적② OFF (MASTER §10③)
+4a64da8  routers/base/auth.py · onboarding.py · services/consent_service.py · eligibility.py
+         국가 진입을 서버에서 강제 (consent API 안이 아니라)
+e064e60  src/app/onboarding/page.tsx · lib/api/endpoints/consent.ts · messages ×8
+         웹 가입을 동의 기록에 대해 fail-closed
+f4d9c3f  api/app/services/consent_service.py
+         동의 원장 쓰기 전 농장 접근 권한 검사
+557a347  api/app/services/consent_service.py
+         동의 쓰기를 commit — 요청이 끝나도 남도록
+```
+
+**이 목록이 정본이다.** 앞으로 "5건"은 이 5개 sha 를 뜻한다. 흩어진 9종 식별자
+(§5-4)는 결함 이름이지 배포 단위가 아니다.
+
+### 5-3. 배포 단위 / 롤백 단위
+
+같이 실리지만 **성격이 다르므로 롤백 판단은 따로 한다.**
+
+```
+A  법무          90e1284 · 4a64da8 · e064e60 · f4d9c3f · 557a347
+                 ★ G-1~G-3 미충족이면 이 묶음이 곧 위험원이다(§2)
+
+B  KPI·AI        fdd9ca5  웹이 KPI status 를 자체 판정하지 않도록
+                 804ef63  LLM 출력 검증(설명만, 판단 금지)
+                 ★ 사용자 표시 수치가 바뀐다. 별도 관찰 필요
+
+C  엔진 텍스트   f3e00ce  심각도 라벨에서 이모지 제거 (7개 언어)
+                 8f57d1d  로케일 카탈로그 파리티
+                 ★ 챗 응답 본문이 바뀐다
+
+D  웹 UI         44ded3f · 6165306   이모지 → 아이콘 · 크기 스케일
+                 ★ 표시만. 계약·수치 불변
+
+E  환경·관측     aeca20d · d652af8 · 60c9545   Node 고정 · preflight
+                 c3a46cc  클라이언트 앱버전 보고(송출·관측만)
+                 ★ 런타임 동작 변화 없음
+```
+
+**롤백 지점**: 현재 배포본 `2e372b1`. 마이그레이션이 0건이므로 코드만 되돌리면
+되고 스키마 되감기가 없다.
+
+★ A 만 떼어 되돌리는 것은 **깨끗하지 않다.** `e064e60` 이 `messages/*.json` 8개를
+건드리고 `44ded3f`(D)도 같은 파일을 건드린다. 부분 롤백이 필요하면 A 를 남기고
+B~E 를 되돌리는 방향이 충돌이 적다.
+
+### 5-4. P0 식별자는 여전히 정리되지 않았다
+
+문서에 흩어진 식별자 9종. 두 쌍은 같은 결함의 다른 이름으로 보인다.
+
+```
+LEGAL-P0-CONSENT-FARM-AUTHORITY      6회  ↔ LEGAL-P0-CONSENT-AUTHORITY       2회
+LEGAL-P0-CONSENT-LEDGER-PERSISTENCE  3회  ↔ LEGAL-P0-CONSENT-LEDGER-NOT-PERSISTED 2회
 LEGAL-P0-WEB-CONSENT-FAIL-CLOSED     5회
-LEGAL-P0-CONSENT-EVIDENCE            4회
-LEGAL-P0-MANDATORY-CONSENT-LOGIN-GATE 3회
-LEGAL-P0-CONSENT-LEDGER-PERSISTENCE  3회   ← LEGAL-P0-CONSENT-LEDGER-NOT-PERSISTED(2회) 와 동일?
-LEGAL-P0-ORPHAN-ACCOUNT-STATE        1회
-LEGAL-P0-LIVE-PUBLICATION-EXPOSURE   1회
-LEGAL-P0-IOS-CONSENT                 1회
+LEGAL-P0-CONSENT-EVIDENCE            4회      미착수
+LEGAL-P0-MANDATORY-CONSENT-LOGIN-GATE 3회     OPEN — NOT REMEDIATED
+LEGAL-P0-ORPHAN-ACCOUNT-STATE        1회      = H11
+LEGAL-P0-LIVE-PUBLICATION-EXPOSURE   1회      격리 중
+LEGAL-P0-IOS-CONSENT                 1회      미착수
 ```
 
-**"5건"이 어느 5건인지 고정된 곳이 없다.** 배포 후 "5건 배포 완료"를 검증할 수 없다.
+★ 배포 단위는 §5-2 로 확정됐으므로 이 정리는 **배포를 막지 않는다.** 다만 결함
+추적용 이름 통일은 남은 숙제다.
 
-### 5-3. 문서에 적힌 상태 (실측)
+### 5-5. 문서에 적힌 상태 (실측)
 
 ```
 CODE_COMPLETE / TESTED · PROD_NOT_DEPLOYED
@@ -141,18 +194,10 @@ CODE_COMPLETE / TESTED · PROD_NOT_DEPLOYED
 OPEN — NOT REMEDIATED
   LEGAL_P0_MANDATORY_CONSENT_LOGIN_GATE.md    ← 기존 사용자 재동의를 강제하는 그 건
   SYNC_AUDIT_ATTRIBUTION_GAP.md
-
-전용 문서 없음 (커밋으로만 존재)
-  LEGAL-P0-WEB-CONSENT-FAIL-CLOSED   e064e60
-  국가 진입 서버 강제                4a64da8
-  미지원국 목적② OFF (MASTER §10③)  90e1284
 ```
 
-★ **`MANDATORY-CONSENT-LOGIN-GATE` 가 미해결이라는 점이 중요하다.** 이 건이 열려
-있는 한, 배포해도 **기존 사용자는 재동의를 요구받지 않는다.** 바뀌는 것은 신규
-가입 경로뿐이다.
-
----
+★ **`MANDATORY-CONSENT-LOGIN-GATE` 가 미해결이므로, 배포해도 기존 사용자는
+재동의를 요구받지 않는다.** 바뀌는 것은 신규 가입 경로뿐이다(H11·H12).
 
 ## 6. "약관 배포 완료"의 성립 조건
 
@@ -165,7 +210,7 @@ G-2  게시 언어      법정 요건 충족 (BR pt-BR · TH th · VN vi)
                     → 현재 addendum 은 전부 en 단일. H14
 G-3  런타임 차단    초안 상태에서 동의를 받지 않는 게이트
                     → 현재 없음. 배너뿐
-G-4  코드 배포      P0 5건 + 나머지 61커밋
+G-4  코드 배포      §5-2 법무 5건 + 런타임 10건 (마이그레이션 0)
 G-5  기존 사용자    재동의 경로 = MANDATORY-CONSENT-LOGIN-GATE
                     → 현재 OPEN. H11(원장 없는 기존 계정)·H12 와 함께 결정
 G-6  적재 확인      consent_ledger 실제 행 · notice_version 이 승인본을 가리키는지
@@ -175,25 +220,46 @@ G-6  적재 확인      consent_ledger 실제 행 · notice_version 이 승인�
 
 ---
 
-## 7. 9/10 배포일에 확인할 것
-
-대표 GO 이후 순서. **각 단계는 앞 단계가 참일 때만 의미가 있다.**
+## 7. 확정된 실행 순서 (2026-09-09)
 
 ```
-1  격리 상태 확인          expires_at 경과 여부 · 해소/연장 결정
-2  G-1 문서 승인 상태      manifest status 재확인 — 여전히 DRAFT 면 3~7 을 하면 안 된다
-3  롤백 지점 고정          현재 배포본 2e372b1 을 기록. 66커밋 단위 롤백 가능 여부 확인
-4  원격 반영              push (아직 0건)
-5  프로덕션 배포           prod alembic 금지 — 스키마 수동 확인
-6  smoke — 신규 가입       동의 실패 시 계정이 생기지 않는가 (e064e60)
-7  smoke — 원장 적재       consent_ledger 행 생성 · notice_version 값 확인 (557a347)
-8  smoke — 농장 권한       타 농장 farm_id 로 동의 기록 시 403 (f4d9c3f)
-9  smoke — 국가 차단       KR·CN 가입 차단 유지 (4a64da8)
-10 관찰                   9/2 감사에서 확인된 "동의 기록 없는 신규 가입 2건" 재발 여부
+1  H13   게시 문서 승인 여부 결정                        대표+법무
+2  H14   게시 언어 법정 요건 결정                        대표+법무
+3  G-3   DRAFT·미승인 문서에는 동의를 받지 못하게 fail-closed
+4  §5-2  배포 대상 sha 목록 확정                          ← 완료
+5  §5-3  배포 단위·롤백 단위 확정                          ← 완료
+6  코드 배포
+7  smoke — 신규 가입 동의 경로
+8  ledger 검증 — document · version · status
+9  기존 사용자 재동의                                    H11 · H12 별도
 ```
 
-★ **2번에서 멈추는 것이 정상 시나리오다.** 문서가 승인되지 않은 상태에서 6~8 을
-통과시키면, 그 smoke test 자체가 초안 동의 기록을 만든다.
+★ **9/10 의 정상 시나리오는 "격리 만료 → 바로 배포"가 아니다.**
+`G-1`·`G-2` 를 재확인하고 **미충족이면 멈추는 것**이다.
+
+### ★ G-3 에는 판단이 필요하다 — 지금 넣으면 신규 가입이 전면 중단된다
+
+`any_draft` 로 fail-closed 하는 것은 코드로 닫을 수 있다. 다만 **지금 문서 8건이
+전부 DRAFT 이므로, 그 게이트를 켜는 즉시 아무도 가입할 수 없다.**
+
+두 순서가 가능하고 성격이 다르다.
+
+```
+(가) G-1 먼저 → G-3 나중
+     문서가 승인된 뒤 게이트를 넣는다. 서비스 중단 없음.
+     단 승인~게이트 사이 구간은 여전히 무방비다.
+
+(나) G-3 먼저 → G-1 나중
+     지금 게이트를 넣는다. 신규 가입이 승인 시점까지 멈춘다.
+     대신 초안 동의 기록이 단 한 건도 생기지 않는다.
+```
+
+★ **어느 쪽이 옳은지는 개발이 정할 문제가 아니다.** (나)는 서비스 중단을
+감수하는 결정이고, (가)는 그 사이 유입을 감수하는 결정이다. 실고객 신규 가입이
+월 2~3건 수준(2026-08 월간보고)이라는 사실이 판단 재료가 된다.
+
+**미결정 상태에서는 배포하지 않는다** — 게이트 없이 `557a347`+`e064e60` 만 나가는
+것이 §2 에서 지적한 최악의 조합이다.
 
 ---
 
@@ -203,8 +269,9 @@ G-6  적재 확인      consent_ledger 실제 행 · notice_version 이 승인�
 ✗ "배포하면 안 된다"
     코드 수정은 옳고 배포 대기 상태다. 순서 문제를 지적할 뿐이다.
 
-✗ "P0 5건이 틀렸다"
-    5건이 무엇인지 고정된 목록이 없다는 것까지가 확인된 사실이다.
+✗ G-3 를 어느 순서로 넣을지에 대한 판단
+    §7 의 (가)/(나) 는 선택지 제시이지 권고가 아니다.
+    서비스 중단 여부는 사업 결정이다.
 
 ✗ 문서 승인 여부에 대한 판단
     manifest 의 status 값을 읽었을 뿐이다. 변호사 검토 진행 상황은 모른다.
