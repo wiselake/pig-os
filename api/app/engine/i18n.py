@@ -878,16 +878,24 @@ UI_LABELS: dict[str, dict[str, str]] = {
         "vi": "Tất cả các chỉ số KPI đều trong ngưỡng bình thường.",
         "th": "ตัวชี้วัดทั้งหมดอยู่ในเกณฑ์ปกติ",
         "pt": "Todos os KPIs estão dentro da faixa normal."},
+    # 심각도 라벨 — ★ 글리프를 넣지 않는다.
+    # 이 문자열은 챗 응답 본문으로 그대로 나간다. 예전에는 "🔴 Critical" / "⚠ 경고" / "✓" 처럼
+    # 이모지가 섞여 있었는데, 서버가 만든 텍스트라 클라이언트가 색·크기·정렬을 잡을 수
+    # 없고 스크린리더가 글리프를 읽는다. 등급은 StructuredResult.severity 필드로도
+    # 내려가므로, 표시 강조는 그쪽을 보고 클라이언트가 한다.
+    # ★ ok/info 의 현지어는 2026-09-09 신규 — 나머지 6키와 달리 원어민 검수 미이행(검토 대상).
     "severity_ok": {
-        "en": "✓", "ko": "✓", "zh": "✓", "es": "✓", "vi": "✓", "th": "✓", "pt": "✓"},
+        "en": "OK", "ko": "정상", "zh": "正常", "es": "Normal",
+        "vi": "Bình thường", "th": "ปกติ", "pt": "Normal"},
     "severity_info": {
-        "en": "ℹ", "ko": "ℹ", "zh": "ℹ", "es": "ℹ", "vi": "ℹ", "th": "ℹ", "pt": "ℹ"},
+        "en": "Info", "ko": "참고", "zh": "提示", "es": "Info",
+        "vi": "Thông tin", "th": "ข้อมูล", "pt": "Info"},
     "severity_warning": {
-        "en": "⚠ Warning", "ko": "⚠ 경고", "zh": "⚠ 警告", "es": "⚠ Aviso",
-        "vi": "⚠ Cảnh báo", "th": "⚠ คำเตือน", "pt": "⚠ Alerta"},
+        "en": "Warning", "ko": "경고", "zh": "警告", "es": "Aviso",
+        "vi": "Cảnh báo", "th": "คำเตือน", "pt": "Alerta"},
     "severity_critical": {
-        "en": "🔴 Critical", "ko": "🔴 위험", "zh": "🔴 严重", "es": "🔴 Crítico",
-        "vi": "🔴 Nghiêm trọng", "th": "🔴 วิกฤต", "pt": "🔴 Crítico"},
+        "en": "Critical", "ko": "위험", "zh": "严重", "es": "Crítico",
+        "vi": "Nghiêm trọng", "th": "วิกฤต", "pt": "Crítico"},
 }
 
 
