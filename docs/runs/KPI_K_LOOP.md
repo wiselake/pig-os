@@ -12,10 +12,19 @@
 P-1  pigos_ro 읽기 전용 롤 + ubuntu ~/.pgpass          ← ★ 미충족. Brian 1회 작업
 P-2  K-2 = (가) 코호트 정본 통일                        ← 판정 완료 (2026-09-08)
      K-2d 115일 폐사 제외 삭제 여부                     ← ★ 미충족. 권고=삭제
+P-3  Node engines 충족 (>=22.12.0 <23)                  ← 충족 (2026-09-09 ENV-1)
+     nvm use  →  22.23.2
 ```
 
-**둘 다 사람이 해야 한다.** P-1 은 프로덕션 권한 변경이고, P-2 는 정의 결정이다.
+**P-1·P-2 는 사람이 해야 한다.** P-1 은 프로덕션 권한 변경이고, P-2 는 정의 결정이다.
 어느 쪽도 루프가 스스로 못 넘는다.
+
+★ **P-3 은 2026-09-09 `ENV-1-NODE-DETERMINISM` 으로 닫혔다.** 이전에는 L3 의
+"각 단계 후 테스트 전량 통과" 게이트가 환경 문제(node 22.11 의 jsdom 38건 ·
+Docker 다운 663 ERROR)로 반복 오탐했다. 이제 그런 상황은 실행 전에
+`ENVIRONMENT_INVALID`(exit 78)로 걸러지며 **실패 카운트에 들어가지 않는다.**
+
+§0 공통 규칙은 이 문서에 복사하지 않는다 — **`docs/runs/RUN_COMMON_RULES.md`** 를 따른다.
 
 ### P-1 이 필요한 이유
 
@@ -155,7 +164,8 @@ c  PSY/NPD 모집단 → 초교배일 기준
    + jobs/kpi.py:135 부정목록 → exit_date 기준
 d  라벨 / 정의 배지 (K-4) — 8 로케일
 
-각 단계 후 pytest 전량. 통과 수 감소 시 즉시 STOP.
+각 단계 후 pytest 전량. ★ PREFLIGHT 통과 후의 통과 수 감소만 STOP 이다
+(RUN_COMMON_RULES §0-2). ENVIRONMENT_INVALID 는 실패로 세지 않는다.
 마이그레이션은 커밋 분리. ★ 프로덕션 alembic 실행 금지.
 ```
 
@@ -182,6 +192,7 @@ D-19 기준을 PSY · NPD · 분만율에 적용
 
 ```
 pigos_ro 접속 실패
+★ 단, PREFLIGHT 성격의 실패는 ENVIRONMENT_INVALID 로 보고하고 실패 카운트에 넣지 않는다
 K-2d 미해소 상태에서 L3-b 도달
 L1 결과가 안 D 동치 3행을 만족하지 않음
 pytest 통과 수 감소
@@ -198,4 +209,5 @@ docs/kpi/K1-K4_DECISION_RECORD.md        ③ 결정 · K-2=(가) · K-2d · 안 
 docs/kpi/K1-K3_PRE_DECISION_EVIDENCE.md  ① 런타임 · §5-1 쿼리 · 발견 1~4
 docs/kpi/T6_DEFINITION_CONFLICT_REGISTER.md   §0 3축 · 실행 흐름
 docs/kpi/D19_THRESHOLD_SOURCE_AUDIT_v1.4.md:29  기존 조회 경로(sudo — 대체 대상)
+docs/runs/RUN_COMMON_RULES.md            §0 PREFLIGHT · 종료 판정 · 기준값
 ```
