@@ -216,9 +216,8 @@ OPEN — NOT REMEDIATED
 ```
 G-1  문서 승인      manifest 8건이 DRAFT_LAWYER_PENDING 을 벗어난다
                     → H13 CURRENT_PUBLICATION_SET 확정이 선행
-G-2  게시 언어      현재: 국가 addendum 전부 en 단일 (코드 감사로 확인된 사실)
-                    결정: BR·TH·VN 등 각 관할에서 필요한 게시·동의 언어 범위를 H14 에서 확정
-                    ★ "현지어 게시가 법적으로 반드시 필요한가"는 여기서 단정하지 않는다
+G-2  게시 언어      현재: 국가 addendum 전부 en 단일  +  공개 고지 자체도 ko·en 뿐
+                    결정: BR·TH·VN 을 **열 것인가**를 H14 에서 확정 (§6-2)
 G-3  런타임 차단    초안 상태에서 동의를 받지 않는 게이트
                     → **CODE_COMPLETE / TESTED · PROD_NOT_DEPLOYED** (320baea)
                     eligibility.assert_publication_approved
@@ -245,6 +244,30 @@ G-6  배포 후 검증
 
 ★ 초판은 "G-1~G-3 이 코드로 못 닫는다"고 적었다. **G-3 은 닫을 수 있다.**
 상태 추적에서 혼동되지 않도록 정정한다.
+
+### 6-2. ★ G-2 는 "en 단일로 열 것인가"가 아니다
+
+두 층이 함께 en 이다.
+
+```
+국가 addendum        전부 en 단일           manifest.json
+공개 개인정보 고지    ko · en 뿐             public_notice.py (§H14)
+```
+
+★ **BR 은 자기 문서와 모순된다.** `ADDENDUM_BR` 이 스스로 **pt-BR 을 정본으로
+지정**해두었다. 그 문서를 en 으로 게시하면 문서가 선언한 정본과 실제 게시본이
+어긋난다 — 법정 요건 판단 이전에 **자기모순**이다.
+
+따라서 H14 에서 물어야 할 질문의 모양이 다르다.
+
+```
+✗  "en 단일로 열 것인가"
+✔  "BR · TH · VN 을 열 것인가"
+```
+
+★ **US 는 en 이 정본이라 이 문제가 없다.** 그래서 **US 만 먼저 여는 선택지가
+실질적으로 존재한다** — G-1 이 US 문서만 승인돼도 그 법역은 열 수 있고,
+`assert_publication_approved` 는 법역별로 판정하므로 코드가 이미 그것을 지원한다.
 
 ### 6-1. ★ G-5 는 이번 배포의 완료 조건이 아니다
 
@@ -335,11 +358,15 @@ DRAFT  +  consent 가능  +  ledger commit  +  registration fail-closed
   6  H14 확인
   7  둘 중 하나라도 미결정  →  배포 STOP
   8  둘 다 확정            →  manifest / publication set 갱신
-  9  full test
-  10 deploy
-  11 신규 가입 smoke
-  12 consent_ledger 의 document / version 확인
-  13 가입 재개
+  9  ★ G-3 게이트가 실제로 **열리는지** 확인 — 가입 1건 성공
+     게이트가 닫힌 채 배포되면 서비스가 전면 중단되고, 그것은 코드가
+     의도대로 동작한 결과라 **롤백 판단이 늦어진다.** 장애처럼 보이지 않는다.
+     스테이징이 없으므로 배포 직후 첫 확인 항목으로도 반복한다.
+  10 full test
+  11 deploy
+  12 신규 가입 smoke — ★ 배포 직후 첫 항목. 9 와 같은 확인을 프로덕션에서 반복
+  13 consent_ledger 의 document / version 확인
+  14 가입 재개
 ```
 
 ---
