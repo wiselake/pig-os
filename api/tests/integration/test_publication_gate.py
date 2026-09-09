@@ -35,6 +35,8 @@ from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
+import pytest  # real_publication_set 마커용 — 2026-09-09 ruff --fix 가 지웠던 것을 되돌림
+
 _API = Path(__file__).resolve().parents[2]
 _REPO = _API.parent
 _MANIFEST = _REPO / "docs/legal/KNOWN_PUBLICATION_EXPOSURE.md"
@@ -228,11 +230,22 @@ def test_manifest_documents_are_not_claimed_published():
         )
 
 
+@pytest.mark.real_publication_set
 def test_signup_plan_marks_draft_documents_as_draft():
     """가입 화면에 나가는 문서가 DRAFT 임을 서버가 스스로 신고하는지.
 
-    any_draft 는 아직 차단 신호가 아니라 표시 신호다 — 그 사실을 고정해 두고,
-    차단으로 승격하는 변경이 오면 이 테스트가 함께 바뀌게 한다."""
+    ★ 2026-09-09 갱신 — **예고대로 차단으로 승격됐다.**
+      초판 주석: "any_draft 는 아직 차단 신호가 아니라 표시 신호다 — 그 사실을
+      고정해 두고, 차단으로 승격하는 변경이 오면 이 테스트가 함께 바뀌게 한다."
+      G-3(`assert_publication_approved`)이 그 변경이고, 이 테스트가 실제로
+      먼저 깨져서 알려줬다.
+
+    역할 분담.
+        여기            신호가 **생산되는가** (any_draft 가 True 로 계산되는가)
+        test_publication_consent_gate.py   그 신호가 **차단하는가**
+
+    ※ real_publication_set — integration/conftest 의 autouse 픽스처가 기본으로
+      승인본을 깔기 때문에, 실제 DRAFT 상태를 보려면 빠져야 한다."""
     from app.services import consent_service as cs
 
     plan = cs.build_signup_plan(

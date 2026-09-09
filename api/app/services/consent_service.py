@@ -185,6 +185,14 @@ async def record_consents(
     if plan.gate.signup_blocked:
         raise HTTPException(451, f"SIGNUP_BLOCKED:{plan.gate.reason_code}")
 
+    # G-3 심층 방어 — 미승인 문서에는 동의를 기록하지 않는다.
+    # 가입 진입점(register · onboarding/complete)에서 먼저 막지만, 이 API 는
+    # 설정 화면 등 다른 맥락에서도 불린다. 원장에 초안 버전이 적히는 것을
+    # 마지막으로 막는 자리가 여기다. ★ withdraw 에는 걸지 않는다 — 철회는
+    # 승인 여부와 무관하게 언제나 가능해야 한다.
+    if plan.any_draft:
+        raise HTTPException(451, "PUBLICATION_NOT_APPROVED")
+
     now = datetime.now(UTC)
     by_code = {c.purpose_code: c for c in req.choices}
     plan_by_code = {p.purpose_code: p for p in plan.purposes}

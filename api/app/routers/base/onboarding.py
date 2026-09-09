@@ -30,9 +30,12 @@ async def onboarding_complete(body: OnboardingCompleteRequest, db: DbDep):
     # 계정 국가와 농장 국가를 함께 넣는다 — 이 엔드포인트는 org+user+farm 을 한 번에
     # 만들므로 둘 다 판정 대상이다(현재 계약상 같은 값이지만 resolver 의미를 유지한다).
     # ★ 첫 DB write 이전에 막는다 — rollback 에 기대지 않는다.
-    eligibility.assert_country_entry_allowed(
+    j = eligibility.assert_country_entry_allowed(
         selected_country=body.country, farm_country=body.country,
     )
+    # G-3: 미승인 문서 상태에서는 계정을 만들지 않는다. consent 단계에서만 막으면
+    # 계정이 먼저 생겨 고아 계정이 쌓인다(H11).
+    eligibility.assert_publication_approved(j)
     return await auth_service.complete_onboarding(db, body)
 
 

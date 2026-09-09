@@ -48,6 +48,9 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 addopts = "-v --tb=short"
+markers = [
+    "real_publication_set: 게시 문서 manifest 를 실제 상태(현재 전부 DRAFT)로 둔다 — G-3 게이트 검증용",
+]
 
 [tool.coverage.run]
 source = ["app"]
