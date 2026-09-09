@@ -150,10 +150,10 @@ STOP 조건 옆에 두면 게이트의 신뢰도가 떨어진다.
 ## 기준값 (2026-09-09 실측)
 
 ```
-백엔드   pytest --collect-only   1415
-         pytest 전량             1414 passed · 1 skipped
-         ruff                    11건 — 전부 선존(미사용 import·미사용 지역변수·정렬).
-                                 신규 코드는 clean
+백엔드   pytest --collect-only   1418      (2026-09-09 로케일 파리티 가드 +3)
+         pytest 전량             1417 passed · 1 skipped
+         ruff                    3건 — F841(미사용 지역변수)만 잔존.
+                                 나머지 8건은 CHORE-RUFF-CLEANUP 에서 정리됨
 
 프론트   node                    22.23.2   (.nvmrc · engines ">=22.12.0 <23")
          vitest                  40 파일 · 217 tests   ★ NODE_OPTIONS 불필요

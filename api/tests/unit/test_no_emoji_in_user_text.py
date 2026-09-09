@@ -21,14 +21,9 @@
 """
 from __future__ import annotations
 
-import ast
 import re
-from pathlib import Path
 
-APP = Path(__file__).resolve().parents[2] / "app"
-
-# 지원 로케일 (CLAUDE.md §4). 이 중 둘 이상이 키로 있으면 메시지 카탈로그로 본다.
-LOCALES = {"en", "ko", "zh", "es", "vi", "th", "pt", "ru"}
+from tests.locale_catalogs import iter_locale_dicts
 
 # picto 이모지 + 텍스트에 섞이던 글리프. ℹ(U+2139) 포함 — 이모지 범위 밖이라 놓치기 쉽다.
 BANNED = re.compile(
@@ -38,26 +33,16 @@ BANNED = re.compile(
 
 
 def _catalog_strings() -> list[tuple[str, int, str]]:
-    """(파일, 줄, 문자열) — 로케일 키 dict 안의 문자열 값 전부."""
-    out: list[tuple[str, int, str]] = []
-    for path in sorted(APP.rglob("*.py")):
-        if "__pycache__" in path.parts:
-            continue
-        try:
-            tree = ast.parse(path.read_text(encoding="utf-8"))
-        except SyntaxError:  # pragma: no cover - 파싱 불가 파일은 스캔 대상 아님
-            continue
-        rel = str(path.relative_to(APP.parent)).replace("\\", "/")
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.Dict):
-                continue
-            keys = {k.value for k in node.keys if isinstance(k, ast.Constant) and isinstance(k.value, str)}
-            if len(keys & LOCALES) < 2:
-                continue
-            for value in node.values:
-                if isinstance(value, ast.Constant) and isinstance(value.value, str):
-                    out.append((rel, value.lineno, value.value))
-    return out
+    """(파일, 줄, 문자열) — 로케일 카탈로그 안의 문자열 값 전부.
+
+    스캐너는 tests/locale_catalogs.py 와 공유한다. 파리티 가드와 다른 집합을
+    검사하면 그 차이가 곧 구멍이 된다.
+    """
+    return [
+        (cat.path, cat.lineno, value)
+        for cat in iter_locale_dicts()
+        for value in cat.values
+    ]
 
 
 def test_catalog_scan_is_not_empty() -> None:

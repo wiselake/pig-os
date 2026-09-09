@@ -14,6 +14,12 @@
 from __future__ import annotations
 
 # 앱/웹이 지원하는 표시 언어. 새 언어를 추가하면 카탈로그 전체를 채워야 한다.
+# ★ ru 는 의도적으로 없다 — 누락이 아니다.
+#   CIS 는 리서치·부속조항이 미비해 아직 대상 시장이 아니고(CLAUDE.md 타겟 시장),
+#   백엔드 카탈로그를 러시아어로 채우는 것 자체가 "러시아어 서비스 제공 준비됨"의
+#   코드 상 표명이 된다. 프론트에는 ru UI 가 존재하므로 그 노출을 유지할지는
+#   사람 결정이다 → docs/legal/HUMAN_INPUT_QUEUE.md
+#   tests/unit/test_locale_catalog_parity.py 가 초과·부족 양쪽을 막는다.
 SUPPORTED_LOCALES: tuple[str, ...] = ("en", "ko", "zh", "es", "vi", "th", "pt")
 DEFAULT_LOCALE = "en"
 
