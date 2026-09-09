@@ -70,7 +70,7 @@ export function AskAiDrawer({ open, onClose, context }: AskAiDrawerProps) {
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white"
               style={{ background: "linear-gradient(135deg,#123A2A,#178A5A)" }}>
-              <Sparkles size={15} />
+              <Sparkles size={14} />
             </div>
             <div>
               <div className="text-sm font-bold text-text">{header}</div>
@@ -78,7 +78,7 @@ export function AskAiDrawer({ open, onClose, context }: AskAiDrawerProps) {
             </div>
           </div>
           <button onClick={onClose} className="w-7 h-7 rounded-full bg-bg2 flex items-center justify-center text-muted hover:text-text transition">
-            <X size={14} strokeWidth={2.25} aria-hidden />
+            <X size={14} aria-hidden />
           </button>
         </div>
 
@@ -86,7 +86,7 @@ export function AskAiDrawer({ open, onClose, context }: AskAiDrawerProps) {
         {context && (
           <div className="px-4 pt-3">
             <span className="inline-flex items-center gap-1.5 text-[11px] bg-primary-soft text-primary px-2.5 py-1 rounded-full font-medium">
-              <Pin size={11} strokeWidth={2.25} aria-hidden />{context}
+              <Pin size={12} aria-hidden />{context}
             </span>
           </div>
         )}

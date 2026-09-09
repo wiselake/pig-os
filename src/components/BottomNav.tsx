@@ -58,7 +58,7 @@ export function BottomNav({ onAskAI, alertCount = 0 }: BottomNavProps) {
             href={tab.href ?? "#"}
             className="flex flex-col items-center justify-center py-3 gap-1 relative"
           >
-            <tab.Icon size={22} className={isActive ? "text-primary" : "text-faint"} />
+            <tab.Icon size={20} className={isActive ? "text-primary" : "text-faint"} />
             {actualBadge > 0 && (
               <span className="absolute top-2 right-1/4 min-w-[14px] h-3.5 px-1 rounded-full bg-red text-white font-mono text-[9px] font-bold flex items-center justify-center">
                 {actualBadge}

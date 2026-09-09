@@ -64,7 +64,7 @@ export function SowChip({ tag, meta, tone = "brand" }: { tag: string; meta?: str
   return (
     <div className="flex items-center gap-3 px-3 py-2.5 bg-surface border border-border-strong rounded-[9px]">
       <div className={`w-9 h-9 rounded-md ${TONE_SOFT[tone]} flex items-center justify-center flex-shrink-0`}>
-        <ScanLine size={18} className={TONE_TEXT[tone]} />
+        <ScanLine size={16} className={TONE_TEXT[tone]} />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
@@ -133,7 +133,7 @@ export function ValidationBanner({
   const bg = tone === "red" ? "bg-red-soft border-danger/30" : tone === "blue" ? "bg-blue-soft border-blue/30" : "bg-amber-soft border-warning/30";
   return (
     <div className={`flex gap-3 px-4 py-3 rounded-[13px] border ${bg}`}>
-      <AlertTriangle size={19} className={`${tc} flex-shrink-0 mt-0.5`} />
+      <AlertTriangle size={20} className={`${tc} flex-shrink-0 mt-0.5`} />
       <div className="flex-1">
         <div className={`text-[13px] font-bold ${tc}`}>{title}</div>
         {items && (
@@ -152,7 +152,7 @@ export function DateField({ label, value, onChange }: { label?: string; value: s
     <div className="flex flex-col gap-1.5">
       {label && <div className="text-[13px] font-semibold text-text2">{label}</div>}
       <div className="flex items-center gap-2.5 px-3 py-2.5 bg-surface border border-border-strong rounded-[9px]">
-        <Calendar size={17} className="text-muted flex-shrink-0" />
+        <Calendar size={16} className="text-muted flex-shrink-0" />
         <input type="date" value={value} onChange={(e) => onChange(e.target.value)}
           className="flex-1 bg-transparent text-[14px] text-text font-medium outline-none font-mono" />
       </div>

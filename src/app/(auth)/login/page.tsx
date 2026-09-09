@@ -356,7 +356,7 @@ export default function LoginPage() {
 
             {/* 무가입 스코어카드 진입(퍼널 top) */}
             <a href="/scorecard" className="mt-3 flex items-center justify-center gap-1.5 text-xs font-semibold text-[#0F6342] hover:underline">
-              <Sparkles size={13} /> {t("scorecardCta")}
+              <Sparkles size={12} /> {t("scorecardCta")}
             </a>
 
             <p className="text-xs text-slate-400 text-center mt-8">

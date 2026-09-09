@@ -73,7 +73,7 @@ export default function AdminSupportPage() {
                   <td className="px-4 py-2.5 text-text3 text-xs font-mono">{tk.created_at?.slice(0, 10)}</td>
                   <td className="px-4 py-2.5 text-right">
                     <button onClick={() => setSelected(tk.id)} className="inline-flex items-center gap-1 text-primary text-xs font-semibold hover:underline">
-                      <MessageSquare size={13} /> {t("supOpen")}
+                      <MessageSquare size={12} /> {t("supOpen")}
                     </button>
                   </td>
                 </tr>

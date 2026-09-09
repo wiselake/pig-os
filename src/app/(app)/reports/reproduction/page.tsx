@@ -178,7 +178,7 @@ export default function ReproductionReportPage() {
       )}
 
       <p className="text-[11px] text-text3 mt-3 flex items-start gap-1.5">
-        <AlertTriangle size={13} className="shrink-0 mt-px text-warning" strokeWidth={2} aria-hidden />
+        <AlertTriangle size={12} className="shrink-0 mt-px text-warning" aria-hidden />
         <span>{t("pwmrNote")}</span>
       </p>
       {benchByCode.size > 0 && (

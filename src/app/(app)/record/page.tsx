@@ -206,7 +206,7 @@ export default function RecordPage() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-center gap-3 px-6">
         <div className="w-14 h-14 rounded-2xl bg-bg2 border border-border flex items-center justify-center text-text3">
-          <PiggyBank size={26} />
+          <PiggyBank size={28} />
         </div>
         <p className="text-sm font-bold text-text1">{t("readOnlyTitle")}</p>
         <p className="text-xs text-text3 max-w-xs">{t("readOnlyDesc")}</p>
@@ -281,7 +281,7 @@ export default function RecordPage() {
       <div className="flex-1 flex flex-col min-w-0">
         {lastSaved && (
           <div className="mx-6 mt-4 px-4 py-2.5 bg-green-soft border border-success/30 rounded-xl text-sm text-success font-medium flex items-center gap-1.5">
-            <Check size={15} /> {lastSaved}
+            <Check size={14} /> {lastSaved}
           </div>
         )}
         {/* 경고/위험 인사이트는 다음 저장/모돈전환 전까지 유지(놓치지 않게) */}
@@ -332,7 +332,7 @@ export default function RecordPage() {
               <button
                 onClick={() => setSelectedSow(null)}
                 className="w-8 h-8 rounded-lg border border-border flex items-center justify-center text-text3 hover:bg-border transition"
-              ><X size={15} strokeWidth={2.25} aria-hidden /></button>
+              ><X size={14} aria-hidden /></button>
             </div>
 
             {/* Event type chips */}
@@ -527,7 +527,7 @@ function FarrowingPanel({ farmId, sow, onSaved }: PanelProps) {
         <button type="button" disabled={hasError || total === 0 || mutation.isPending} onClick={() => submit(false)}
           data-testid="event-save"
           className="px-4 py-2.5 rounded-[9px] border border-border-strong text-text2 text-sm font-semibold bg-surface hover:bg-bg2 disabled:opacity-50 transition inline-flex items-center gap-1.5">
-          <Check size={15} /> {t("save")}
+          <Check size={14} /> {t("save")}
         </button>
         <button type="button" disabled={hasError || total === 0 || mutation.isPending} onClick={() => submit(true)}
           className="px-4 py-2.5 rounded-[9px] bg-success text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition">
@@ -595,7 +595,7 @@ function MatingPanel({ farmId, sow, onSaved }: PanelProps) {
         <button type="button" disabled={mutation.isPending} onClick={() => submit(false)}
           data-testid="event-save"
           className="px-4 py-2.5 rounded-[9px] border border-border-strong text-text2 text-sm font-semibold bg-surface hover:bg-bg2 disabled:opacity-50 transition inline-flex items-center gap-1.5">
-          <Check size={15} /> {t("save")}
+          <Check size={14} /> {t("save")}
         </button>
         <button type="button" disabled={mutation.isPending} onClick={() => submit(true)}
           className="px-4 py-2.5 rounded-[9px] bg-success text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition">
@@ -677,7 +677,7 @@ function WeaningPanel({ farmId, sow, onSaved }: PanelProps) {
         <button type="button" disabled={count < 1 || mutation.isPending} onClick={() => submit(false)}
           data-testid="event-save"
           className="px-4 py-2.5 rounded-[9px] border border-border-strong text-text2 text-sm font-semibold bg-surface hover:bg-bg2 disabled:opacity-50 transition inline-flex items-center gap-1.5">
-          <Check size={15} /> {t("save")}
+          <Check size={14} /> {t("save")}
         </button>
         <button type="button" disabled={count < 1 || mutation.isPending} onClick={() => submit(true)}
           className="px-4 py-2.5 rounded-[9px] bg-success text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition">
@@ -757,7 +757,7 @@ function PregnancyCheckPanel({ farmId, sow, onSaved }: PanelProps) {
         <button type="button" disabled={mutation.isPending} onClick={() => mutation.mutate(false)}
           data-testid="event-save"
           className="px-4 py-2.5 rounded-[9px] border border-border-strong text-text2 text-sm font-semibold bg-surface hover:bg-bg2 disabled:opacity-50 transition inline-flex items-center gap-1.5">
-          <Check size={15} /> {t("save")}
+          <Check size={14} /> {t("save")}
         </button>
         <button type="button" disabled={mutation.isPending} onClick={() => mutation.mutate(true)}
           className="px-4 py-2.5 rounded-[9px] bg-success text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition">
@@ -818,7 +818,7 @@ function ReproPanel({ farmId, sow, onSaved }: PanelProps) {
         <button type="button" disabled={mutation.isPending} onClick={() => mutation.mutate(false)}
           data-testid="event-save"
           className="px-4 py-2.5 rounded-[9px] border border-border-strong text-text2 text-sm font-semibold bg-surface hover:bg-bg2 disabled:opacity-50 transition inline-flex items-center gap-1.5">
-          <Check size={15} /> {t("save")}
+          <Check size={14} /> {t("save")}
         </button>
         <button type="button" disabled={mutation.isPending} onClick={() => mutation.mutate(true)}
           className="px-4 py-2.5 rounded-[9px] bg-success text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition">
@@ -998,7 +998,7 @@ function PigletDeathPanel({ farmId, sow, onSaved }: PanelProps) {
         <button type="button" disabled={!form.event_date || mutation.isPending} onClick={() => submit(false)}
           data-testid="event-save"
           className="px-4 py-2.5 rounded-[9px] border border-border-strong text-text2 text-sm font-semibold bg-surface hover:bg-bg2 disabled:opacity-50 transition inline-flex items-center gap-1.5">
-          <Check size={15} /> {t("save")}
+          <Check size={14} /> {t("save")}
         </button>
         <button type="button" disabled={!form.event_date || mutation.isPending} onClick={() => submit(true)}
           className="px-4 py-2.5 rounded-[9px] bg-success text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition">
@@ -1115,7 +1115,7 @@ function FosterPanel({ farmId, sow, onSaved }: PanelProps) {
         <button type="button" disabled={!canSave} onClick={() => submit(false)}
           data-testid="event-save"
           className="px-4 py-2.5 rounded-[9px] border border-border-strong text-text2 text-sm font-semibold bg-surface hover:bg-bg2 disabled:opacity-50 transition inline-flex items-center gap-1.5">
-          <Check size={15} /> {t("save")}
+          <Check size={14} /> {t("save")}
         </button>
         <button type="button" disabled={!canSave} onClick={() => submit(true)}
           className="px-4 py-2.5 rounded-[9px] bg-success text-white text-sm font-bold hover:opacity-90 disabled:opacity-50 transition">

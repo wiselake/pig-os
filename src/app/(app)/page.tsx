@@ -52,7 +52,7 @@ function GettingStarted({ hasSow }: { hasSow: boolean }) {
   return (
     <div className="rounded-2xl border border-primary/25 bg-primary-soft/30 p-6 mb-5">
       <div className="flex items-center gap-2 mb-1">
-        <ListTodo size={18} className="text-primary" />
+        <ListTodo size={16} className="text-primary" />
         <h2 className="text-base font-bold">{t("title")}</h2>
       </div>
       <p className="text-sm text-text2 mb-4">{t("sub")}</p>
@@ -71,7 +71,7 @@ function GettingStarted({ hasSow }: { hasSow: boolean }) {
         </li>
       </ol>
       <Link href="/record" className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-xl bg-navy text-white text-sm font-semibold hover:opacity-90 transition">
-        {t("cta")} <ArrowRight size={15} />
+        {t("cta")} <ArrowRight size={14} />
       </Link>
     </div>
   );
@@ -228,14 +228,14 @@ export default function Dashboard() {
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2.5">
                 <h2 className="text-sm font-bold flex items-center gap-2">
-                  <ListTodo size={15} /> {t("todayActions")}
+                  <ListTodo size={14} /> {t("todayActions")}
                   {!!tasks?.length && <span className="text-[10px] font-bold bg-primary/10 text-primary rounded-full px-1.5 py-0.5">{tasks.length}</span>}
                 </h2>
                 <Link href="/tasks" className="text-xs text-primary font-semibold">{t("viewAllTasks")} →</Link>
               </div>
               {!tasks?.length ? (
                 <div className="bg-bg2/40 border border-border rounded-xl p-5 flex items-start gap-3">
-                  <CheckCircle2 className="text-success flex-shrink-0 mt-0.5" size={18} />
+                  <CheckCircle2 className="text-success flex-shrink-0 mt-0.5" size={16} />
                   <p className="text-xs text-text2 leading-relaxed">{t("noTasks")}</p>
                 </div>
               ) : (
@@ -300,7 +300,7 @@ export default function Dashboard() {
                 <Card title={t("ruleAlerts")} badge={t("alertCount", { n: alerts.length })} badgeColor="green" className="mb-3" children={<></>} />
                 {alerts.length === 0 ? (
                   <div className="bg-bg2/40 border border-border rounded-xl p-5 flex items-start gap-3">
-                    <CheckCircle2 className="text-success flex-shrink-0 mt-0.5" size={18} />
+                    <CheckCircle2 className="text-success flex-shrink-0 mt-0.5" size={16} />
                     <p className="text-xs text-text2 leading-relaxed">{t("emptyAlertsGuide")}</p>
                   </div>
                 ) : (
@@ -382,7 +382,7 @@ function KpiCard({ t, label, tier, value, rawTierLabel, benchmark, trend, headli
     <div className="rounded-2xl border border-border bg-surface px-4 py-3.5">
       <div className="flex items-center justify-between gap-2">
         <span className="text-[11px] text-text3 font-semibold">
-          {headline && <Star size={11} className="mr-1 inline-block align-[1px] text-primary" fill="currentColor" strokeWidth={0} aria-hidden />}{label}
+          {headline && <Star size={12} className="mr-1 inline-block align-[1px] text-primary" fill="currentColor" strokeWidth={0} aria-hidden />}{label}
         </span>
         {trend && <Sparkline data={trend} />}
       </div>
@@ -406,7 +406,7 @@ function KpiCard({ t, label, tier, value, rawTierLabel, benchmark, trend, headli
 
 function StageIcon({ stage }: { stage: keyof typeof STAGE_ICON }) {
   const Icon = STAGE_ICON[stage];
-  return <Icon size={18} />;
+  return <Icon size={16} />;
 }
 
 function AlertCard({ alert }: { alert: Alert }) {

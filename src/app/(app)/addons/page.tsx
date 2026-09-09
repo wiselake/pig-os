@@ -157,7 +157,7 @@ export default function AddonsPage() {
             >
               <div className="flex items-start justify-between gap-2">
                 <div className={`w-10 h-10 rounded-xl ${addon.iconBg} flex items-center justify-center`}>
-                  <Icon size={19} className={addon.iconColor} strokeWidth={1.8} />
+                  <Icon size={20} className={addon.iconColor} />
                 </div>
                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${TAG_STYLE[addon.tag]}`}>
                   {t(TAG_KEY[addon.tag])}

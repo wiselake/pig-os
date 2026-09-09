@@ -33,7 +33,7 @@ export default function SupportPage() {
       <div className="grid grid-cols-3 gap-3 mb-7">
         {contacts.map(([Icon, label, s], i) => (
           <div key={i} className="bg-surface border border-border rounded-2xl p-5">
-            <div className="mb-2.5 text-primary"><Icon size={22} strokeWidth={1.75} aria-hidden /></div>
+            <div className="mb-2.5 text-primary"><Icon size={20} strokeWidth={1.5} aria-hidden /></div>
             <div className="text-sm font-bold text-text">{label}</div>
             <div className="text-xs text-text3 mt-1">{s}</div>
           </div>

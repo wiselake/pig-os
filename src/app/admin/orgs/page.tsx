@@ -90,9 +90,9 @@ function OrgNode({
     <div>
       <div className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-bg2 transition group" style={{ paddingLeft: depth * 20 + 8 }}>
         <button onClick={() => setOpen((v) => !v)} className={`w-5 h-5 flex items-center justify-center text-text3 ${expandable ? "" : "invisible"}`}>
-          {open ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+          {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </button>
-        <Building2 size={15} className="text-text3 shrink-0" />
+        <Building2 size={14} className="text-text3 shrink-0" />
         <span className="font-semibold text-text text-sm">{org.name}</span>
         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${meta.cls}`}>{t(meta.key)}</span>
         <button
@@ -100,7 +100,7 @@ function OrgNode({
           title={t("orgEdit")}
           className="opacity-0 group-hover:opacity-100 p-1 rounded text-text3 hover:text-primary hover:bg-primary/5 transition"
         >
-          <Pencil size={13} />
+          <Pencil size={12} />
         </button>
         <span className="text-[11px] text-text3 font-mono ml-auto">
           {t("orgFarmCount", { n: org.farm_count })} · {t("orgUserCount", { n: org.user_count })}
@@ -115,7 +115,7 @@ function OrgNode({
           {org.farm_count > 0 && (
             <div style={{ paddingLeft: (depth + 1) * 20 + 8 }}>
               <button onClick={() => setShowFarms((v) => !v)} className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-primary font-semibold hover:underline">
-                <Tractor size={13} /> {showFarms ? t("orgHideFarms") : t("orgShowFarms", { n: org.farm_count })}
+                <Tractor size={12} /> {showFarms ? t("orgHideFarms") : t("orgShowFarms", { n: org.farm_count })}
               </button>
               {showFarms && (farms ?? []).map((f: AdminOrgFarm) => (
                 <div key={f.id} className="flex items-center gap-2 px-2 py-1.5 text-xs text-text2 group/farm" style={{ paddingLeft: 24 }}>

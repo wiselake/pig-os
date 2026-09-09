@@ -121,7 +121,7 @@ export default function SettingsPage() {
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
                       item.danger ? "bg-red-soft" : "bg-bg2"
                     }`}>
-                      <Icon size={15} className={item.danger ? "text-danger" : "text-text2"} strokeWidth={1.8} />
+                      <Icon size={14} className={item.danger ? "text-danger" : "text-text2"} />
                     </div>
                     <div className="flex-1 min-w-0 text-left">
                       <div className={`text-[13px] font-semibold ${item.danger ? "text-danger" : "text-text"}`}>

@@ -75,7 +75,7 @@ export default function DeleteAccountPage() {
           <div className="text-xs font-bold text-danger mb-2">{t("lostTitle")}</div>
           {[t("l1"), t("l2"), t("l3")].map((x, i) => (
             <div key={i} className="text-xs text-text2 flex items-start gap-2 py-1">
-              <X size={14} className="text-danger shrink-0 mt-0.5" strokeWidth={2.75} aria-hidden />
+              <X size={14} className="text-danger shrink-0 mt-0.5" strokeWidth={2.5} aria-hidden />
               <span>{x}</span>
             </div>
           ))}

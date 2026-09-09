@@ -35,7 +35,7 @@ export default function AnnouncementsPage() {
           {items.map((n) => (
             <div key={n.id} className="bg-surface border border-border rounded-2xl p-5">
               <div className="flex items-center gap-2 mb-3">
-                {n.pinned && <Pin size={14} className="text-primary" strokeWidth={2} aria-hidden />}
+                {n.pinned && <Pin size={14} className="text-primary" aria-hidden />}
                 <span className={`text-[11px] font-bold font-mono px-2 py-0.5 rounded-md border ${CAT_CLS[n.category] ?? CAT_CLS.GENERAL}`}>{n.category}</span>
                 <span className="text-[11px] text-text3 font-mono ml-auto">{n.created_at?.slice(0, 10)}</span>
               </div>

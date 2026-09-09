@@ -58,7 +58,7 @@ export default function AmendmentBanner() {
         </Link>
       </div>
       <button onClick={() => setDismissed(true)} aria-label={t("dismiss")} className="text-text3 hover:text-text shrink-0">
-        <X size={15} />
+        <X size={14} />
       </button>
     </div>
   );

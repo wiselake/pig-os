@@ -10,7 +10,7 @@ export default function MaintenancePage() {
       <div className="max-w-sm">
         <div className="mb-6 flex justify-center">
           <span className="w-16 h-16 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center">
-            <Wrench size={30} className="text-white" strokeWidth={1.75} aria-hidden />
+            <Wrench size={28} className="text-white" strokeWidth={1.5} aria-hidden />
           </span>
         </div>
         <h1 className="text-3xl font-extrabold text-white tracking-tight mb-3">{t("mtTitle")}</h1>

@@ -80,7 +80,7 @@ export default function UsersPage() {
             onClick={() => setShowAdd(true)}
             className="inline-flex items-center gap-1.5 bg-primary text-white text-sm font-semibold px-3.5 py-2 rounded-lg hover:bg-success transition"
           >
-            <Plus size={15} />
+            <Plus size={14} />
             {t("addMember")}
           </button>
         )}

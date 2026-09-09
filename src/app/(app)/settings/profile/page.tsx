@@ -40,7 +40,7 @@ export default function ProfilePage() {
 
       {saved && (
         <div className="mb-4 px-4 py-2.5 bg-green-soft border border-success/30 rounded-xl text-sm text-success font-medium flex items-center gap-2">
-          <Check size={15} strokeWidth={3} aria-hidden />
+          <Check size={14} strokeWidth={2.5} aria-hidden />
           {t("saved")}
         </div>
       )}

@@ -69,7 +69,7 @@ export default function AlertsPage() {
       {/* Header */}
       <div className="flex items-center gap-2.5">
         <div className="w-9 h-9 rounded-xl bg-green-soft flex items-center justify-center">
-          <Sparkles size={18} className="text-primary" />
+          <Sparkles size={16} className="text-primary" />
         </div>
         <div>
           <h1 className="text-[22px] font-extrabold tracking-tight">{t("title")}</h1>
@@ -107,7 +107,7 @@ export default function AlertsPage() {
         </div>
       ) : signals.length === 0 ? (
         <div className="border border-border rounded-2xl py-14 text-center">
-          <CheckCircle2 size={28} className="mx-auto mb-3 text-success" strokeWidth={1.75} aria-hidden />
+          <CheckCircle2 size={28} className="mx-auto mb-3 text-success" strokeWidth={1.5} aria-hidden />
           <p className="font-bold text-text">{t("emptyOverdueTitle")}</p>
           <p className="text-xs text-text3 mt-1">{t("emptyOverdueDesc")}</p>
         </div>
@@ -154,7 +154,7 @@ export default function AlertsPage() {
                   </div>
                 </div>
                 <Link href={`/sows/${c.sow_id}`} className="inline-flex items-center gap-1 text-text3 text-xs font-semibold hover:text-text shrink-0">
-                  {t("detail")} <ChevronRight className="w-3 h-3" />
+                  {t("detail")} <ChevronRight size={12} />
                 </Link>
               </div>
             ))}
@@ -221,7 +221,7 @@ function SignalCard({
         </div>
         <div className="flex items-center gap-1 text-[11px] text-warning font-mono font-semibold">
           {t("maxOverdue", { days: maxOverdue })}
-          <ChevronRight size={15} className="text-text3 group-hover:text-text transition" />
+          <ChevronRight size={14} className="text-text3 group-hover:text-text transition" />
         </div>
       </div>
     </Link>

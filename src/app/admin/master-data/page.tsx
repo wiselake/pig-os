@@ -135,9 +135,9 @@ export default function AdminMasterDataPage() {
                   ))}
                   <td className="px-3 py-2 text-right whitespace-nowrap">
                     <button onClick={() => setEditing(r)} title="수정"
-                      className="p-1 rounded text-text3 hover:text-primary hover:bg-primary/5"><Pencil size={13} /></button>
+                      className="p-1 rounded text-text3 hover:text-primary hover:bg-primary/5"><Pencil size={12} /></button>
                     <button onClick={() => { if (confirm(`삭제: ${r[kind.pk]} ?`)) del.mutate(String(r[kind.pk])); }}
-                      title="삭제" className="p-1 rounded text-text3 hover:text-danger hover:bg-red-soft ml-1"><Trash2 size={13} /></button>
+                      title="삭제" className="p-1 rounded text-text3 hover:text-danger hover:bg-red-soft ml-1"><Trash2 size={12} /></button>
                   </td>
                 </tr>
               ))}
@@ -170,7 +170,7 @@ export default function AdminMasterDataPage() {
 function fmt(v: unknown): ReactNode {
   if (v === null || v === undefined) return "—";
   if (typeof v === "boolean") {
-    return v ? <Check size={14} className="text-success" strokeWidth={3} aria-hidden /> : "—";
+    return v ? <Check size={14} className="text-success" strokeWidth={2.5} aria-hidden /> : "—";
   }
   if (Array.isArray(v)) return v.join(", ");
   if (typeof v === "object") return JSON.stringify(v);

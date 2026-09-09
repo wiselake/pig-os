@@ -23,7 +23,7 @@ function EventLabel({ type }: { type: string }) {
   const [Icon, label] = hit;
   return (
     <span className="inline-flex items-center gap-1.5">
-      <Icon size={13} className="text-text3 shrink-0" strokeWidth={1.75} aria-hidden />
+      <Icon size={12} className="text-text3 shrink-0" strokeWidth={1.5} aria-hidden />
       {label}
     </span>
   );
@@ -69,7 +69,7 @@ export default function FarmDataDetailPage() {
             ].map((k) => (
               <div key={k.label} className="bg-surface border border-border rounded-2xl p-4">
                 <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-text3 mb-1.5">
-                  <k.icon size={13} className="text-primary" />{k.label}
+                  <k.icon size={12} className="text-primary" />{k.label}
                 </div>
                 <div className="font-mono text-2xl font-extrabold text-text">{k.value}</div>
               </div>
@@ -122,7 +122,7 @@ export default function FarmDataDetailPage() {
           <div className={`border rounded-2xl p-5 mt-5 ${data.integrity.total > 0 ? "bg-red-soft border-danger/40" : "bg-surface border-border"}`}>
             <h2 className="text-sm font-bold mb-3">{t("quality")}</h2>
             {data.integrity.total === 0 ? (
-              <p className="inline-flex items-center gap-1 text-xs text-success font-semibold"><Check size={13} strokeWidth={3} aria-hidden />{t("clean")}</p>
+              <p className="inline-flex items-center gap-1 text-xs text-success font-semibold"><Check size={12} strokeWidth={2.5} aria-hidden />{t("clean")}</p>
             ) : (
               <div className="grid grid-cols-3 gap-3">
                 {[
