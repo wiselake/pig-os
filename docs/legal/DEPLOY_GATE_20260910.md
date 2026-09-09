@@ -220,7 +220,10 @@ G-2  게시 언어      현재: 국가 addendum 전부 en 단일 (코드 감사�
                     결정: BR·TH·VN 등 각 관할에서 필요한 게시·동의 언어 범위를 H14 에서 확정
                     ★ "현지어 게시가 법적으로 반드시 필요한가"는 여기서 단정하지 않는다
 G-3  런타임 차단    초안 상태에서 동의를 받지 않는 게이트
-                    → 현재 없음. 배너뿐
+                    → **CODE_COMPLETE / TESTED · PROD_NOT_DEPLOYED** (320baea)
+                    eligibility.assert_publication_approved
+                    /auth/register · /onboarding/complete 첫 write 이전
+                    + record_consents 심층 방어. 철회·농장추가는 제외
 G-4  코드 배포      §5-2 법무 5건 + 런타임 10건 (마이그레이션 0)
 G-5  기존 사용자    재동의 경로 = MANDATORY-CONSENT-LOGIN-GATE
                     → 현재 OPEN. H11(원장 없는 기존 계정)·H12 와 함께 결정
@@ -232,9 +235,9 @@ G-6  적재 확인      consent_ledger 실제 행 · notice_version 이 승인�
 ```
 G-1  HUMAN DECISION REQUIRED
 G-2  HUMAN / LEGAL DECISION REQUIRED
-G-3  CODE IMPLEMENTABLE
-     ★ 구현 자체는 개발이 닫는다. 사람 결정이 필요한 것은
-       "언제 넣을 것인가 / 서비스 중단을 감수할 것인가" 뿐이다  → §7 에서 (나)로 확정
+G-3  CODE_COMPLETE / TESTED · PROD_NOT_DEPLOYED  (320baea · 2026-09-09)
+     ★ 코드가 닫혔다는 뜻이지 서비스가 막혔다는 뜻이 아니다.
+       프로덕션은 아직 초안 동의를 받는다 — 다만 557a347 이 없어 원장 적재는 계속 0행
 G-4  READY
 G-5  HUMAN DECISION REQUIRED — ★ 이번 배포 완료 판정에서 분리 (§6-1)
 G-6  배포 후 검증
@@ -319,11 +322,13 @@ DRAFT  +  consent 가능  +  ledger commit  +  registration fail-closed
 ### 확정 실행안
 
 ```
-오늘 / 배포 전
-  1  G-3 구현 — DRAFT·미승인 문서에는 동의 자체가 실패
-  2  negative test — DRAFT 상태에서 consent POST 가 실제로 실패하는가
-  3  positive test — 승인본에서는 통과하는가
-  4  ★ 백엔드가 authoritative 인지 확인 — 프론트 배너만으로는 게이트가 아니다
+오늘 / 배포 전                                            ← ★ 1~4 완료 (320baea)
+  1  G-3 구현 — DRAFT·미승인 문서에는 동의 자체가 실패        ✔
+  2  negative test — DRAFT 상태에서 실제로 실패하는가          ✔
+  3  positive test — 승인본에서는 통과하는가                   ✔
+  4  백엔드가 authoritative 인지 확인                          ✔
+     ★ 구현 중 확정된 것: record_consents 만 막으면 계정이 먼저 생겨
+       고아 계정이 쌓인다(H11). 그래서 가입 진입점 두 곳에서 먼저 막는다.
 
 9/10
   5  H13 확인
