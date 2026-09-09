@@ -2101,6 +2101,8 @@
     "phUsername": "vd: farmowner",
     "phEmail": "farmer@example.com",
     "consentPlanUnavailable": "Không tải được các điều khoản áp dụng cho quốc gia của bạn. Bạn không thể hoàn tất đăng ký nếu chưa đồng ý — vui lòng quay lại và thử lại.",
+    "publicationNotApprovedTitle": "Chưa mở tại khu vực của bạn",
+    "publicationNotApproved": "PigOS chưa nhận đăng ký cho quốc gia bạn đã chọn. Điều khoản và thông báo quyền riêng tư cho khu vực này vẫn đang được luật sư xem xét, và chúng tôi sẽ không yêu cầu bạn đồng ý với tài liệu chưa hoàn tất. Hãy gửi email tới help@pigos.io, chúng tôi sẽ báo ngay khi mở.",
     "consentRecordFailed": "Không ghi nhận được sự đồng ý của bạn. Việc đăng ký chưa hoàn tất. Vui lòng thử lại."
   },
   "kpiCards": {

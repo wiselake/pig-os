@@ -2101,6 +2101,8 @@
     "phUsername": "예: farmowner",
     "phEmail": "farmer@example.com",
     "consentPlanUnavailable": "해당 국가에 적용되는 약관을 불러오지 못했습니다. 동의 없이는 가입을 완료할 수 없습니다. 이전 단계로 돌아가 다시 시도해 주세요.",
+    "publicationNotApprovedTitle": "아직 이 지역에서는 가입을 받지 않습니다",
+    "publicationNotApproved": "선택하신 국가는 아직 가입을 받지 않습니다. 해당 지역의 약관과 개인정보 처리방침이 법률 검토 중이며, 확정되지 않은 문서에 동의를 요청하지 않습니다. help@pigos.io 로 알려주시면 가입이 열리는 대로 안내드리겠습니다.",
     "consentRecordFailed": "동의 내용을 기록하지 못했습니다. 가입이 완료되지 않았습니다. 다시 시도해 주세요."
   },
   "kpiCards": {

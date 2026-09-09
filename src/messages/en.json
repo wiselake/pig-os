@@ -2101,6 +2101,8 @@
     "phUsername": "e.g. farmowner",
     "phEmail": "farmer@example.com",
     "consentPlanUnavailable": "We couldn't load the terms that apply to your country. You can't complete sign-up without agreeing to them — please go back and try again.",
+    "publicationNotApprovedTitle": "Not open in your region yet",
+    "publicationNotApproved": "PigOS is not yet accepting sign-ups for the country you selected. Our terms and privacy notice for this region are still with our lawyers, and we will not ask you to agree to documents that are not final. Write to help@pigos.io and we will tell you as soon as it opens.",
     "consentRecordFailed": "We couldn't record your agreement. Your sign-up isn't complete. Please try again."
   },
   "kpiCards": {

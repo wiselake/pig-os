@@ -2101,6 +2101,8 @@
     "phUsername": "ej. farmowner",
     "phEmail": "farmer@example.com",
     "consentPlanUnavailable": "No pudimos cargar los términos aplicables a tu país. No puedes completar el registro sin aceptarlos; vuelve atrás e inténtalo de nuevo.",
+    "publicationNotApprovedTitle": "Aún no disponible en su región",
+    "publicationNotApproved": "PigOS todavía no acepta registros para el país que seleccionó. Nuestros términos y el aviso de privacidad de esta región siguen en revisión legal, y no le pediremos que acepte documentos que no son definitivos. Escríbanos a help@pigos.io y le avisaremos en cuanto se habilite.",
     "consentRecordFailed": "No pudimos registrar tu consentimiento. Tu registro no está completo. Inténtalo de nuevo."
   },
   "kpiCards": {

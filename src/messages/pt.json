@@ -2101,6 +2101,8 @@
     "phUsername": "ex. farmowner",
     "phEmail": "farmer@example.com",
     "consentPlanUnavailable": "Não conseguimos carregar os termos aplicáveis ao seu país. Você não pode concluir o cadastro sem concordar com eles — volte e tente novamente.",
+    "publicationNotApprovedTitle": "Ainda não disponível na sua região",
+    "publicationNotApproved": "O PigOS ainda não aceita cadastros para o país selecionado. Os termos e o aviso de privacidade desta região continuam em análise jurídica, e não pediremos que você concorde com documentos que não estão finalizados. Escreva para help@pigos.io e avisaremos assim que abrir.",
     "consentRecordFailed": "Não conseguimos registrar o seu consentimento. Seu cadastro não foi concluído. Tente novamente."
   },
   "kpiCards": {

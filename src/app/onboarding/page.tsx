@@ -60,6 +60,8 @@ export default function OnboardingPage() {
   });
   const [confirmPw, setConfirmPw] = useState("");
   const [error, setError] = useState<string | null>(null);
+  /** 게시 문서 미승인으로 해당 지역 가입이 닫힌 상태. 오류가 아니라 안내다. */
+  const [blocked, setBlocked] = useState(false);
 
   // 동의 인프라(TERMS_DISPLAY §4): 확인 스텝에서 법역별 약관·목적 UI 표시 후 기록.
   const [plan, setPlan] = useState<SignupPlan | null>(null);
@@ -92,6 +94,24 @@ export default function OnboardingPage() {
   // 로케일 = next-intl provider(= NEXT_LOCALE 쿠키). UI는 useTranslations, API엔 locale 전달.
   const locale = useLocale();
   const t = useTranslations("onboarding");
+
+  /**
+   * 서버가 준 detail 을 화면 상태로 옮긴다.
+   *
+   * ★ `PUBLICATION_NOT_APPROVED` 는 실패가 아니라 **정책 상태**다(G-3).
+   *   해당 지역의 약관·개인정보 고지가 아직 확정되지 않아 가입을 받지 않는 것이고,
+   *   사용자가 고쳐서 다시 시도할 수 있는 성질이 아니다. 빨간 오류 상자에 영문
+   *   코드를 그대로 띄우면 장애로 읽힌다.
+   */
+  const applyDetail = (detail: unknown, fallback: string) => {
+    if (typeof detail === "string" && detail.includes("PUBLICATION_NOT_APPROVED")) {
+      setBlocked(true);
+      setError(null);
+      return;
+    }
+    setBlocked(false);
+    setError(typeof detail === "string" ? detail : fallback);
+  };
 
   // 확인 스텝 진입 또는 국가/언어 변경 시 plan 조회(공개 엔드포인트 — pre-auth).
   useEffect(() => {
@@ -148,7 +168,7 @@ export default function OnboardingPage() {
         // 절대 삼키지 않는다. 서버가 준 사유가 있으면 그대로 보여준다
         // (451 SIGNUP_BLOCKED:{reason} 계약 보존).
         const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-        setError(typeof detail === "string" ? detail : t("consentRecordFailed"));
+        applyDetail(detail, t("consentRecordFailed"));
         return;   // ★ 여기서 멈춘다 — setAuth·쿠키·navigation 없음
       }
 
@@ -166,7 +186,7 @@ export default function OnboardingPage() {
     },
     onError: (err: unknown) => {
       const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setError(typeof detail === "string" ? detail : "Something went wrong. Please try again.");
+      applyDetail(detail, "Something went wrong. Please try again.");
     },
   });
 
@@ -354,6 +374,13 @@ export default function OnboardingPage() {
                   <ConsentForm plan={plan} embedded mode="signup" onChange={setConsentState} />
                 )}
               </div>
+            </div>
+          )}
+
+          {blocked && (
+            <div className="bg-bg2 border border-border rounded-lg px-4 py-3.5 mt-4">
+              <p className="text-sm font-bold text-text mb-1.5">{t("publicationNotApprovedTitle")}</p>
+              <p className="text-sm text-text2 leading-relaxed">{t("publicationNotApproved")}</p>
             </div>
           )}
 

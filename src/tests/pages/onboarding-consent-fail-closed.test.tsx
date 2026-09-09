@@ -277,3 +277,37 @@ describe("차단 법역", () => {
     expectNoSignupCompletion();
   });
 });
+
+
+// ── 게시 미승인(G-3) — 오류가 아니라 안내다 ─────────────────────────────────
+
+describe("게시 문서 미승인", () => {
+  const rejectWith = (detail: string) => ({ response: { data: { detail } } });
+
+  it("451 PUBLICATION_NOT_APPROVED 는 원문 코드가 아니라 안내 문구로 나온다", async () => {
+    onboard.mockRejectedValue(rejectWith("PUBLICATION_NOT_APPROVED"));
+    await goToReviewStep();
+    await ackMandatory();
+    submit();
+
+    await waitFor(() => expect(screen.getByText("publicationNotApproved")).toBeInTheDocument());
+    expect(screen.getByText("publicationNotApprovedTitle")).toBeInTheDocument();
+    // ★ 이것이 이 테스트의 요점 — 사용자에게 영문 코드가 보이면 장애로 읽힌다.
+    expect(screen.queryByText(/PUBLICATION_NOT_APPROVED/)).not.toBeInTheDocument();
+    expectNoSignupCompletion();
+  });
+
+  it("다른 451(SIGNUP_BLOCKED) 은 기존대로 서버 사유를 그대로 보여준다", async () => {
+    onboard.mockRejectedValue(rejectWith("SIGNUP_BLOCKED:KR_REFERENCE_ONLY"));
+    await goToReviewStep();
+    await ackMandatory();
+    submit();
+
+    // 안내 패널로 삼키지 않는다 — 국가 차단은 별개 사유이고 계약이 이미 있다.
+    await waitFor(() =>
+      expect(screen.getByText("SIGNUP_BLOCKED:KR_REFERENCE_ONLY")).toBeInTheDocument(),
+    );
+    expect(screen.queryByText("publicationNotApproved")).not.toBeInTheDocument();
+    expectNoSignupCompletion();
+  });
+});
