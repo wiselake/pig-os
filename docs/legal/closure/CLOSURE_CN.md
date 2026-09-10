@@ -1,6 +1,6 @@
 # CLOSURE_CN — 중국 (2026-09-10)
 
-> 게이트: `_GATES["CN"] = signup_blocked, reason_code="HOLD_D07"` (`jurisdiction.py:64`). 부속조항 없음 — `drafts/COUNTRY_ADDENDA/ADDENDUM_CN_HOLD.md` 는 HOLD 선언문이지 고객 문서가 아니다.
+> 게이트: `_GATES["CN"] = signup_blocked, reason_code="HOLD_D07"` (`jurisdiction.py:64`). 부속조항 없음 — `jurisdiction.py:92` `"CN": None` 명시. HOLD 선언문은 `internal/INTERNAL_LAUNCH_GATE_CN.md` (고객 문서 아님). ★ **정정 2026-09-10**: 이전 판이 인용한 `drafts/COUNTRY_ADDENDA/ADDENDUM_CN_HOLD.md` 는 **저장소에 없다** (git 이력 0) — claude.ai 프로젝트 문서함에만 2026-07-21 판이 있고 내용은 INTERNAL_LAUNCH_GATE_CN 과 사실상 동일. 프로젝트↔저장소 불일치 1건.
 > 내부 게이트: `internal/INTERNAL_LAUNCH_GATE_CN.md` — G1~G7 상시 시행 (진입·마케팅·ingestion·PigSignal 제외·기유입 삭제·모니터링)
 > 리서치: `research/CN_legal.md` · 브리프: Q24(P0 — HOLD 해제 선결) · Q25(P2)
 

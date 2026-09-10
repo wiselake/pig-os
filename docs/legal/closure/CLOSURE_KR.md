@@ -1,6 +1,6 @@
 # CLOSURE_KR — 한국 (2026-09-10)
 
-> **PigOS 는 KR 비대상이다.** `_GATES["KR"] = signup_blocked, reason_code="KR_REFERENCE_ONLY"` (`jurisdiction.py:66`). 부속조항 없음 (`_ADDENDUM["KR"] = None`).
+> **PigOS 는 KR 비대상이다.** `_GATES["KR"] = signup_blocked, reason_code="KR_REFERENCE_ONLY"` (`jurisdiction.py:66`). 부속조항 없음 — **두 곳에서 확인**: `jurisdiction.py:89-92` `_ADDENDUM` 은 `"KR": None` 을 **명시**(주석 "None = 부속 없음(마스터+방침만)") · `terms_renderer.py:76-79` `_GROUP_ADDENDUM` 은 6개국만 있고 KR 키 자체가 없어 `.get()` 폴백. 앞은 의도의 증거, 뒤는 그 의도가 렌더러에는 안 적힌 상태 — **맵이 둘이라 어긋날 수 있다** (2026-09-10 정정).
 > A-rule: 한국 벤치마크·한돈팜스 데이터는 PigOS 판매 경로·외부 API·마케팅에 나타나지 않는다. 내부 참조 기준선으로만.
 > 이 시트의 대상은 **피그플랜 현행 게시본**(공고 2026-04-30 · 시행 2026-05-30)이다 — PigOS 문서의 **선례이자 재동의 리스크의 원천**이지 PigOS 게시 대상이 아니다.
 
