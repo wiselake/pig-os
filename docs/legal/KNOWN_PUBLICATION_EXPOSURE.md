@@ -89,7 +89,7 @@ FCM 오기·상호 오기)은 실재했고 지금도 `_FORBIDDEN` 이 잘 막고
   "extension_no": 1,
   "extended_at": "2026-09-10T09:00:00+09:00",
   "owner": "Brian (PigOS legal track)",
-  "remediation_condition": "V-11 사실 확인 완료(farms.gps_lat/gps_lng non-null 집계 + 전 경로 write path 부재) → 해당 행 정정 → 마커 0 → 본 격리 종료 + hard-fail 테스트로 전환",
+  "remediation_condition": "V-11 사실 확인 완료 → 해당 행 정정 → 마커 0 → 본 격리 종료 + hard-fail 테스트로 전환. ★ 2026-09-10 기준 6조건 중 4건 종결(API·Web·모바일 권한·SDK write path 전부 0건, EXIF 유입 경로 없음 — APPROVAL_RECORD §3-1). 남은 것은 조건 1(farms.gps_lat/gps_lng non-null 집계)과 조건 6(backup·log 보유)뿐이며 둘 다 EC2 SSH 세션 1회로 닫힌다",
   "reason": "문안 수정은 미승인 법무문서 편집이므로 개발이 임의로 할 수 없다. 대표/변호사 결정 전까지 노출 사실을 명시 고정하고 신규 오염만 차단한다.",
   "entries": [
     {
@@ -100,7 +100,7 @@ FCM 오기·상호 오기)은 실재했고 지금도 `_FORBIDDEN` 이 잘 막고
         "V": 1
       },
       "expected_total": 1,
-      "remaining": "V-11 정밀 위치정보(농장 좌표) — 사실 확인 미완"
+      "remaining": "V-11 정밀 위치정보(농장 좌표) — 사실 확인 미완 (조건 1·6, 프로덕션 DB)"
     },
     {
       "source_path": "api/content/legal/public_privacy.ko.md",
@@ -110,7 +110,7 @@ FCM 오기·상호 오기)은 실재했고 지금도 `_FORBIDDEN` 이 잘 막고
         "V": 1
       },
       "expected_total": 1,
-      "remaining": "V-11 정밀 위치정보(농장 좌표) — 사실 확인 미완"
+      "remaining": "V-11 정밀 위치정보(농장 좌표) — 사실 확인 미완 (조건 1·6, 프로덕션 DB)"
     }
   ],
   "remediated_at": "2026-09-10T00:00:00+09:00",
@@ -121,7 +121,7 @@ FCM 오기·상호 오기)은 실재했고 지금도 `_FORBIDDEN` 이 잘 막고
 
 ```
 합계   2건   (en 1 + ko 1)      ← 2026-09-10 정정 전 48건 (en 24 + ko 24)
-남은 것 V-11 정밀 위치정보 — 프로덕션 조회 권한 대기
+남은 것 V-11 정밀 위치정보 — 프로덕션 조회 권한 대기 (조건 1·6. 조건 2~5 는 2026-09-10 종결)
 ```
 
 ★ 최초 실측은 en 라이브 HTML 24건이었으나, `?lang=ko` 도 동일하게 공개 서빙되므로
