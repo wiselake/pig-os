@@ -170,8 +170,8 @@ STOP 조건 옆에 두면 게이트의 신뢰도가 떨어진다.
 ## 기준값 (2026-09-09 실측)
 
 ```
-백엔드   pytest --collect-only   1426      (2026-09-09 G-3 게시 게이트 +8)
-         pytest 전량             1425 passed · 1 skipped
+백엔드   pytest --collect-only   1428      (2026-09-10 부분승인 고정 +2)
+         pytest 전량             1427 passed · 1 skipped
          ruff                    3건 — F841(미사용 지역변수)만 잔존.
                                  나머지 8건은 CHORE-RUFF-CLEANUP 에서 정리됨
 
