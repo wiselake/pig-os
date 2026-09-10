@@ -39,3 +39,20 @@ def approved(raw: dict) -> dict:
         k: ({**v, "status": APPROVED_STATUS} if isinstance(v, dict) and "status" in v else v)
         for k, v in raw.items()
     }
+
+
+def approved_only(raw: dict, doc_ids: set[str]) -> dict:
+    """지정한 문서만 승인본으로 바꾼다 — 부분 승인(예: US 먼저) 시나리오용.
+
+    `build_document_set` 은 MASTER + PRIVACY + **그 법역의 addendum 하나**만 담는다.
+    그래서 승인 범위를 좁히면 법역별로 열림/닫힘이 갈린다. 그 동작을 테스트가
+    직접 확인할 수 있게 하는 헬퍼다.
+    """
+    docs = raw["documents"]
+    return {
+        **raw,
+        "documents": {
+            k: ({**v, "status": APPROVED_STATUS} if k in doc_ids else v)
+            for k, v in docs.items()
+        },
+    }

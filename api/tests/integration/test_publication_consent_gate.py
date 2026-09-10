@@ -35,6 +35,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.consent import ConsentRecord
 from tests.publication_manifest import approved as _approved_manifest
+from tests.publication_manifest import approved_only
 
 # ★ 이 파일만 실제 manifest(현재 전부 DRAFT)를 쓴다.
 #   integration/conftest.py 의 autouse 픽스처가 기본으로 승인본을 깔아두기 때문에,
@@ -222,3 +223,59 @@ async def test_withdraw_still_works_while_documents_are_draft(
         json={"purpose_code": "EXTERNAL_AI_PROCESSING", "action": "WITHDRAWN"},
     )
     assert r.status_code != 451, f"초안이라는 이유로 철회가 막혔다: {r.text}"
+
+
+# ── 부분 승인 — 법역별로 갈리는가 ───────────────────────────────────────────
+
+US_FIRST = {"MASTER_TERMS", "GLOBAL_PRIVACY_NOTICE", "ADDENDUM_US"}
+
+
+@pytest.fixture
+def us_first_approved(monkeypatch):
+    """US 를 먼저 여는 시나리오 — 마스터·방침·US 부속조항만 승인."""
+    from app.services import terms_renderer
+
+    raw = terms_renderer._manifest()
+    monkeypatch.setattr(terms_renderer, "_manifest", lambda: approved_only(raw, US_FIRST))
+    yield
+
+
+async def _try_signup(client: AsyncClient, country: str) -> int:
+    tag = uuid.uuid4().hex[:8]
+    r = await client.post("/api/v1/onboarding/complete", json={
+        "name": "Part", "username": f"p{tag}", "email": f"p{tag}@example.com",
+        "password": PW, "org_name": f"Org {tag}", "country": country, "language": "en",
+        "farm_name": f"Farm {tag}", "farm_type": "FARROW_TO_FINISH",
+    })
+    return r.status_code
+
+
+async def test_us_opens_while_addendum_jurisdictions_stay_closed(
+    client: AsyncClient, us_first_approved,
+) -> None:
+    """★ 부분 승인이 실제로 가능하다 — G-1 은 전부-아니면-전무가 아니다.
+
+    `build_document_set` 이 그 법역의 addendum 하나만 담으므로, US 부속조항만
+    승인해도 US 는 열리고 BR·VN·TH·EU·GB 는 닫힌 채 남는다."""
+    assert await _try_signup(client, "US") == 201
+    for country in ("BR", "VN", "TH", "DE", "GB"):
+        assert await _try_signup(client, country) == 451, f"{country} 가 열렸다"
+
+
+async def test_us_first_also_opens_every_country_without_an_addendum(
+    client: AsyncClient, us_first_approved,
+) -> None:
+    """★★ "US 만 연다"는 실제로 "US + 부속조항 없는 모든 국가"다.
+
+    `_GROUP_ADDENDUM` 에 없는 국가는 group=OTHER 이고, 문서 세트가
+    MASTER + PRIVACY 뿐이다. 그 둘이 승인되는 순간 **함께 열린다.**
+
+    설계상 맞는 동작이다 — OTHER 에는 적용할 국가별 부속조항이 애초에 없으므로
+    그 둘이 곧 완전한 문서 세트다. 다만 결재 시 "US 3종 승인"의 실제 범위가
+    US 하나가 아니라는 뜻이므로, 이 테스트가 그 사실을 눈에 보이게 붙잡는다.
+    """
+    for country in ("MX", "CL", "CO", "JP"):
+        assert await _try_signup(client, country) == 201, (
+            f"{country}(OTHER) 가 닫혔다 — 이 테스트의 전제가 바뀌었다면 "
+            "DEPLOY_GATE §6-3 도 함께 갱신할 것"
+        )

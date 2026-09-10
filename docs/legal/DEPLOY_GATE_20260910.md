@@ -269,6 +269,61 @@ G-6  배포 후 검증
 실질적으로 존재한다** — G-1 이 US 문서만 승인돼도 그 법역은 열 수 있고,
 `assert_publication_approved` 는 법역별로 판정하므로 코드가 이미 그것을 지원한다.
 
+### 6-3. ★★ "US 만 먼저" 의 실제 범위 — US 하나가 아니다 (2026-09-10 실측)
+
+부분 승인이 가능하다는 것은 맞다. `build_document_set` 은 MASTER + PRIVACY +
+**그 법역의 addendum 하나**만 담으므로(`terms_renderer.py:92-95`), US 부속조항만
+승인해도 US 는 열리고 BR·VN·TH·EU·GB 는 닫힌 채 남는다.
+
+**그런데 부속조항이 없는 국가가 함께 열린다.**
+
+```
+시나리오: MASTER_TERMS + GLOBAL_PRIVACY_NOTICE + ADDENDUM_US 만 승인
+
+country  group   문서 세트                            결과
+US       US      MASTER + PRIVACY + ADDENDUM_US      열림
+MX       OTHER   MASTER + PRIVACY                    ★ 함께 열림
+CL       OTHER   MASTER + PRIVACY                    ★ 함께 열림
+CO       OTHER   MASTER + PRIVACY                    ★ 함께 열림
+JP       OTHER   MASTER + PRIVACY                    ★ 함께 열림
+BR       BR      MASTER + PRIVACY + ADDENDUM_BR      451
+VN       VN      MASTER + PRIVACY + ADDENDUM_VN      451
+TH       TH      MASTER + PRIVACY + ADDENDUM_TH      451
+DE       EU      MASTER + PRIVACY + ADDENDUM_EU      451
+GB       GB      MASTER + PRIVACY + ADDENDUM_GB      451
+```
+
+`_GROUP_ADDENDUM` 에 없는 국가는 전부 `group=OTHER` 이고 문서 세트가 두 건뿐이다.
+그 둘이 승인되는 순간 완전한 세트가 된다.
+
+★ **설계상 틀린 동작이 아니다.** OTHER 에는 적용할 국가별 부속조항이 애초에
+없으므로, 마스터와 방침이 곧 그 법역의 전부다. 게이트는 정확히 동작하고 있다.
+
+★ **다만 결재 문장이 달라진다.**
+
+```
+✗  "US 부속조항 3종을 승인한다"          → 실제 효과를 과소 표현
+✔  "US + 국가별 부속조항이 없는 모든 국가를 연다"
+```
+
+여기에 걸리는 사실이 하나 더 있다 — `CLAUDE.md` 는 **스페인어권(멕시코·콜롬비아
+등)·러시아어권 CIS 는 리서치·부속조항 미비**라고 적어두었다. 그 국가들이 바로
+`OTHER` 다. 즉 이 승인은 **리서치가 안 된 시장을 함께 여는 결정**이 된다.
+
+★ 선택지는 셋이다. 어느 쪽도 개발이 정하지 않는다.
+
+```
+(1) 그대로 연다        OTHER 에는 마스터·방침이 완전한 세트라는 판단을 수용
+(2) OTHER 를 따로 막는다  jurisdiction gate(signup_blocked)로 국가를 지정해 차단
+                       ★ 코드 변경 없음 — 기존 국가 게이트가 이미 그 일을 한다
+(3) US 만 정확히 연다   OTHER 전용 addendum 을 신설해 DRAFT 로 둔다
+                       ★ 문서 신설이 필요하다. 오늘 안에는 불가
+```
+
+이 동작은 `test_publication_consent_gate.py` 의
+`test_us_first_also_opens_every_country_without_an_addendum` 가 붙잡고 있다.
+전제가 바뀌면 그 테스트가 먼저 깨진다.
+
 ### 6-1. ★ G-5 는 이번 배포의 완료 조건이 아니다
 
 ```
@@ -358,7 +413,11 @@ DRAFT  +  consent 가능  +  ledger commit  +  registration fail-closed
   6  H14 확인
   7  둘 중 하나라도 미결정  →  배포 STOP
   8  둘 다 확정            →  manifest / publication set 갱신
-  9  ★ G-3 게이트가 실제로 **열리는지** 확인 — 가입 1건 성공
+  9  ★ G-3 게이트가 실제로 **열리는지** 확인 — **두 법역으로** 확인한다
+     승인 법역 1건 성공(예: US 201) + 미승인 법역 1건 차단(예: BR 451)
+     ★ 열림만 보면 게이트가 통째로 꺼진 것과 구분되지 않는다
+     ★ §6-3 — "US 만" 승인 시 MX 등 OTHER 도 열린다. 차단 확인은
+       OTHER 가 아니라 **addendum 이 있는 법역**(BR·VN·TH·EU·GB)으로 해야 한다
      게이트가 닫힌 채 배포되면 서비스가 전면 중단되고, 그것은 코드가
      의도대로 동작한 결과라 **롤백 판단이 늦어진다.** 장애처럼 보이지 않는다.
      스테이징이 없으므로 배포 직후 첫 확인 항목으로도 반복한다.
