@@ -1,97 +1,272 @@
 # 승인 기록 — 2026-09-10
 
-> **성격**: 무엇이 **어떤 근거로** 승인됐는지 그대로 적는다. 위조 0 · PROPOSED ≠ APPROVED.
-> **★ 이 문서는 서명 결재문이 아니다.** 구두 승인을 서명 결재로 위장하지 않는다.
+> **성격**: 무엇이 **누구에 의해 어떤 근거로** 정해졌는지 그대로 적는다. 위조 0 · PROPOSED ≠ APPROVED.
+> **★ 서명 결재문이 아니다.** 구두 승인을 서명 결재로 위장하지 않는다.
 > 대상: `CEO_APPROVAL_REQUEST_20260910.md` v4 (결재 1~6)
+> **개정 이력**: 초판(택일 4건 PENDING) → 2026-09-10 개정 — 구두 포괄 승인·실행 위임 반영, V-11 조건 4·5 모바일 실측 종결.
 
 ---
 
-## 0. 승인 근거
+## 0. Provenance — 누가 무엇을 했나
 
 ```
-형태     구두 (대표 → Brian, 2026-09-10)
-내용     "그냥 하라"
-범위     결재 요청 6건 전반에 대한 포괄 승인 의사
-문서화   ★ 서명본 없음
+Grant (대표)
+  → 결재안 전반에 대한 진행 구두 승인 ("그냥 하라", 2026-09-10)
+  → 구체 실행 선택은 실무에 위임
+
+Brian (CTO)
+  → 위임 범위 내에서 실행안 선택
+
+Counsel (자문 변호사)
+  → 법률 판단 항목은 여전히 미확정
 ```
 
-**포괄 승인으로 닫히는 것과 닫히지 않는 것이 갈린다.** 예/아니오 항목은 "그냥 하라"로 닫히고, **택일 항목은 어느 안인지가 정해지지 않으므로 닫히지 않는다.** 결재문 자체가 *"번호 없이 '승인'만 적히면 개발이 STOP 합니다 — 어느 안인지가 코드 한 줄을 정합니다"* 라고 적어놓았다.
+★ **대표가 각 선택지(H13 (4) · T-6/T-7 삭제 · GPS (a) · 제7조 (a))를 직접 고른 것이 아니다.**
+포괄 승인과 실행 위임이 있었고, 선택은 Brian 이 했다. 이 문서는 그 구분을 유지한다.
+
+### 상태 어휘 (신규 정의)
+
+| 상태 | 뜻 |
+|---|---|
+| `APPROVED_VERBAL` | 대표가 그 항목 자체를 구두 승인. 예/아니오 항목 |
+| `APPROVED_VERBAL_DELEGATED_EXECUTION` | 대표는 진행을 승인하고 선택은 위임 |
+| `EXECUTION_DECIDED_BY_BRIAN_UNDER_VERBAL_DELEGATION` | 위임 범위 내 Brian 의 실행 선택 |
+| `APPROVED_CONDITIONAL_FACT_VERIFICATION` | 정책은 정해졌으나 사실 확인 전까지 확정 아님 |
+| `COUNSEL_PENDING` | 법률 판단 미확정. 사내 결정으로 대체하지 않는다 |
+
+**서명본 없음.** 서명이 오면 각 항목에 일자·서명을 기입하고 상태를 승격한다.
 
 ---
 
-## 1. 항목별 상태
+## 1. 항목별
 
-| # | 결재 | 형태 | 상태 | 근거 |
+| # | 항목 | 상태 | 선택 | 비고 |
 |---|---|---|---|---|
-| **2** | D-16 — KR·CN 부속조항 미작성 문서 구조 | 예/아니오 | ✔ **APPROVED_VERBAL** | 구두 승인. 단 "KR 법정 고지사항 충족"은 **변호사 확인 조건 유지**(1차 Q-B 부속) |
-| **5** | `pigos_ro` 읽기 전용 롤 + 승인 범위 6항 | 예/아니오 | ✔ **APPROVED_VERBAL** | 구두 승인. 범위(SELECT only · 테이블 한정 · 개인계정 · 로그 · export 금지 · 30일 회수)는 결재문 기재대로 적용 |
-| **1** | H13 — 개시 법역 (1)/(2)/(3)/(4) | **택일 4** | ✘ **PENDING** | ★ 어느 안인지 미확정. MX·PH 신규가입 차단 여부가 갈린다 |
-| **3** | T-6·T-7 — 방침 제11조 :191 / :194 | **택일 2×2** | ✘ **PENDING** | ★ 삭제 vs [향후] 미확정. 문안이 안 정해짐 |
-| **4** | V-11 — GPS (a)/(b) | **택일 2** | ✘ **PENDING** | ★ 미확정 |
-| **6** | 방침 제7조 — 마커 → 조항 전환 (a)/(b)/(c) | **택일 3** | ✘ **PENDING** | ★ 미확정. 격리 해제가 여기 걸려 있다 |
+| **1** | H13 — 개시 법역 | `EXECUTION_DECIDED_BY_BRIAN_UNDER_VERBAL_DELEGATION` | **(4)** OTHER 기본 차단 + 국가별 launch allowlist | 구현 완료 · 신규 테스트 통과. ★ **기존 테스트 5건과 충돌 — 적용 범위 미확정, §5** |
+| **2** | D-16 — KR·CN 부속조항 미작성 구조 | `APPROVED_VERBAL` | 승인 | KR 법정 고지사항 충족 여부는 **`COUNSEL_PENDING` 유지** |
+| **3** | T-6 / T-7 — 방침 제11조 | `EXECUTION_DECIDED_BY_BRIAN_UNDER_VERBAL_DELEGATION` | `:191` **삭제** · `:194` **삭제** | 공개 방침에 미구현 로드맵을 적지 않는다 |
+| **4** | V-11 — 농장 GPS | `EXECUTION_POLICY_DECIDED_BY_BRIAN_UNDER_VERBAL_DELEGATION`<br>→ 최종 `APPROVED_CONDITIONAL_FACT_VERIFICATION` | **(a)** 사용하지 않는다 | ★ 사실 확인 6조건 중 2건 미완 — §3 |
+| **5** | `pigos_ro` | `APPROVED_VERBAL` | 승인 (범위 6항) | ★ 생성 못 함 — §4 |
+| **6** | 제7조 `[COUNSEL]` | `EXECUTION_DECIDED_BY_BRIAN_UNDER_VERBAL_DELEGATION` | **(a)** 공개 조항으로 전환 | D-13 은 `COUNSEL_PENDING` 유지 |
+
+---
+
+## 2. 실행 결과
+
+### 닫힌 것
 
 ```
-닫힘   2건 (구두)
-미결   4건 — 전부 택일. "그냥 하라"로는 안 닫힌다
+D-16    terms_renderer._GROUP_ADDENDUM 에 "KR": None, "CN": None, "OTHER": None 명시 + 사유 주석
+        jurisdiction._ADDENDUM 과 전 그룹 동일 응답 확인 (테스트)
+        fallback semantics 변화 0 · 타 법역 문서 세트 변화 0
+
+H13     jurisdiction._LAUNCH_ALLOWLIST = {"US"} 신설 (국가 단위)
+        기존 _GATES / signup_blocked 재사용 — 중복 게이트 없음
+        기존 차단 사유(KR_REFERENCE_ONLY · HOLD_D07) 를 덮어쓰지 않음
+        ★ 부수 효과: BR·DE·GB·TH·VN 가입도 닫힌다 (R-10 포함) — 범위 미확정, §5 참조
+
+T-6/T-7 방침 제11조 :191 "취약점 점검" 삭제 · :194 재식별 방지 항 삭제
+        제11조 서두 담요 단서("[운영 실측 필요 — V프로세스]") 삭제
+
+제7조   "[COUNSEL]" → "본 조의 역할 구분은 법률 검토 중이며, 확정 시 제15조에 따라
+        개정·고지합니다" 공개 조항으로 전환 (ko·en)
+
+마커    공개 서빙본 언어별 24 → 1
+
+V-11    조건 4·5 (모바일) 종결 — §3
+```
+
+### 남은 것
+
+```
+V-11    정밀 위치정보 1건 — 조건 1·6 (프로덕션 DB) 미완. ★ A 정정 배포의 유일한 blocker
 ```
 
 ---
 
-## 2. 지금 실행 가능한 것 / STOP 인 것
+## 3. V-11 — 확정 조건 6개 중 4개 종결, 2개 미확인 (둘 다 DB)
 
-### 실행 가능 (결재 2·5 근거)
+| # | 조건 | 결과 | 근거 |
+|---|---|---|---|
+| 1 | prod `farms.gps_lat/gps_lng` non-null = 0 | **미확인** | 프로덕션 조회 경로 없음 (§4) |
+| 2 | API write path 없음 | **없음** | `api/app` 전체에서 `gps` 참조 0건 (모델 정의 제외) |
+| 3 | Web write path 없음 | **없음** | `src/` 에 `gps_lat`·`geolocation`·`getCurrentPosition` 0건 |
+| 4 | Android / iOS location permission·precise path | **없음** (2026-09-10 실측) | 아래 §3-1 |
+| 5 | analytics/SDK precise location 수집 없음 | **없음** (2026-09-10 실측) | 아래 §3-1 |
+| 6 | backup·log·EXIF 보유 정황 | **부분** — EXIF 유입 경로 없음 확인 · backup/log 는 미확인 | §3-1 · 나머지는 1과 동일 제약 |
+
+**모델·마이그레이션 실측**: `platform.py:77-78` 에 nullable 컬럼 정의. DDL 4곳(`FLOAT` 선언).
+**INSERT·VALUES 로 값을 넣는 코드는 저장소 전체에서 0건.**
+
+### 3-1. 모바일 실측 (2026-09-10, machine `bjh`)
+
+저장소가 이 워크스테이션에 있어 조건 4·5 를 직접 측정했다.
 
 ```
-D-16 등록          DECISION_REGISTER 에 DECIDED 행 추가 — 단 승인 형태를 구두로 명기
-렌더러 명시        terms_renderer.py:76-79 에 "KR": None, "CN": None + 주석  (개발 티켓)
-pigos_ro 생성      KPI_K_LOOP P-1 SQL + 승인 범위 6항 적용
-  → 닫히는 것: R-08 · CN-1 · TH-5 · VN-5 · V-11 값 유무 · KR 숫자 4/5/13
+대상       C:\dev\pigos-android  (HEAD 183aaa8)   소스 343개 파일
+           C:\dev\pigos-ios      (HEAD 0b560aa)   소스 171개 파일
+
+권한       AndroidManifest.xml 2개(main·debug) 의 uses-permission 전량:
+             INTERNET · ACCESS_NETWORK_STATE · RECEIVE_BOOT_COMPLETED
+             POST_NOTIFICATIONS · CAMERA
+           → ACCESS_FINE_LOCATION · ACCESS_COARSE_LOCATION
+             ACCESS_BACKGROUND_LOCATION  0건
+
+           Info.plist 2개(App·Widget) 의 UsageDescription 전량:
+             NSCamera · NSFaceID · NSMicrophone · NSSpeechRecognition
+           → NSLocation*UsageDescription  0건
+
+코드       FusedLocationProvider · LocationManager · CLLocationManager
+           getCurrentPosition · requestLocationUpdates · Geolocator
+           startUpdatingLocation · gps_lat · gps_lng · gpsLat · gpsLng
+           → 양 저장소 합계 0건 (build·Pods·.git 제외)
+
+SDK        Android  firebase-bom 33.7.0 + firebase-messaging (FCM 푸시) 만.
+                    firebase-analytics · play-services-location ·
+                    타사 analytics/광고 SDK 0건.
+                    google-services 플러그인은 app/google-services.json 이
+                    있을 때만 적용된다 (build.gradle.kts:186-189).
+           iOS      Podfile · Podfile.lock · Package.swift · Package.resolved ·
+                    *.pbxproj 파일 자체가 없다 → 선언된 외부 SDK 0건.
+
+EXIF       CAMERA 권한의 용도는 EarTagScannerScreen.kt — CameraX 프리뷰 +
+           ML Kit 온디바이스 OCR. 이미지 파일 저장·업로드·multipart 코드 0건.
+           ExifInterface · CGImageSource · kCGImagePropertyGPS 참조 0건.
+           → 사진을 통한 GPS 유입 경로 없음. (iOS 촬영 코드 0건.)
 ```
 
-### STOP
+★ **위치 권한이 선언되어 있지 않으면 OS 가 정밀 위치를 내주지 않는다.** 그래서 조건 5(SDK)
+는 조건 4가 닫히는 순간 함께 닫힌다 — 어떤 SDK도 권한 없이 정밀 위치를 얻지 못한다.
+
+★ iOS 저장소에 프로젝트 파일이 없다는 것은 **별건 관찰**이다. 이 저장소가 빌드·배포
+가능한 상태인지는 V-11 의 범위가 아니며 여기서 판단하지 않는다.
 
 ```
-정정 배포 (A)      결재 3·4·6 미확정 → 어느 문안으로 고칠지 정해지지 않음
-  ★ 격리 해제가 여기 걸려 있다. 9-17 이 살아있는 이유
-H13 코드 반영      결재 1 미확정 → _GATES / allowlist 중 무엇을 넣을지 정해지지 않음
-개시 배포 (B)      위 + 변호사 회신 (D-13 · Q-B)
+판정   INSUFFICIENT_EVIDENCE  (조건 1·6 미완)
+```
+
+★ **`GPS_VERIFIED_UNUSED` 로 올리지 않는다.** 위 실측은 **현재 코드**에 수집 경로가 없다는
+뜻이다. 과거 버전·수동 입력·마이그레이션 이전 데이터가 남았을 수 있고, 그것을 답하는 것은
+조건 1·6 뿐이다.
+
+★ 값이 하나라도 나오면 **V-11 REOPEN** — `[향후 수집]` 으로 자동 전환하지 않고
+**현재 보유 사실 → 방침 정정 → 수집 경위·법적 근거·기존 이용자 영향** 을 별건으로 올린다.
+
+---
+
+## 4. `pigos_ro` — 생성하지 못했다
+
+승인은 있으나 **세 가지가 막는다.**
+
+| # | blocker | 내용 |
+|---|---|---|
+| B-1 | 접근 경로 없음 | DB 는 EC2 로컬 PostgreSQL 17.11 · 포트 5434 이고, `INFRA_DB_STRATEGY.md` 기준 **ufw 가 도커 브리지(172.17·172.18)만 허용 — 인터넷 비노출** 이다. 워크스테이션 `bjh` 실측: `psql` 없음 · `ssh` 클라이언트 없음 · `~/.ssh/config` 없음. `pigos_ro` 비밀번호는 서버 `~/.pgpass` 에만 있고 이 세션에 없다. **EC2 SSH 세션을 가진 사람만 실행할 수 있다** |
+| B-2 | **`PIGOS_RO_AUDITABILITY_BLOCKER`** | 승인 조건에 "조회 로그 보존"이 있다. **read-only 롤 자체는 SELECT 감사 로깅을 보장하지 않는다.** PostgreSQL 기본값은 SELECT 를 기록하지 않으며, `log_statement='all'` 또는 `pgaudit` 가 필요하다. 현재 서버 설정을 확인할 수 없어 **조건 충족으로 처리하지 않는다** |
+| B-3 | **승인된 grant 로는 V-11 을 못 푼다** | `KPI_K_LOOP` P-1 은 `GRANT SELECT (id, country, data_origin, data_classification, farm_scale) ON farms` 이다. **`gps_lat`·`gps_lng` 가 컬럼 목록에 없다.** 권한 확대는 승인 범위 밖 |
+
+### 권고 — 권한 확대 없이 V-11 을 닫는 경로
+
+`pigos_ro` 와 별개로, EC2 에서 기존 `sudo -u postgres psql` 경로로 **집계 한 줄**을 1회
+실행하면 된다. 개인정보를 출력하지 않고 정수 두 개만 나온다.
+
+```sql
+SELECT count(*) FILTER (WHERE gps_lat IS NOT NULL) AS lat_rows,
+       count(*) FILTER (WHERE gps_lng IS NOT NULL) AS lng_rows
+FROM farms;
+```
+
+★ raw 좌표 출력 금지. 결과가 `0, 0` 이면 V-11 조건 1 충족 · 그 외면 REOPEN.
+조건 6(backup·log)은 같은 세션에서 `~/pigos-backups/` 보존 여부와 함께 판단한다.
+
+---
+
+## 5. ★ H13 (4) 의 실제 적용 범위 — Brian 확인 필요 (OPEN)
+
+**초판에서 "TH·VN 도 닫힌다"고 적었는데, 그것도 과소 보고였다.**
+2026-09-10 기존 테스트 실측 결과 `_LAUNCH_ALLOWLIST` 는 **7개국**의 가입 판정을 바꾼다.
+
+```
+signup_blocked 가 바뀐 나라   BR · DE · GB · KR · MX · TH · VN
+사유 코드                     LAUNCH_NOT_ENABLED (KR·CN 은 기존 코드 유지)
+결재문이 명시한 범위          OTHER (= MX 등)
+```
+
+### 이것이 깨뜨리는 기존 기록
+
+`_LAUNCH_ALLOWLIST` 도입 전후로 기존 테스트를 각각 돌려 **내 변경이 만든 실패만**
+분리했다 (baseline = worktree 8fc382b).
+
+```
+변경 전부터 실패 (내 변경과 무관 · 별건)
+  test_unsupported_country_purpose2::test_ac5_blocked_jurisdictions_gate_unchanged
+  test_unsupported_country_purpose2::test_ac6b_only_other_group_changed_in_snapshot
+  test_consent_plan::test_kr_anon_is_notice_not_toggle
+
+이번 변경이 새로 깨뜨린 것 (5건)
+  test_jurisdiction::test_eu_de_uses_eu_addendum_and_release_hold
+  test_jurisdiction::test_gb_is_split_from_eu
+  test_jurisdiction::test_th_paid_gate_and_override
+  test_unsupported_country_purpose2::test_ac5b_unsupported_country_is_not_signup_blocked
+  test_unsupported_country_purpose2::test_ac6_supported_countries_snapshot_unchanged
+```
+
+★ `test_ac5b_unsupported_country_is_not_signup_blocked` 는 **purpose2 의 기록된
+수용 기준(AC5b)** 이다. "미지원 국가는 가입 차단하지 않는다" 가 먼저 결정되어
+있었고, H13 (4) 는 그것을 뒤집는다.
+
+### 갈리는 두 해석 — 어느 쪽인지는 Brian 이 정한다
+
+```
+해석 A (현재 구현)   allowlist 에 없으면 전부 차단
+                     → BR·DE·GB·TH·VN 까지 닫힌다. R-10 은 부수적으로 해소된다
+                     → AC5b 폐기 + EU/GB/BR/TH/VN 게이트 정책 변경을 함께 결정해야 한다
+
+해석 B (좁은 읽기)   결재문이 적은 그대로 OTHER 그룹만 차단
+                     → 기존 6개 법역 게이트는 손대지 않는다
+                     → AC5b 는 여전히 뒤집힌다(OTHER 가 곧 AC5b 의 대상이므로).
+                       다만 파장이 MX 등 OTHER 로 한정된다
+```
+
+★ **테스트를 고쳐서 초록으로 만들지 않았다.** 위 5건은 기록된 결정과 현재 코드가
+어긋난다는 사실 그 자체이며, 그것을 지우는 것은 결정을 위조하는 것이다.
+어느 해석인지 정해지면 (A) 기존 결정 문서에 supersede 기록을 남기고 테스트를
+갱신하거나, (B) `_LAUNCH_ALLOWLIST` 판정을 `group == "OTHER"` 로 좁힌다.
+
+**어느 쪽이든 A 정정 배포의 blocker 는 아니다** — 공개 방침 문안과 무관하다.
+다만 **B 개시 배포 전에는 반드시 닫혀야 한다.**
+
+---
+
+## 6. 여전히 사람·변호사가 채워야 하는 것
+
+```
+변호사   D-13 (controller/processor) · Q-B (US 3종 최소 세트) · Q-A · Q-C · Q-E · Q-F · Q-G
+         KR 법정 고지사항 충족 여부 (D-16 조건)
+         침해통지 기한표 7개국 (2차 요청)
+
+대표     H11 · H12 · H14 · H10 · H15 · T-8 · DPA-10~13 · P0 배포 승인
+         서명 결재문 (이 문서의 구두 상태를 승격)
+
+실측     V-11 조건 1·6 — EC2 SSH 세션 1회 (§4 집계 쿼리 + backups 보존 확인)
+         R-08 숫자 · CN-1 · TH-5 · VN-5
+         별첨 A 의 SIEM · IDS/WAF 미확인 2건
+         T-6 잔여: 외부 보안점검 이력 · AWS Inspector/GuardDuty 활성 여부
 ```
 
 ---
 
-## 3. 미결 4건 — 한 줄이면 닫힌다
+## 7. 관련
 
 ```
-결재 1   (1) 그대로  /  (2) OTHER 전부 차단  /  (3) 부속조항 신설  /  (4) 차단 + 국가별 allowlist ★권고
-결재 3   :191  삭제 / [향후] / 외부·AWS 확인 후      :194  삭제 / [향후] ★삭제 권고
-결재 4   (a) GPS 안 쓴다 ★  /  (b) 쓸 계획
-결재 6   (a) 조항 명시 ★권고  /  (b) 마커 유지  /  (c) 조항 삭제
-```
-
-★ **결재 6 이 가장 급하다** — 이것 하나가 격리 해제(경로 A)의 마지막 조각이다.
-
----
-
-## 4. 서명본이 필요한 이유 — 기록용
-
-구두 승인으로 진행하는 것 자체는 사업 판단이다. 다만 이 트랙의 산출물은 **감사 대상**이 될 수 있다.
-
-```
-D-16       "언제 · 누가 · 무엇을 승인했나"가 DECISION_REGISTER 의 필수 열이다
-결재 5     프로덕션 개인정보 조회 권한 — 승인자·범위·기간이 기록으로 남아야 한다
-결재 3·4·6 공개 방침 문안 변경 — 정정 근거와 승인자가 남아야 한다
-```
-
-→ 서명본이 오면 이 문서의 `APPROVED_VERBAL` 을 `APPROVED` 로 바꾸고 일자·서명을 기입한다. **그 전까지는 구두 상태로 유지한다.**
-
----
-
-## 5. 관련
-
-```
-docs/legal/CEO_APPROVAL_REQUEST_20260910.md      결재 요청 v4 (1~6)
-docs/legal/DEPLOY_GATE_20260910.md               §6-0 배포 A/B 조건표 · G-1a/G-1b
-docs/legal/KNOWN_PUBLICATION_EXPOSURE.md         해소 절차 재정의 (경로 A/B)
-docs/legal/closure/RISK_REGISTER_US_FIRST_20260910.md   R-01·R-03·R-05·R-14
-docs/legal/DECISION_REGISTER.md                  D-16 등록 대상
+docs/legal/CEO_APPROVAL_REQUEST_20260910.md      결재 요청 v4
+docs/legal/DEPLOY_GATE_20260910.md               §6-0 배포 A/B · G-1a/G-1b
+docs/legal/KNOWN_PUBLICATION_EXPOSURE.md         P1/P2 분리 · 격리 명세
+docs/legal/DECISION_REGISTER.md                  D-16
+docs/INFRA_DB_STRATEGY.md                        DB 노출 범위 (B-1 근거)
+docs/runs/KPI_K_LOOP.md                          P-1 GRANT 컬럼 목록 (B-3 근거)
+api/app/services/jurisdiction.py                 _LAUNCH_ALLOWLIST
+api/app/services/terms_renderer.py               _GROUP_ADDENDUM
+api/tests/unit/test_launch_allowlist_h13.py
+api/tests/unit/test_addendum_map_parity_d16.py
+api/tests/integration/test_public_legal_no_internal_markers.py
 ```
