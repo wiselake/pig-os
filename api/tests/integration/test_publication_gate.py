@@ -124,9 +124,22 @@ def test_quarantine_has_not_expired():
     )
 
 
+# 아직 해소되지 않은 상태들. "해소됐다"는 주장만 막는다.
+_UNRESOLVED_STATES = {"CONTAINED_NOT_REMEDIATED", "PARTIALLY_REMEDIATED"}
+
+
 def test_quarantine_status_is_not_claimed_resolved():
-    """해소되지 않았는데 RESOLVED 로 적어두는 것을 막는다."""
-    assert _manifest()["status"] == "CONTAINED_NOT_REMEDIATED"
+    """해소되지 않았는데 RESOLVED 로 적어두는 것을 막는다.
+
+    2026-09-10: 언어별 24건 → 1건으로 줄이면서 PARTIALLY_REMEDIATED 를 추가했다.
+    부분 해소를 해소로 적지 않기 위한 상태이지, 격리를 푸는 상태가 아니다.
+    마커가 0 이 되면 이 문서를 삭제하고 test_public_legal_no_internal_markers 로 넘긴다.
+    """
+    status = _manifest()["status"]
+    assert status in _UNRESOLVED_STATES, (
+        f"격리 status 가 {status!r} 다. 해소를 주장하려면 마커를 0 으로 만들고 "
+        f"KNOWN_PUBLICATION_EXPOSURE.md 를 삭제해야 한다."
+    )
 
 
 # ── 2. 등록분과 정확히 일치 — 증가도 감소도 실패 ────────────────────────────
