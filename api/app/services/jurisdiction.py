@@ -6,7 +6,7 @@
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from app.policy.consent_matrix import (
     GROUP_CN,
@@ -70,6 +70,27 @@ _GATES: dict[str, Gate] = {
     "GB": Gate(release_hold=True, reason_code="OPEN_UK_REP"),
     "BR": Gate(release_hold=True, reason_code="OPEN_BR_SCC"),
 }
+
+
+# --- 개시 허용 국가 (launch enablement) — H13 (4), 2026-09-10 ---------------
+#
+# ★ 세 상태를 분리한다. 하나로 합치지 않는다.
+#
+#     publication eligibility   문서 세트가 완성됐는가        (manifest status)
+#     jurisdiction clearance    그 법역을 법무 검토했는가      (research/*_legal)
+#     launch enablement         가입을 열기로 결정했는가       (← 이 목록)
+#
+# 이 목록에 없는 국가는 문서 세트가 완전해도 가입이 열리지 않는다.
+# "부속조항이 없어 마스터+방침 두 건이 곧 완전한 세트가 된다"는 렌더러의 성질이
+# 개시 결정을 대신하지 못하게 하는 것이 이 목록의 유일한 목적이다.
+#
+# 추가 절차: 해당 국가의 최소 법무 검토 완료 → 사업 승인 → 여기에 ISO-2 추가.
+# 그룹(OTHER 등) 단위로 넣지 않는다 — 국가 단위여야 "고르는 행위"가 기록에 남는다.
+_LAUNCH_ALLOWLIST: frozenset[str] = frozenset({"US"})
+
+# 기존 그룹 단위 signup 해제 오버라이드는 그 그룹을 여는 사람의 명시적 판단이므로
+# 개시 허용도 함께 의미한다(이중 플래그를 요구하지 않는다).
+_SIGNUP_OVERRIDE_KEYS = {GROUP_CN: "CN_signup", GROUP_KR: "KR_signup"}
 
 
 @dataclass(frozen=True)
@@ -136,8 +157,20 @@ def resolve(
         if group in ("EU", "GB", "BR") and feature_overrides.get(f"{group}_release"):
             gate = Gate(reason_code=f"OVERRIDE_{group}")
 
+    # --- launch enablement 판정 (H13 (4)) --------------------------------
+    # publication eligibility 와 독립. 두 축을 모두 통과해야 가입이 열린다.
+    ov = feature_overrides or {}
+    launch_ok = (
+        country in _LAUNCH_ALLOWLIST
+        or bool(ov.get(f"LAUNCH_{country}"))
+        or bool(ov.get(_SIGNUP_OVERRIDE_KEYS.get(group, "")))
+    )
+    if not launch_ok and not gate.signup_blocked:
+        gate = replace(gate, signup_blocked=True, reason_code="LAUNCH_NOT_ENABLED")
+        notes.append(f"launch not enabled for {country} (H13 allowlist)")
+
     if gate.signup_blocked:
-        notes.append("signup blocked (CN, D-07 HOLD)")
+        notes.append(f"signup blocked: {gate.reason_code}")
 
     return Jurisdiction(
         code=code,
