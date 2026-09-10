@@ -50,6 +50,17 @@ docs/legal/KNOWN_PUBLICATION_EXPOSURE.md   격리 명세 · 연장 이력 (2026-
 docs/legal/HUMAN_INPUT_QUEUE.md            H11~H15 사람 결정 대기
 ```
 
+### 발송·결재 문서 (2026-09-10)
+
+```
+docs/legal/COUNSEL_REQUEST_US_FIRST_20260910.md        1차 자문 7건 (v2.3)
+docs/legal/COUNSEL_REQUEST_BREACH_DEADLINES_20260910.md 2차 자문 — 침해통지 기한 7개국 (v3)
+docs/legal/CEO_APPROVAL_REQUEST_20260910.md            대표 결재 5건 (v3)
+docs/legal/closure/PRECOUNSEL_BREACH_DEADLINES_DRAFT.md 별첨 B — 사전 초안 (미검증)
+docs/legal/closure/RISK_REGISTER_US_FIRST_20260910.md   R-01~R-15
+docs/legal/closure/LEGAL_BRIEF_OUTSTANDING_20260910.md  A~D 밖에서 답을 알아올 것
+```
+
 ### RUN 공통 규칙
 
 ```
