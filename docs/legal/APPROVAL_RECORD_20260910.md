@@ -232,6 +232,84 @@ signup_blocked 가 바뀐 나라   BR · DE · GB · KR · MX · TH · VN
 어느 해석인지 정해지면 (A) 기존 결정 문서에 supersede 기록을 남기고 테스트를
 갱신하거나, (B) `_LAUNCH_ALLOWLIST` 판정을 `group == "OTHER"` 로 좁힌다.
 
+### 5-1. ★ 전량 실측 — 실패는 5건이 아니라 12건이다 (2026-09-11)
+
+위 §5 는 unit 테스트만 돌린 결과였다. 전량(1468 수집)을 돌리면 **12 failed · 1453
+passed · 1 skipped · 2 xfailed** 다. 통합 테스트가 빠져 있었다.
+
+★ **12건이 전부 같은 성격이 아니다.** 네 무리로 갈리고, 무리마다 A/B 해석에서
+해야 할 일이 다르다.
+
+```
+[1] 결정 충돌 — A·B 어느 해석에서도 깨진다. purpose2 AC5b 를 H13 이 뒤집는다
+    test_unsupported_country_purpose2::test_ac5b_unsupported_country_is_not_signup_blocked
+    test_unsupported_country_purpose2::test_ac6_supported_countries_snapshot_unchanged
+    test_country_entry_authority::test_unsupported_country_policy_is_unchanged
+    test_publication_consent_gate::test_us_first_also_opens_every_country_without_an_addendum
+      ★ 2026-09-10 에 "US 승인이 OTHER 를 함께 연다"를 고정하려고 쓴 테스트다.
+        H13 (4) 가 정확히 그 동작을 바꿨으므로 깨지는 것이 맞다
+    → 해석 확정 후: purpose2 결정문에 supersede 기록 + 테스트를 새 결정 기준으로 갱신
+
+[2] 해석 A 에서만 깨진다 — B 면 코드를 OTHER 로 좁혀야 통과한다
+    test_jurisdiction::test_eu_de_uses_eu_addendum_and_release_hold     (DE)
+    test_jurisdiction::test_gb_is_split_from_eu                         (GB)
+    test_jurisdiction::test_th_paid_gate_and_override                   (TH)
+    test_country_entry_authority::test_us_account_br_farm_is_allowed_… (BR)
+    test_consent_record_context::test_vn_transaction_matching_hidden_…  (VN)
+    → A 면 [1] 과 같이 supersede · B 면 _LAUNCH_ALLOWLIST 판정을 group=="OTHER" 로 한정
+
+[3] 픽스처 우연 — launch 정책과 무관. 통화·단위 파생을 CL·RU 로 검증하던 것
+    test_onboarding_country::test_chile_farm_gets_clp_metric_santiago
+    test_onboarding_country::test_russia_farm_gets_rub_moscow
+    → 어느 해석이든 픽스처 국가를 allowlist 국가로 바꾸거나 LAUNCH_ 오버라이드 주입.
+      ★ 테스트 의도(통화 파생)는 그대로다. 정책 테스트가 아니다
+
+[4] 선존 — 이 변경 전부터 실패
+    test_unsupported_country_purpose2::test_ac6b_only_other_group_changed_in_snapshot
+```
+
+★ **[3] 이 중요하다.** H13 이 **launch 정책과 무관한 테스트까지 깨뜨린다**는 것은,
+allowlist 가 온보딩 픽스처의 기본 국가 선택을 전부 오염시킨다는 뜻이다. 앞으로
+US 외 국가를 픽스처로 쓰는 모든 테스트가 같은 방식으로 깨진다 — `LAUNCH_{국가}`
+오버라이드를 테스트 픽스처에 넣는 관례가 필요하다.
+
+★ **`main` 이 빨간 상태로 커밋돼 있다.** 테스트를 초록으로 만들지 않은 판단은 맞다 —
+다만 §0-2 기준으로 이것은 `STOP-on-FAIL` 이고, 해석 확정 전까지 **다른 배포·머지를
+막는 상태**다. V-11 에 쓴 것과 같은 방식(`xfail` + 사유)이 [1]·[2] 에는 **해석
+확정 후에야** 적용 가능하고, [3] 은 지금 고칠 수 있다.
+
+### ★ 결재문 자체가 두 문장을 담고 있다
+
+두 해석이 갈리는 원인은 구현이 아니다. `CEO_APPROVAL_REQUEST` 결재 1 (4) 행이
+**한 칸 안에 A 와 B 를 함께 적었다.**
+
+```
+제목   "OTHER 기본 차단 + 국가별 개시 allowlist"                         → B
+본문   "미국만 우선 허용"                                                → A
+       "문서 세트 존재 여부와 개시 가능 여부를 별도 게이트로 관리"         → A
+얻는 것 "세 상태가 분리됨"                                               → A
+```
+
+"미국만 우선 허용"은 문자 그대로 US 외 전부이고, "OTHER 기본 차단"은 범위를
+OTHER 로 한정한다. **구현은 본문을 읽었고, B 는 제목을 읽었다.** 둘 다 결재문에
+근거가 있다.
+
+★ 그러므로 해석 확정의 **정본은 테스트도 코드도 아니라 결재문 (4) 행을 한 문장으로
+고쳐 쓰는 것**이다. 그 뒤에 코드와 테스트가 따라간다.
+
+### 두 해석의 실질 차이 — 언제 갈리나
+
+BR·DE·GB·TH·VN 은 **B 여도 지금은 안 열린다** — addendum 이 전부 DRAFT 라 G-3 가
+막는다. 차이는 **그 addendum 이 승인된 뒤**에 난다.
+
+```
+A   addendum 승인 + allowlist 등재  둘 다 있어야 열림   ← "세 상태 분리"
+B   addendum 승인만 되면 열림                          ← 문서 완성 = 개시 허용 (6개국 한정)
+```
+
+B 는 결재문이 (4) 의 장점으로 적은 "세 상태 분리"를 **OTHER 에서만 실현하고
+6개 법역에서는 포기**하는 안이다. 그게 의도라면 유효하나, "얻는 것" 칸과는 어긋난다.
+
 **어느 쪽이든 A 정정 배포의 blocker 는 아니다** — 공개 방침 문안과 무관하다.
 다만 **B 개시 배포 전에는 반드시 닫혀야 한다.**
 
