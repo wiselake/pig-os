@@ -1193,14 +1193,67 @@ POST /api/v1/consent/record         〃 (심층 방어)
 | | `platform_implementation_status` | 근거 |
 |---|---|---|
 | Core/Web | `DONE` | `320baea` 게이트 · `f0934c0` 8 로케일 안내 문구 + 테스트 2건 |
-| **Android** | **`PENDING_RECHECK`** | 451 을 어떻게 표시하는지 **미확인**. 기존 `SIGNUP_BLOCKED` 451 처리 경로가 있는지도 미확인 |
-| **iOS** | **`PENDING_RECHECK`** | 〃. ★ `LEGAL-P0-IOS-CONSENT` 가 "consent 호출 0건인데 가입이 된다"를 기록 — iOS 는 `/auth/register` 를 직접 쓸 가능성이 높아 **가장 먼저 이 451 을 만난다** |
+| **Android** | **`BLOCKED`** | 451 이 **사유 없이** 일반 오류로 뜬다 — §9-7-1 |
+| **iOS** | **`IN_PROGRESS`** | 451 이 원문 코드로 노출된다. 크래시·묵살은 없음 — §9-7-1 |
 
-### 왜 `PENDING_RECHECK` 인가
+### 9-7-1. 실측 (2026-09-10 · 두 저장소 read-only)
 
-두 저장소를 읽지 않았다. 이 세션 범위가 PigOS 저장소였고, **읽지 않은 것을
-`NOT_APPLICABLE` 이나 `BLOCKED` 로 단정하지 않는다**(§0-4 "찾지 못한 것과 없는
-것은 다르다").
+**가입 경로가 플랫폼마다 다르다.** 둘 다 게이트에 걸린다.
+
+```
+Android   POST /onboarding/complete          OnboardingApi.kt:15
+          ★ 주석: "POST /auth/register 는 서버 500 이라 미사용"
+iOS       POST /auth/register → /onboarding/farm   AuthService.swift:50
+          ★ /onboarding/farm 은 게이트 대상이 아니므로 register 에서 막힌다
+```
+
+#### iOS — 사유는 보이나 번역은 없다
+
+```
+APIClient.swift:126        errorBody 의 detail 을 디코드한다
+APIError.swift:18-29       451 은 case 없음 → default: .http(status:detail:)
+APIError.swift:42-44       "Error occurred (451: PUBLICATION_NOT_APPROVED)."
+```
+
+★ **크래시하지 않고 묵살하지도 않는다.** 웹이 어제까지 하던 것과 같은 수준 —
+사용자에게 영문 코드가 보인다. `f0934c0` 로 웹은 8 로케일 안내를 붙였으나
+iOS 는 그 문구를 모른다.
+
+#### Android — ★ 사유가 사라진다
+
+```
+OnboardingRepository.kt:32   runCatching { onboardingApi.complete(...) }
+                             Response<T> 가 아니라 DTO 를 직접 받는다
+                             → Retrofit 이 비 2xx 에 HttpException 을 던진다
+errorBody 를 읽는 코드        저장소 전체 0건
+```
+
+**서버가 보낸 `PUBLICATION_NOT_APPROVED` 가 어디에도 도달하지 않는다.**
+사용자는 "HTTP 451" 수준의 일반 오류만 본다 — 왜 막혔는지, 언제 열리는지,
+자기 잘못인지 알 방법이 없다.
+
+★ 기존 `SIGNUP_BLOCKED:{reason}` 451 도 **같은 이유로 이미 사유가 사라지고
+있었다.** 이 게이트가 만든 문제가 아니라, 이 게이트가 **드러낸** 문제다.
+
+#### 부수 관측 — Android 기본 국가가 KR 이다
+
+```
+OnboardingRepository.kt:26   country: String = "KR"
+```
+
+KR 은 `signup_blocked`(KR_REFERENCE_ONLY) 다. 호출부가 국가를 넘기지 않으면
+게시 게이트 이전에 국가 게이트에 걸린다. **이 배포와 무관한 선존 항목**이나,
+451 을 만나는 경로가 하나 더 있다는 뜻이므로 함께 기록한다.
+
+#### 배포 전 판단
+
+```
+iOS       배포 가능. 영문 코드 노출은 기존 451 과 동일 수준
+          → 후속으로 안내 문구 (별건)
+Android   ★ errorBody 를 읽어 detail 을 표면화하는 수정이 선행되어야 한다
+          없으면 미국 외 가입 시도가 전부 원인 불명 오류가 된다
+          ★ 서버 로그는 451 정상 응답으로 보이므로 장애로 인지되지 않는다
+```
 
 ### 배포 전 확인할 것
 
