@@ -22,7 +22,7 @@
 
 | # | 게이트 | 상태 | 근거 |
 |---|---|---|---|
-| **G-1** | 문서 승인 | `HUMAN DECISION REQUIRED` | manifest 8건 `DRAFT_LAWYER_PENDING` · H13 |
+| **G-1a/G-1b** ★ | 문안·구조(대표) / 법률 확인(변호사) — 2026-09-10 분할 | `G-1a` 구두 승인·택일 3건 미결 / `G-1b` HUMAN DECISION REQUIRED | manifest 8건 `DRAFT_LAWYER_PENDING` · H13 |
 | **G-2** | 게시 언어 | `HUMAN / LEGAL DECISION REQUIRED` | addendum 전부 en · 공개 고지 ko·en · H14 |
 | **G-3** | 초안 동의 차단 | `CODE_COMPLETE / TESTED · PROD_NOT_DEPLOYED` | `320baea` · `587dfed` · `f0934c0` |
 | **G-4** | 코드 배포 | `READY` | 대상 sha 5건 확정 · 롤백 단위 확정 (`07d0f94`) |
@@ -191,7 +191,7 @@ H13 도착 (내용이 (1)/(2)/(3) 중 무엇인지 명시)
   → 이어서 변호사 회신 대기
 
 변호사 US 3종 회신 도착
-  → manifest status 갱신 → G-1 충족
+  → manifest status 갱신 → G-1b 충족  (★ 2026-09-10 G-1 이 G-1a 대표 / G-1b 변호사 로 분할됨 — DEPLOY_GATE §6-0)
   → 배포 순서 §4 의 1번부터
 
 H13·회신 둘 다 도착

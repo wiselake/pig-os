@@ -118,7 +118,7 @@
 | H15 | 프론트 ru 로케일 노출 | 사업. V16 유입 0 → 내리는 쪽이 정합적 (`HUMAN_INPUT_QUEUE`) |
 | T-8 | 인원 최소화·교육 — 서약서·교육 기록 실재 | 조직 사실. 있으면 부표 C·방침 제11조 유지, 없으면 [향후] |
 | DPA-10~13 | 하위처리자 통지 30일 · 이의 시 해지권 · 권리지원 실비 · 감사 연1회 | `CLOSURE_DPA` §2-3 제안값 (INTERNAL_POLICY_PROPOSAL). Q-D 회신과 무관하게 결정 가능 |
-| P0 5건 배포 승인 | `DEPLOY_GATE` §5-2 sha 5 | G-1(H13 + 회신) · M-1 Android |
+| P0 5건 배포 승인 | `DEPLOY_GATE` §5-2 sha 5 | G-1a(H13) + G-1b(회신) · M-1 Android |
 
 ---
 

@@ -21,6 +21,7 @@
 | D-13 | controller/processor 역할 확정 (처리 유형별) | 가입·결제·보안=WiseLake controller / 기업 입력 직원·계약농가=고객 controller·WiseLake processor 가능 / PigSignal=WiseLake (공동)controller | B2B DPA 신설 반영, 확정은 변호사 | 대표(법무 선행) | OPEN |
 | D-14 | 조직의 계약농가·직원 대리 동의 범위 | 마스터 제4조⑥ 한정 조항 + authorized_consent_actor 요건 | 한정안 반영 | 대표(법무 선행) | PROPOSED |
 | D-15 | 유료/무료 기능 경계 확정 (조기경보 무료 여부 등) | 화면·가격표 표시 기준으로 완화, 실제 경계는 사업 결정 | 문구 완화 반영 | 대표(사업) | OPEN |
+| D-16 | KR·CN 국가별 부속조항 파일을 두지 않는 문서 구조 | (a) 6개국(US·EU·GB·BR·TH·VN)만 부속조항 유지 (b) KR·CN 부속조항 신설 | **(a)** — KR: PigOS 비대상(A-rule, signup_blocked)이며 한국법 적용은 마스터 준거법 조항과 목적② KR 분기가 흡수. CN: 진입 구조 미결(D-07)이라 부속조항이 성립하지 않음. 코드 `jurisdiction._ADDENDUM` · `terms_renderer._GROUP_ADDENDUM` 양쪽에 `None` 명시 | 대표 | **APPROVED_VERBAL** (2026-09-10 구두, 서명본 대기) — ★ **KR 법정 고지사항이 글로벌 방침·마스터에 충분히 반영되어 별도 부속조항이 불필요하다는 법률 판단은 포함하지 않는다. COUNSEL_PENDING** (1차 자문 Q-B 부속 질의) |
 
 > † D-01~D-04는 2026-07-21 대표 승인으로 설계 기준 확정. 단 원래 "법무 의견 선행" 조건 항목이므로, LAWYER_BRIEF 회신에서 반대 의견이 나오는 경우 해당 결정은 자동 재개(REOPEN)한다. D-01은 F5(게시본·운영 불일치)·V1(동의 UI·로그 실사) 해소 병행 필요.
 
