@@ -1177,6 +1177,50 @@ priority = P1
 
 ---
 
+## 9-7. ★ `PUBLICATION_GATE_451` — API 계약 변경 (2026-09-10 등재)
+
+`G-3`(`320baea`)가 **가입 진입점 두 곳의 응답 계약을 바꾼다.** 아직 배포 전이다.
+
+```
+POST /api/v1/auth/register          미승인 문서 상태 → 451 "PUBLICATION_NOT_APPROVED"
+POST /api/v1/onboarding/complete    〃
+POST /api/v1/consent/record         〃 (심층 방어)
+```
+
+★ **기능 추가가 아니라 계약 변경이다.** `CLAUDE.md` §5 — 모바일은 독립 저장소
+2개이고 배포 주기가 길어 구버전이 오래 남으므로, 계약 변경이 기능보다 위험하다.
+
+| | `platform_implementation_status` | 근거 |
+|---|---|---|
+| Core/Web | `DONE` | `320baea` 게이트 · `f0934c0` 8 로케일 안내 문구 + 테스트 2건 |
+| **Android** | **`PENDING_RECHECK`** | 451 을 어떻게 표시하는지 **미확인**. 기존 `SIGNUP_BLOCKED` 451 처리 경로가 있는지도 미확인 |
+| **iOS** | **`PENDING_RECHECK`** | 〃. ★ `LEGAL-P0-IOS-CONSENT` 가 "consent 호출 0건인데 가입이 된다"를 기록 — iOS 는 `/auth/register` 를 직접 쓸 가능성이 높아 **가장 먼저 이 451 을 만난다** |
+
+### 왜 `PENDING_RECHECK` 인가
+
+두 저장소를 읽지 않았다. 이 세션 범위가 PigOS 저장소였고, **읽지 않은 것을
+`NOT_APPLICABLE` 이나 `BLOCKED` 로 단정하지 않는다**(§0-4 "찾지 못한 것과 없는
+것은 다르다").
+
+### 배포 전 확인할 것
+
+```
+1  모바일 2종이 451 응답을 어떻게 처리하는가
+   - 사유 문자열을 그대로 보여주는가 (웹의 기존 동작)
+   - 알 수 없는 코드를 일반 오류로 뭉개는가
+   - 크래시하는가
+2  US 외 법역에서 가입 시도 시 사용자가 무엇을 보는가
+   ★ 웹은 8 로케일 안내를 붙였지만 모바일은 그 문구를 모른다
+3  구버전 앱이 451 을 재시도 루프로 처리하지 않는가
+```
+
+★ 이 확인 없이 배포하면 **모바일 신규 가입이 원인 불명 오류로 실패**한다.
+서버는 의도대로 동작하므로 로그에는 정상으로 보인다.
+
+관련: `docs/legal/DEPLOY_GATE_20260910.md` · `docs/legal/LEGAL_P0_FREEZE_20260910.md`
+
+---
+
 ## 10. 후속 STEP (이번 범위 아님)
 
 ```

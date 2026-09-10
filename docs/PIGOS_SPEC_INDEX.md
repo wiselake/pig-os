@@ -37,6 +37,41 @@
 
 ---
 
+## 1-2. ★ 2026-09-08~10 신규 문서 (이 절이 없어 8종이 색인 밖에 있었다)
+
+### 법무 배포 트랙 — 진입점은 `DEPLOY_GATE`
+
+```
+docs/legal/DEPLOY_GATE_20260910.md      ★ 법무 배포 기준 문서
+                                        G-1~G-6 · 배포 순서 12단계 · §6-3 OTHER 범위
+                                        진행 상황은 "P0 5건"이 아니라 G-n 으로 말한다
+docs/legal/LEGAL_P0_FREEZE_20260910.md  트랙 동결 상태 · 재개 조건
+docs/legal/KNOWN_PUBLICATION_EXPOSURE.md   격리 명세 · 연장 이력 (2026-09-17)
+docs/legal/HUMAN_INPUT_QUEUE.md            H11~H15 사람 결정 대기
+```
+
+### RUN 공통 규칙
+
+```
+docs/runs/RUN_COMMON_RULES.md   §0 PREFLIGHT · 종료 판정 · 상태 어휘 · 기준값
+                                ★ RUN 문서는 §0 을 복사하지 말고 이것을 참조한다
+```
+
+### KPI 정의 트랙 (법무와 별개 · 현재 대기)
+
+```
+docs/kpi/T6_DEFINITION_CONFLICT_REGISTER.md   §0 3축 해석 원칙 · K-1~K-4
+docs/kpi/K1-K4_DECISION_RECORD.md             ③ CANONICAL 결정
+docs/kpi/K1-K3_PRE_DECISION_EVIDENCE.md       ① RUNTIME 실측 · §5-1 쿼리
+docs/adr/ADR-KPI-00-one-engine-many-policies.md   ADR-KPI-08 이 depends_on 하던 실물
+docs/runs/KPI_K_LOOP.md                       READY_BUT_BLOCKED — 착수한 적 없다
+```
+
+★ **이 절이 생기기 전까지 위 8종은 어느 진입점에서도 참조되지 않았다.**
+문서를 잘 쓰는 것과 찾을 수 있게 두는 것은 다른 일이다.
+
+---
+
 ## 2. 지원(Support) 경계 확정
 사용자 채널(PigOS 앱/이메일/웹폼) → **공통 Support Service·단일 Ticket DB(SSOT)** → Q-Bridge(Console: 인박스·번역·배정·SLA) → 채널 회신. 농장주 리드 DB(Console 컨택DB)와 분리 — 참조 연결만, 병합 금지.
 
