@@ -73,7 +73,7 @@ Brian 실행      §6 — 결정 불필요, 실행만
 > D-01~D-04는 조건부 BUSINESS_APPROVED(2026-07-21) — 변호사 반대 시 자동 REOPEN.
 
 ## 3. 변호사 회신 필요 ([COUNSEL] — LAWYER_BRIEF 30건 요지)
-- US: LB525 전자동의=express written 충족 여부(Q7)·데이터브로커 등록·CAN-SPAM 주소·CA ADMT/위험평가(Q8)·DOJ Rule(Q10)
+- US: LB525 전자동의=express written 충족 여부(Q8)·데이터브로커 등록(Q4)·CAN-SPAM 주소(Q19)·CA ADMT/위험평가(Q23)·DOJ Rule(전용 Q 없음 — §1 리스크표) — ★ 2026-09-10 Q번호 정정
 - EU/GB: 대리인 확정·DPO 해당성(Art.37)·LIA 승인·쿠키 CMP UI·회원국 언어
 - BR: SCC 전문 편입·역할 매핑(F1 exporter 주체)·F3 완전익명 Art.12/33 제외 여부
 - 공통: D-01~D-04 조건부 승인의 법무 확인
@@ -108,6 +108,9 @@ Brian 실행      §6 — 결정 불필요, 실행만
 ```
 
 ★ 4·6 은 기존 H9·H11 과 같은 건이다. **새 항목이 아니라 회신 우선순위를 붙인 것.**
+
+★ **발송본은 `COUNSEL_REQUEST_US_FIRST_20260910.md` 다** (2026-09-10 검토 반영: 7번을 변호사 질의 B-8(a) / 대표 결재 H13 로 분리 · 6번에 B-4 (c) 복원 · 1번에 App Store URL·/legal/terms 부재 명시 · Q번호 매핑 정정 · 회신 기한 9-17 · LAWYER_BRIEF §5 형식 축약). 위 7줄은 요지이고 정본은 그 문서다.
+★ 국가별 미결 종결 시트: `closure/README.md` (COMMON · US · OTHER · BR · EU · GB · TH · VN · KR · CN).
 
 ## 4. 사업조건 placeholder (임의 확정 금지 — 8건)
 - 크레딧·환불·SLA·최소액·취소·세금 등 (`OPEN_QUESTIONS.md` §B). 확정 전 약관에서 제외 또는 `[OPEN]`.
