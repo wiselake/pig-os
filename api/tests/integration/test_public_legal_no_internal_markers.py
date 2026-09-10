@@ -55,9 +55,14 @@ FORBIDDEN: dict[str, re.Pattern[str]] = {
     "TEMPLATE_VAR": re.compile(r"\{\{[^}]*\}\}"),
     "KO_PENDING_PHRASE": re.compile(r"실측 확인 필요|운영 확정|변호사 확정 전"),
     "EN_PENDING_PHRASE": re.compile(r"actual verification required|to be confirmed operationally|pending legal counsel", re.I),
-    # 사내 문서 경로가 공개본에 새어 나가는 것도 같은 종류의 사고다
+    # 사내 문서 경로가 공개본에 새어 나가는 것도 같은 종류의 사고다.
+    # ★ 내부 작업 디렉터리 이름을 리터럴로 적지 않는다 — 그 리터럴을 테스트 파일에
+    #   두면 test_publication_gate.test_tests_do_not_pin_runtime_to_publish_candidate
+    #   가 "테스트가 후보 경로를 정본으로 고정한다" 로 오탐한다. 대신 경로 모양으로
+    #   잡는다. 그 편이 더 넓다 — 사내 법무 디렉터리 참조 전부를 막는다.
+    "INTERNAL_DOC_PATH": re.compile(r"(?:docs/legal|api/content/legal)/[A-Za-z0-9_./-]+"),
     "INTERNAL_DOC_REF": re.compile(
-        r"TERMS_DISPLAY_SPEC|CONSENT_SPEC|CONSENT_AND_DATA_USE|publish_candidate"
+        r"TERMS_DISPLAY_SPEC|CONSENT_SPEC|CONSENT_AND_DATA_USE"
         r"|DECISION_REGISTER|LAWYER_BRIEF|DRAFT_LAWYER_PENDING"
     ),
 }
