@@ -70,6 +70,38 @@ def anyio_backend():
     return "asyncio"
 
 
+@pytest.fixture
+def launch_enabled(monkeypatch):
+    """H13 launch allowlist 를 테스트 범위에서만 연다 — **명시적으로 부르는 테스트만.**
+
+    ★ autouse 가 아니다. 2026-09-11 에 H13 allowlist 가 launch 와 무관한 테스트
+    (통화·단위 파생을 CL·RU 로 검증하던 것) 까지 451 로 깨뜨렸다. 픽스처마다
+    오버라이드를 넣으면 스위트 전체가 default-deny 를 우회해서, 누가 allowlist 를
+    잘못 건드려도 아무 테스트도 안 죽는다 — 12건이 죽어서 알려준 그 성질이 사라진다.
+    그래서 헬퍼는 부르는 곳만 열고, 기본은 닫힌 채로 둔다.
+
+        async def test_x(client, launch_enabled):
+            launch_enabled("CL", "RU")
+            ...
+
+    막힌 채여야 하는 것은 test_launch_gate_blocks_non_allowlisted_country_at_http 가
+    잡는다.
+    """
+    from app.services import eligibility
+
+    original = eligibility.feature_overrides
+
+    def _enable(*countries: str) -> None:
+        def patched(extra=None):
+            base = original(extra)
+            for c in countries:
+                base[f"LAUNCH_{c}"] = True
+            return base
+        monkeypatch.setattr(eligibility, "feature_overrides", patched)
+
+    return _enable
+
+
 @pytest.fixture(autouse=True)
 def _allow_kr_signup(monkeypatch):
     """테스트/개발 환경 = 대표 확인용으로 KR 가입 허용(운영 기본 차단).

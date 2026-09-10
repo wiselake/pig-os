@@ -51,7 +51,8 @@ class TestOnboardingCountryDerivation:
         assert farm.unit_system == "IMPERIAL"
         assert farm.timezone == "America/Chicago"
 
-    async def test_chile_farm_gets_clp_metric_santiago(self, client: AsyncClient, db: AsyncSession):
+    async def test_chile_farm_gets_clp_metric_santiago(self, client: AsyncClient, db: AsyncSession, launch_enabled):
+        launch_enabled("CL")   # H13: 통화 파생 검증이지 launch 정책 검증이 아니다
         r = await client.post("/api/v1/onboarding/complete", json=_payload("CL"))
         assert r.status_code == 201, r.text
         farm = await self._farm(db, r.json()["farm_id"])
@@ -59,7 +60,8 @@ class TestOnboardingCountryDerivation:
         assert farm.unit_system == "METRIC"
         assert farm.timezone == "America/Santiago"
 
-    async def test_russia_farm_gets_rub_moscow(self, client: AsyncClient, db: AsyncSession):
+    async def test_russia_farm_gets_rub_moscow(self, client: AsyncClient, db: AsyncSession, launch_enabled):
+        launch_enabled("RU")   # H13: 통화 파생 검증이지 launch 정책 검증이 아니다
         r = await client.post("/api/v1/onboarding/complete", json=_payload("RU"))
         assert r.status_code == 201, r.text
         farm = await self._farm(db, r.json()["farm_id"])

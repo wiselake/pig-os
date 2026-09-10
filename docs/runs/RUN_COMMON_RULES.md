@@ -170,8 +170,10 @@ STOP 조건 옆에 두면 게이트의 신뢰도가 떨어진다.
 ## 기준값 (2026-09-09 실측)
 
 ```
-백엔드   pytest --collect-only   1428      (2026-09-10 부분승인 고정 +2)
-         pytest 전량             1427 passed · 1 skipped
+백엔드   pytest --collect-only   1469      (2026-09-11 H13·D-16·마커 가드 +40 · launch 회귀 +1)
+         pytest 전량             1456 passed · 1 skipped · 12 xfailed(strict)
+         ★ xfailed 12 = V-11 조건 1·6 (2) + H13 (4) 해석 미확정 (10)
+           strict 라 해석이 코드로 바뀌면 XPASS 로 빨개진다 — 초록이 결정을 대신하지 못하게
          ruff                    3건 — F841(미사용 지역변수)만 잔존.
                                  나머지 8건은 CHORE-RUFF-CLEANUP 에서 정리됨
 

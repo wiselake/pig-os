@@ -142,6 +142,7 @@ async def test_us_account_cn_farm_is_blocked(client: AsyncClient, db):
     assert await _counts(db) == before, "451 인데 farm 이 생성됐다"
 
 
+@pytest.mark.xfail(strict=True, reason="H13 (4) 해석 A(전역 default-deny) 에서만 깨진다 — B(OTHER 한정) 로 코드를 좁히면 XPASS 로 빨개져 결정 기록을 강제한다 (APPROVAL_RECORD §5-1 [2])")
 async def test_us_account_br_farm_is_allowed_without_consent_completion(client: AsyncClient):
     """★ deadlock 회피.
 
@@ -201,6 +202,7 @@ async def test_all_entry_paths_agree_on_the_same_country(client: AsyncClient):
 
 # ── 10. 미지원 국가 정책 보존 ───────────────────────────────────────────────
 
+@pytest.mark.xfail(strict=True, reason="H13 (4) 가 purpose2 AC5b 를 뒤집는다 — 해석 A/B 무관하게 깨진다. 결재문 (4) 행 재작성 후 supersede 기록 + 테스트 갱신 (APPROVAL_RECORD §5-1 [1])")
 async def test_unsupported_country_policy_is_unchanged(client: AsyncClient):
     """★ 이 RUN 은 미지원국 정책을 바꾸지 않는다.
 

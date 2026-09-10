@@ -43,6 +43,7 @@ async def test_ui_settings_context_skips_ack_requirement(db: AsyncSession, test_
     assert ai.collection_context == "UI_SETTINGS"
 
 
+@pytest.mark.xfail(strict=True, reason="H13 (4) 해석 A(전역 default-deny) 에서만 깨진다 — B(OTHER 한정) 로 코드를 좁히면 XPASS 로 빨개져 결정 기록을 강제한다 (APPROVAL_RECORD §5-1 [2])")
 async def test_vn_transaction_matching_hidden_not_recorded(db: AsyncSession, test_user, test_farm):
     req = RecordConsentRequest(
         farm_id=test_farm.id, selected_country="VN", farm_country="VN",

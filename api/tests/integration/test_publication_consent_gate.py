@@ -262,6 +262,7 @@ async def test_us_opens_while_addendum_jurisdictions_stay_closed(
         assert await _try_signup(client, country) == 451, f"{country} 가 열렸다"
 
 
+@pytest.mark.xfail(strict=True, reason="H13 (4) 가 purpose2 AC5b 를 뒤집는다 — 해석 A/B 무관하게 깨진다. 결재문 (4) 행 재작성 후 supersede 기록 + 테스트 갱신 (APPROVAL_RECORD §5-1 [1])")
 async def test_us_first_also_opens_every_country_without_an_addendum(
     client: AsyncClient, us_first_approved,
 ) -> None:
@@ -279,3 +280,25 @@ async def test_us_first_also_opens_every_country_without_an_addendum(
             f"{country}(OTHER) 가 닫혔다 — 이 테스트의 전제가 바뀌었다면 "
             "DEPLOY_GATE §6-3 도 함께 갱신할 것"
         )
+
+
+# ── H13 launch allowlist — HTTP 레벨 default-deny 가 살아 있는가 ─────────────
+
+async def test_launch_gate_blocks_non_allowlisted_country_at_http(
+    client: AsyncClient, approved_docs,
+) -> None:
+    """★ `launch_enabled` 헬퍼를 부르지 않으면 allowlist 밖 국가는 반드시 막힌다.
+
+    이 테스트가 존재하는 이유는 헬퍼가 autouse 로 바뀌거나 픽스처마다 오버라이드가
+    들어가서 스위트 전체가 default-deny 를 우회하게 되는 것을 막기 위해서다.
+    문서 세트는 승인본(approved_docs)이라 G-3 는 통과한다 — 막는 것은 launch 게이트
+    하나여야 한다.
+    """
+    tag = uuid.uuid4().hex[:8]
+    r = await client.post("/api/v1/onboarding/complete", json={
+        "name": "Launch", "username": f"l{tag}", "email": f"l{tag}@example.com",
+        "password": PW, "org_name": f"Org {tag}", "country": "CL", "language": "en",
+        "farm_name": f"Farm {tag}", "farm_type": "FARROW_TO_FINISH",
+    })
+    assert r.status_code == 451, r.text
+    assert "LAUNCH_NOT_ENABLED" in r.text
