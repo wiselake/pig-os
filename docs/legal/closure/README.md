@@ -20,6 +20,8 @@
 | `CLOSURE_VN.md` | 베트남 | HOLD 유지 (D-08) |
 | `CLOSURE_KR.md` | 한국 — PigOS 비대상(A-rule). 피그플랜 현행 게시본 = 참조 전용 | 열지 않음 유지 |
 | `CLOSURE_CN.md` | 중국 | HOLD (D-07) — 부속조항으로 해소 불가 |
+| `CLOSURE_DPA.md` | B2B DPA 부표 C(TOMs) + 방침 제11조 — 같은 항목이라 함께 종결 | 실측 완료 · 2건 부재 |
+| `CLOSURE_DPA.md` | B2B DPA 초안 (마커 23건) + 침해통지 기한 축 | Q-D 발송 전 5건 전기 · 침해통지 기한표 부재 |
 
 ## 판정 어휘
 
