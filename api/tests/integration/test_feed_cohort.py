@@ -79,3 +79,49 @@ async def test_cohort_is_empty_without_closed_groups(db: AsyncSession, test_farm
     r = fm.compute(cohort)
     assert r.fcr is None and r.withheld["FCR"] == fm.NO_GAIN
     assert r.withheld["FEED_COST_PER_PIG"] == fm.NO_COST
+
+
+# ── 제외 집합 동치 ──────────────────────────────────────────────────────────────
+# 값이 같은 것만으로는 부족하다. feed_metrics 가 FCR 을 유보하는 그룹을 kpi_service 가
+# 보고하면 산식이 둘이다. 반대로 원가만 유보하는 경우는 FCR 이 뜨는 게 맞고, 그 상태가
+# 어떻게 보이는지를 여기서 고정한다 (D-16 두 맵 교훈 — parity 는 fallback 까지).
+
+
+async def test_no_gain_is_withheld_on_both_sides(db: AsyncSession, test_farm: Farm):
+    """CLOSED 그룹이 없다 → feed_metrics NO_GAIN, kpi_service 도 None."""
+    db.add(FeedRecord(farm_id=test_farm.id, group_id=None, record_date=date(2026, 2, 1),
+                      quantity_kg=5000, unit_cost=Decimal("0.5"), currency="USD"))
+    await db.flush()
+    r = fm.compute(await feed_service.load_feed_cohort(db, test_farm.id, START, END))
+    kpis = await build_herd_kpis(db, test_farm)
+    assert r.withheld["FCR"] == fm.NO_GAIN
+    assert kpis["FCR"] is None
+
+
+async def test_no_feed_is_withheld_on_both_sides(db: AsyncSession, test_farm: Farm):
+    """CLOSED 그룹은 있으나 귀속 사료 0 → feed_metrics NO_FEED, kpi_service 도 None."""
+    await _closed_group(db, test_farm)
+    db.add(FeedRecord(farm_id=test_farm.id, group_id=None, record_date=date(2026, 2, 1),
+                      quantity_kg=5000))
+    await db.flush()
+    r = fm.compute(await feed_service.load_feed_cohort(db, test_farm.id, START, END))
+    kpis = await build_herd_kpis(db, test_farm)
+    assert r.withheld["FCR"] == fm.NO_FEED
+    assert kpis["FCR"] is None
+
+
+async def test_cost_withheld_does_not_withhold_fcr_anywhere(db: AsyncSession, test_farm: Farm):
+    """원가만 유보(단가 누락) → 양쪽 다 FCR 은 보고한다. 화면에서 FCR 은 뜨고 Feed Cost 만 비는
+    상태이며, 그 이유는 feed_metrics.withheld 에만 있다 — KPI 응답에는 아직 없다 (F-0011 (나))."""
+    g = await _closed_group(db, test_farm)
+    db.add(FeedRecord(farm_id=test_farm.id, group_id=g.id, record_date=date(2026, 2, 1),
+                      quantity_kg=8550, unit_cost=Decimal("0.5"), currency="USD"))
+    db.add(FeedRecord(farm_id=test_farm.id, group_id=g.id, record_date=date(2026, 2, 2),
+                      quantity_kg=8550))
+    await db.flush()
+    r = fm.compute(await feed_service.load_feed_cohort(db, test_farm.id, START, END))
+    kpis = await build_herd_kpis(db, test_farm)
+    assert r.fcr == kpis["FCR"] == pytest.approx(2.0, abs=0.001)
+    assert "FCR" not in r.withheld
+    assert r.withheld == {"FEED_COST_PER_PIG": fm.COST_INCOMPLETE,
+                          "FEED_COST_PER_KG_GAIN": fm.COST_INCOMPLETE}

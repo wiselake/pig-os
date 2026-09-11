@@ -150,6 +150,7 @@ CL 포함 전 국가가 DRAFT 동안 닫히므로 H13 의 "열린 문" 급박성
 문장은 xfail 10건·결재문 정합성 문제로 돌아간다. 배포 자체는 §0-2 승인 + §5-3 롤백
 번들이 필요하다. 개발 세션은 배포하지 않는다.
 
+| B-7 | **FCR 을 실제로 본 농장 수** — D-15 기울기 측정 | 프로덕션 읽기 — EC2 세션 **여섯 번째 줄**. 계측(F-0005)이 0 이라 "본" 것은 못 세고, "FCR 이 None 이 아니었던 농장"(CLOSED 그룹 + 귀속 사료 보유)을 센다. 집계만, PII 0 | `SELECT count(DISTINCT g.farm_id) FROM finisher_groups g JOIN feed_records fr ON fr.group_id=g.id WHERE g.deleted_at IS NULL AND fr.deleted_at IS NULL AND g.end_date IS NOT NULL AND g.head_count_out IS NOT NULL AND g.avg_exit_weight_kg IS NOT NULL AND g.avg_entry_weight_kg IS NOT NULL;` 이 수가 0 이면 (a)/(b) 는 다시 대칭이다 |
 | B-5 | **iOS Debug 빌드 호스트 결정** — `Debug.xcconfig` 가 34130df 이후 `api.pigos.io` 를 가리킨다. 주석·문서 7곳은 여전히 localhost 라고 적혀 있다 | 34130df 의 의도 미기록 — 되돌리면 그 용도가 깨질 수 있다 | (가) 34130df 되돌림 **← 두 세션 권고**: env 를 잊으면 (가)는 연결 실패로 보이고 (나)는 프로덕션에 계정이 조용히 생긴다 / (나) 문서 7곳 현실화. **확인할 한 줄**: 왜 Release 가 아니라 Debug 를 바꿨나. **공통·B-5 전에 가능**: `MAC_VERIFY_CHECKLIST:36` 에 `PIGOS_API_BASE_URL` env 필수 명기. 확정 후 Debug 기대값 단위 테스트로 고정. `PLATFORM_PARITY` §9-7-3 |
 | B-2 | `pigos_ro` 읽기 전용 롤 생성 | 프로덕션 권한 변경 — 개발 범위 밖 | `KPI_K_LOOP` P-1. SQL 은 그 문서에 완성돼 있다 |
 | B-3 | K-2d 확정 통보 (115일 폐사 제외 삭제) | 값이 내려가는 정의 변경 | `KPI_K_LOOP` P-2 |

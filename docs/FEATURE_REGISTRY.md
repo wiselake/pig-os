@@ -324,7 +324,10 @@ analytics_events: []                                  # 미정의
   addons/               __init__.py 뿐. fcr 라우터 없음. require_addon("ADDON_FCR") 호출 0건
   ops.py:72             "only populated when ADDON_FCR subscribed" — 실제로는 구독과 무관
   → FCR 은 문서상 유료, 런타임상 무료. COUNTRY_PRODUCT_SPEC_BR:58 도 유료라 적음
-  → 이 기능이 고치지 않는다. D-15(과금 경계) 입력으로 기록만 한다
+  → 주석은 26c2e68(2026-05-29) 최초 구현부터, 기본 응답 노출은 63acdff(2026-06-23)부터
+  ★ 즉 FCR 은 이미 (가)로 출시돼 있다. D-15 는 FCR 에 대해 대칭이 아니다 —
+    (a) 무료 추인 = 비용 0 / (b) 유료 확정 = 회수. 기울기 측정 = HUMAN_INPUT_QUEUE B-7
+  → 이 기능이 고치지 않는다. DECISION_REGISTER D-15 에 사실로 적었다
 ```
 
 ### 범위 결정 — (나) 계산만, 응답 미노출 (두 세션 권고 · 대표 미확인)
@@ -341,7 +344,16 @@ unit_cost 없는 행이 하나라도 있으면 부분합을 원가로 내지 않
 
 Feed Cost 두 값은 EXPANSION_DECISION §5-2 와 HANDOFF §6-5 둘 다 **Paid hypothesis** 로
 적고 있다. 승인 전 paywall 금지 규칙 때문에 게이트를 달 수 없고, 게이트 없이 노출하면
-사실상 무료 확정이 된다. 그래서 (나). 대표가 한 단어로 (가)를 고르면 그때 노출한다.
+사실상 무료 확정이 된다. 그래서 (나).
+
+★ 근거의 정확한 위치: "사실을 만들지 않기"가 아니다 — 부모 지표 FCR 에서 그 사실은 이미
+만들어져 있다. **이미 있는 사실 위에 두 번째를 얹지 않기**다. 나중에 "왜 FCR 은 열고
+이 둘은 닫았나"의 답이 이 문장이다.
+
+step 1b: 제외 집합 동치 테스트 3건 추가 — feed_metrics 가 FCR 을 유보(NO_GAIN·NO_FEED)하면
+kpi_service 도 None 이어야 하고, 원가만 유보(COST_INCOMPLETE)하면 양쪽 다 FCR 을 보고한다.
+그 상태("FCR 은 뜨고 Feed Cost 만 빔")의 이유는 feed_metrics.withheld 에만 있고 KPI
+응답에는 아직 없다 — 노출 시점에 같이 실어야 할 것. 대표가 한 단어로 (가)를 고르면 그때 노출한다.
 
 ---
 
