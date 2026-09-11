@@ -42,7 +42,42 @@
 범위    작다. 다만 별도 저장소 — 승인 필요
 ```
 
-### M-2. iOS 안내 문구 — 배포를 막지는 않는다
+### ★ 2026-09-11 범위 정정 — M-1 은 Android 하나가 아니다
+
+세 가지가 추가로 실측됐다 (machine `bjh`, 양 저장소 직접 grep).
+
+```
+Android   errorBody() 를 읽는 코드는 test/…/BackendIntegrationTest.kt:99 뿐
+          → 프로덕션 경로 0건. 앞서 "0건"이라 적은 것은 main 기준이었고, 결론 동일
+
+iOS       OnboardingViewModel.swift:60
+            return consentPlan?.gate?.reasonCode ?? "SIGNUP_BLOCKED"
+          → 사유코드를 그대로 화면에 낸다. docstring 도 "그대로 노출한다"고 적어둠
+          ★ 경로가 Android 와 다르다 — 451 본문이 아니라 GET signup-plan 의
+            gate.reasonCode 에서 읽는다. 그래서 errorBody 문제가 아니라 표시 문제다
+
+양쪽      사유코드 → 문구 테이블이 없다. 주석에 HOLD_D07 · KR_REFERENCE_ONLY 가
+          언급될 뿐, LAUNCH_NOT_ENABLED 는 저장소 어디에도 없다
+```
+
+★ **451 은 "법적 이유로 차단"이다. 이유를 안 알려주면 상태코드의 의미 자체가
+안 지켜진다.** 지금 US 외에서 가입을 누르면 독일 사용자가 `SIGNUP_BLOCKED` 나
+`LAUNCH_NOT_ENABLED` 라는 영문 상수를 본다. H13 해석 A/B 어느 쪽이든 같다.
+
+그러므로 M-1 의 실체는:
+
+```
+1  사유코드 → 사용자 문구 테이블 (ko/en 최소)
+   LAUNCH_NOT_ENABLED · KR_REFERENCE_ONLY · HOLD_D07 · PUBLICATION_NOT_APPROVED
+   ★ 문구는 "아직 서비스하지 않는 지역" 수준. 법률 판단을 문구에 담지 않는다
+2  Android  errorBody() 를 프로덕션 경로로 + detail 의 SIGNUP_BLOCKED:{code} 파싱
+3  iOS      OnboardingViewModel:60 원시 상수 노출 제거 + 같은 테이블
+4  양쪽 테스트  모르는 사유코드가 와도 원시 문자열이 화면에 안 나온다
+```
+
+**M-2 는 M-1 에 흡수된다** — 같은 문구 테이블이다.
+
+### M-2. iOS 안내 문구 — M-1 에 흡수 (2026-09-11)
 
 ```
 근거    PLATFORM_PARITY §9-7-1

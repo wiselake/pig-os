@@ -1194,7 +1194,7 @@ POST /api/v1/consent/record         〃 (심층 방어)
 |---|---|---|
 | Core/Web | `DONE` | `320baea` 게이트 · `f0934c0` 8 로케일 안내 문구 + 테스트 2건 |
 | **Android** | **`BLOCKED`** | 451 이 **사유 없이** 일반 오류로 뜬다 — §9-7-1 |
-| **iOS** | **`IN_PROGRESS`** | 451 이 원문 코드로 노출된다. 크래시·묵살은 없음 — §9-7-1 |
+| **iOS** | **`BLOCKED`** | 사유코드를 원시 상수로 노출 · LAUNCH_NOT_ENABLED 미인지 — §9-7-1 (2026-09-11 하향) |
 
 ### 9-7-1. 실측 (2026-09-10 · 두 저장소 read-only)
 
@@ -1244,6 +1244,20 @@ OnboardingRepository.kt:26   country: String = "KR"
 KR 은 `signup_blocked`(KR_REFERENCE_ONLY) 다. 호출부가 국가를 넘기지 않으면
 게시 게이트 이전에 국가 게이트에 걸린다. **이 배포와 무관한 선존 항목**이나,
 451 을 만나는 경로가 하나 더 있다는 뜻이므로 함께 기록한다.
+
+#### ★ 2026-09-11 추가 실측 — 서버는 완비, 막힌 건 클라이언트 둘 다
+
+```
+서버      consent_service.py:186,194 · eligibility.py:109,143  사유코드 전부 내려보냄
+Android   errorBody() 프로덕션 경로 0건 (test/BackendIntegrationTest.kt:99 에만)
+iOS       OnboardingViewModel.swift:60  reasonCode ?? "SIGNUP_BLOCKED" 원시 노출
+          ★ 451 본문이 아니라 GET signup-plan 의 gate.reasonCode 경로
+양쪽      LAUNCH_NOT_ENABLED 문자열 0건 — H13 (4) 가 만든 새 사유코드를 모른다
+```
+
+iOS 상태를 `IN_PROGRESS` 에서 **`BLOCKED`** 로 내린다. "사유가 보인다"는 판정은
+451 본문 기준이었고, 실제 표시 경로는 plan 의 reasonCode 를 원시 상수로 내는
+것이라 사용자에게 보이는 것은 `LAUNCH_NOT_ENABLED` 라는 영문 상수다.
 
 #### 배포 전 판단
 
