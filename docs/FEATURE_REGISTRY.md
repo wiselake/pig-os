@@ -287,6 +287,10 @@ issued: 2026-09-11                                    # 착수 시점 발급 (§
 required_platforms: [core, web]                       # 모바일은 READ_CACHE 소비만 — 산식 하드코딩 금지 (HANDOFF §0-6)
 paths:
   core:
+    - api/app/engine/feed_metrics.py                  # ★ 신규 — canonical 산식 FEED_BASIC.v1 · 유보 이유 · 응답 미연결
+    - api/app/services/feed_service.py:load_feed_cohort  # ★ 신규 — kpi_service 와 같은 CLOSED 그룹 코호트 (라우터 0)
+    - api/tests/unit/test_feed_metrics.py
+    - api/tests/integration/test_feed_cohort.py       # 코호트 FCR == build_herd_kpis FCR 동치
     - api/app/db/models/health.py                     # FeedRecord (quantity_kg · unit_cost · currency · group_id)
     - api/app/services/feed_service.py                # 입력 CRUD (기존)
     - api/app/services/kpi_service.py:438-535         # FCR = SUM(feed_records.quantity_kg) / gain, CLOSED 그룹 (기존)
@@ -329,6 +333,11 @@ analytics_events: []                                  # 미정의
 (가) 새 두 값을 KPI 응답에 실어 무료로 노출   → 나중에 유료로 옮기면 "있던 것을 뺏는" 변경
 (나) 산식·정의·테스트만 만들고 응답에 안 실음  → D-15 결재 후 한 줄로 노출. 되돌리기 싼 쪽
 ```
+
+step 1 (2026-09-11): `engine/feed_metrics.py` + `load_feed_cohort` + 테스트 12건. 산식 규율:
+unit_cost 없는 행이 하나라도 있으면 부분합을 원가로 내지 않는다(COST_INCOMPLETE) ·
+통화가 섞이면 환산하지 않는다(CURRENCY_MIXED) · 코호트 FCR 은 kpi_service FCR 과 동치(테스트).
+어느 라우터에도 연결 안 됨. 백엔드 1468 passed · 1 skipped · 12 xfailed.
 
 Feed Cost 두 값은 EXPANSION_DECISION §5-2 와 HANDOFF §6-5 둘 다 **Paid hypothesis** 로
 적고 있다. 승인 전 paywall 금지 규칙 때문에 게이트를 달 수 없고, 게이트 없이 노출하면
