@@ -42,7 +42,32 @@
 범위    작다. 다만 별도 저장소 — 승인 필요
 ```
 
-### ★ 2026-09-11 범위 정정 — M-1 은 Android 하나가 아니다
+### ★ 2026-09-11 (오후) — M-1 완료. 그리고 아래 오전 정정 자체가 과했다
+
+```
+pigos-android  b88c571   451 → consent_blocked_title (기존 8 로케일 문구 재사용)
+                         OnboardingBlockedReasonTest 4건 — 이 머신에서 4/4 재실행
+pigos-ios      608b418   사유코드 뱃지 #if DEBUG · testUnknownReasonCodeStillBlocks
+                         ★ 컴파일 미검증 (Xcode 없음) → PENDING_RECHECK
+근거           PLATFORM_PARITY §9-7-2
+```
+
+오전에 적은 "두 클라이언트 + 4항목 테이블"은 **틀렸다**. 실체는
+"Android 451 매핑 1건 + iOS 뱃지 제거 1건"이었고 둘 다 끝났다.
+
+틀린 이유 — 에러 경로만 읽고 정상 경로를 안 읽었다:
+- Android 는 plan 단계에서 `signup_blocked` 로 먼저 막힌다 (BlockedCard, 8 로케일 문구 이미 존재).
+  451 경로는 plan 이후 서버 게이트가 바뀐 레이스에서만 닿는다
+- 클라이언트 게이트 우회 불가 — `canSubmitStep` 이 plan null/실패도 막고, 테스트가 있다
+- iOS 는 문장이 제대로 나오고 그 밑에 뱃지만 하나 더 붙어 있었다
+
+**4항목 사유코드 테이블은 만들지 않는다 — 결정**. KR_REFERENCE_ONLY / HOLD_D07 /
+LAUNCH_NOT_ENABLED 의 사용자 문구는 D-13 · Q-B 로 변호사에게 묻는 성격 규정 그
+자체라, 답 전에 8 개 언어에 박는 것은 승인 전 정책 반영이다. 중립 문구 한 벌만 쓴다.
+
+---
+
+### (오전 기록 — 보존, 위로 대체) 범위 정정 — M-1 은 Android 하나가 아니다
 
 세 가지가 추가로 실측됐다 (machine `bjh`, 양 저장소 직접 grep).
 
@@ -192,9 +217,9 @@ iOS     PushNotificationService.swift:47  1회만. Endpoint 헤더는 Authorizat
 ## 5. 착수 순서 제안
 
 ```
-지금        M-1   Android 451 — ★ 배포 선행조건
-배포 후     M-2   iOS 451 안내 문구
-            M-3   fail-OPEN 제거          ★ 틀린 값을 보이는 것 중 가장 위험
+완료        M-1   b88c571 · 608b418 (iOS 는 Mac/CI 빌드 1회 남음)
+            M-2   M-1 에 흡수 — 완료
+배포 후                 M-3   fail-OPEN 제거          ★ 틀린 값을 보이는 것 중 가장 위험
             M-4·M-5  서버 판정 소비로 전환 (M-3 과 한 덩어리)
 심사 일정   M-6   iOS 계정 삭제 화면
 관측 먼저   M-9 → M-8   버전 보고 → 강제 업데이트
@@ -202,7 +227,7 @@ iOS     PushNotificationService.swift:47  1회만. Endpoint 헤더는 Authorizat
 법무 트랙   M-7   iOS 동의 수집 경로 — LEGAL-P0-CONSENT-EVIDENCE 확정 후
 ```
 
-★ **M-1 만 이번 배포를 막는다.** 나머지는 배포 후 순차 진행 가능하다.
+★ **M-1 은 2026-09-11 해소.** 이 문서에서 배포를 막는 항목은 더 없다. 나머지는 배포 후 순차 진행 가능하다.
 
 ---
 

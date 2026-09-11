@@ -26,6 +26,11 @@ f0934c0  차단 안내 8 로케일 — 원문 코드 대신 사유
 60c9545  ENV-1 Node 고정 + PREFLIGHT — 환경 실패를 테스트 실패와 분리(exit 78)
 8f57d1d  백엔드 로케일 카탈로그 파리티 가드
 44ded3f · 6165306   이모지 → lucide + 아이콘 스케일
+(9/11)   H13 (4) US 허용목록 — 해석 충돌 10건 xfail(strict) 로 고정, 결재 문장 대기
+(9/11)   모바일 T3 — pigos-android b88c571 (451 → 지역 차단 문구) DONE,
+         pigos-ios 608b418 (사유코드 뱃지 DEBUG) PENDING_RECHECK(Xcode 없음)
+         ★ PLATFORM_PARITY §9-7-1 의 전제 3개가 틀렸음을 §9-7-2 에 기록.
+           사유코드→문구 테이블은 D-13·Q-B 답 전이라 만들지 않기로 결정
 ```
 
 ### 사람이 닫아야 하는 것
@@ -40,7 +45,7 @@ H11  원장 없는 기존 계정 처리                            배포 후
 ### 검증
 
 ```
-백엔드   1427 passed · 1 skipped   (수집 1428)
+백엔드   1456 passed · 1 skipped · 12 xfailed(strict)   (수집 1469, 9/11)
 프론트   40 파일 · 219 tests · tsc 통과   (node 22.23.2)
 ruff     F841 3건만 (선존)
 ```

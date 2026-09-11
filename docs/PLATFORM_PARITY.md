@@ -1193,8 +1193,8 @@ POST /api/v1/consent/record         〃 (심층 방어)
 | | `platform_implementation_status` | 근거 |
 |---|---|---|
 | Core/Web | `DONE` | `320baea` 게이트 · `f0934c0` 8 로케일 안내 문구 + 테스트 2건 |
-| **Android** | **`BLOCKED`** | 451 이 **사유 없이** 일반 오류로 뜬다 — §9-7-1 |
-| **iOS** | **`BLOCKED`** | 사유코드를 원시 상수로 노출 · LAUNCH_NOT_ENABLED 미인지 — §9-7-1 (2026-09-11 하향) |
+| **Android** | **`DONE`** | pigos-android `b88c571` — 451 → `consent_blocked_title`(8 로케일 기존 문구) · 미지 사유코드 회귀 테스트 4건 · 이 머신에서 재실행 4/4 + OnboardingConsentTest 9/9 — §9-7-2 |
+| **iOS** | **`PENDING_RECHECK`** | pigos-ios `608b418` — 사유코드 뱃지 `#if DEBUG` 뒤로 · 미지 코드 테스트. ★ **컴파일 미검증** — 이 PC 에 Xcode 없음. Mac 또는 CI(macos-15) 빌드 후 `DONE` — §9-7-2 |
 
 ### 9-7-1. 실측 (2026-09-10 · 두 저장소 read-only)
 
@@ -1259,7 +1259,7 @@ iOS 상태를 `IN_PROGRESS` 에서 **`BLOCKED`** 로 내린다. "사유가 보�
 451 본문 기준이었고, 실제 표시 경로는 plan 의 reasonCode 를 원시 상수로 내는
 것이라 사용자에게 보이는 것은 `LAUNCH_NOT_ENABLED` 라는 영문 상수다.
 
-#### 배포 전 판단
+#### 배포 전 판단 (2026-09-10 시점 — §9-7-2 로 대체됨)
 
 ```
 iOS       배포 가능. 영문 코드 노출은 기존 451 과 동일 수준
@@ -1267,6 +1267,95 @@ iOS       배포 가능. 영문 코드 노출은 기존 451 과 동일 수준
 Android   ★ errorBody 를 읽어 detail 을 표면화하는 수정이 선행되어야 한다
           없으면 미국 외 가입 시도가 전부 원인 불명 오류가 된다
           ★ 서버 로그는 451 정상 응답으로 보이므로 장애로 인지되지 않는다
+```
+
+### 9-7-2. ★ 2026-09-11 T3 완료 — 그리고 §9-7-1 의 전제 세 개가 틀렸다
+
+다른 세션이 두 저장소를 고쳤고, 이 세션이 machine `bjh` 에서 디스크로 재검증했다.
+
+```
+pigos-android  b88c571  fix(onboarding): show a 451 as a regional block
+               OnboardingViewModel.kt fail():  HttpException && code()==451
+                 → errorRes = R.string.consent_blocked_title (else vm_process_failed)
+               OnboardingBlockedReasonTest.kt  4건 신규
+               ★ 재실행(이 머신, JDK openjdk-21.0.1, --offline):
+                 OnboardingBlockedReasonTest 4/0/0 · OnboardingConsentTest 9/0/0
+                 (다른 세션 보고: 전체 112 suites · 427 tests · 0 fail — 미재확인)
+
+pigos-ios      608b418  fix(onboarding): keep the block reason code out of the production screen
+               OnboardingScreen.swift:142-  조건을 `!= nil` 로, 코드 뱃지는 #if DEBUG 안으로
+               OnboardingViewModel.swift:57  docstring "그대로 노출한다" → "제품 화면에 쓰지 않는다"
+               ConsentTests.swift  testUnknownReasonCodeStillBlocks (LAUNCH_NOT_ENABLED · 미지 코드 · 코드 없음)
+               ★ 컴파일 0회 — 이 PC 에 Xcode 없음
+```
+
+**§9-7-1 이 틀린 곳 세 군데** (다른 세션 지적 → 이 세션 디스크 확인):
+
+```
+① "Android 사용자는 HTTP 451 만 본다"
+   틀림. 정상 경로는 plan 단계다 — GET signup-plan 의 signup_blocked 가 true 면
+   ConsentSection.kt:104 BlockedCard 가 뜨고 canSubmitStep(VM:74) 이 false 라
+   /onboarding/complete 는 호출조차 안 된다.
+   consent_blocked_title/desc 는 이미 values + 7 로케일 = 8 개에 있다
+     ko "해당 지역은 서비스 준비 중입니다" / en "Service not available in your region"
+   451 에러 경로에 닿는 것은 plan 을 받은 뒤 서버 게이트가 바뀐 레이스뿐이다.
+   → 심각도 낮음. 그래도 b88c571 이 그 경로를 같은 문구로 닫았다
+
+② "클라이언트 게이트를 우회할 수 있다"
+   틀림. canSubmitStep = consentPlan != null && consentCanSubmit — plan 조회
+   실패도 통과시키지 않는다. OnboardingConsentTest:133
+   `plan load failure blocks signup entirely` 가 이미 그것을 고정한다
+
+③ "iOS 가 원시 상수를 화면에 띄운다"
+   절반. OnboardingScreen.swift:150 "Sign-up isn't available in the country you
+   selected." 문장이 먼저 나오고, 그 아래 mono 뱃지로 코드가 하나 더 붙었다.
+   `?? "SIGNUP_BLOCKED"` 폴백도 뱃지에만 들어간다. 608b418 이 뱃지를 DEBUG 로 옮겼다
+```
+
+**이 세션이 §9-7-1 을 쓸 때 놓친 이유**: 에러 경로(451 본문·errorBody)만 읽고
+정상 경로(plan 단계의 `signup_blocked`)를 안 읽었다. "찾지 못한 것과 없는 것은
+다르다" — errorBody 0건은 맞았으나, 그것이 "사용자가 아무것도 못 본다"를 뜻하지
+않았다.
+
+**사유코드 → 문구 테이블은 만들지 않았다 — 의도적**:
+
+```
+KR_REFERENCE_ONLY  → "한국은 참조용 지역"
+HOLD_D07           → "중국은 진입 보류"
+LAUNCH_NOT_ENABLED → "아직 개시하지 않은 국가"
+```
+
+이 세 문장은 D-13 · Q-B 로 변호사에게 묻고 있는 성격 규정 그 자체다. 답이 오기
+전에 8 개 언어 제품 문구로 박는 것은 승인 전 정책을 코드에 반영하는 것이다.
+그리고 문구가 두 벌(plan 단계 + 451 경로)이면 한쪽만 갱신된다 — 이번 주 디스크
+불일치 4건과 같은 구조다. **중립 문구 한 벌**(`consent_blocked_*`)을 양쪽 경로가
+공유한다. MOBILE_BACKLOG M-1 의 "4항목 테이블"은 철회.
+
+**다른 세션 보고에서 이 세션이 정정하는 것 한 가지**:
+
+```
+보고   ".xcodeproj/.pbxproj 가 없다 → 이 저장소는 현재 상태로 빌드가 안 된다"
+디스크 README.md:36  ".xcodeproj 는 커밋하지 않고 XcodeGen 으로 project.yml 에서 생성"
+       CI ci.yml(macos-15)  xcodegen generate → xcodebuild test   (§? XcodeGen AVAILABLE)
+→ 빌드 안 되는 게 아니라 이 PC 에서 안 되는 것이다. Mac 이나 CI 면 된다
+```
+
+`#if DEBUG` 가 정의돼 있는지는 project.yml · xcconfig 에 명시가 없어 디스크로
+확정 못 한다. 다만 `AppConfig.swift:19,50` 이 이미 같은 `#if DEBUG` 로 Base URL 을
+가르고 있으므로, 정의가 안 돼 있었다면 Release 의 API 주소부터 틀렸을 것이다
+(XcodeGen 은 Debug 구성에 `DEBUG` 를 기본 주입). 선례 근거이지 측정은 아니다.
+
+**iOS 는 1.0 영어 단독**(project.yml:50-53, `CFBundleLocalizations: [en]`).
+"8 로케일 안내"는 웹·Android 얘기이고 iOS 는 영문 한 문장이다 — T3 와 무관한
+선존 상태(RELEASE_APPSTORE §4-1).
+
+#### 배포 전 판단 (2026-09-11 갱신)
+
+```
+Android   b88c571 로 451 경로도 닫힘. 배포 선행조건 해소
+iOS       608b418 은 Mac/CI 빌드 1회가 남는다. 다만 배포를 막지는 않는다 —
+          변경 전에도 문장은 나왔고, 남은 것은 뱃지 하나였다
+          ★ push 금지 중이라 CI 로 검증할 수 없다. 해제 후 첫 push 에서 확인
 ```
 
 ### 배포 전 확인할 것
@@ -1277,7 +1366,7 @@ Android   ★ errorBody 를 읽어 detail 을 표면화하는 수정이 선행�
    - 알 수 없는 코드를 일반 오류로 뭉개는가
    - 크래시하는가
 2  US 외 법역에서 가입 시도 시 사용자가 무엇을 보는가
-   ★ 웹은 8 로케일 안내를 붙였지만 모바일은 그 문구를 모른다
+   웹 8 로케일 안내 · Android consent_blocked_* 8 로케일 · iOS 영문 한 문장 (§9-7-2)
 3  구버전 앱이 451 을 재시도 루프로 처리하지 않는가
 ```
 
