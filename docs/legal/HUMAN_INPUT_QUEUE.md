@@ -12,7 +12,8 @@
 
 ```
 1  H13 결재                    ★ 오늘 가능. 나머지가 전부 이것 뒤에 있다
-2  (A) 약관 운영값 14건         ★ 2026-09-11 신설 — §8. 문서 완성과 G-3 양자택일의 유일한 출구
+2  G-3 배포 → (A) 14건          ★ G-3 는 결정된 코드(320baea). 이틀째 미배포 — B-6 참조
+                               (A) 는 §8. 문서 완성과 가입 재개의 유일한 출구
                                (모바일 451 은 9/11 해소 — B-1 축소)
 3  2026-09-17 격리 만료         ★ H13·회신 둘 다 안 오면
                                "게시 문서 없이 서비스를 계속 열어둘 것인가" 판단
@@ -128,7 +129,26 @@ Brian 실행      §6 — 결정 불필요, 실행만
 | # | 항목 | 왜 막혀 있나 | 푸는 것 |
 |---|---|---|---|
 | B-1 | ~~모바일 2개 저장소 451 처리 확인~~ → **iOS 608b418 빌드 1회** | Android `b88c571` DONE. iOS 는 커밋됐으나 컴파일 0회 — Xcode 없음, push 금지라 CI 도 안 돈다 | push 승인 1회 (CI macos-15 가 빌드·테스트) 또는 Mac 빌드. ★ **배포를 막지는 않는다** — §9-7-2 |
-| B-6 | **초안 동의 원장 집계** — 재동의 모집단 세기. `SELECT notice_version, count(*) FROM consent_ledger WHERE notice_version LIKE '%-draft%' GROUP BY 1 ORDER BY 2 DESC;` | 프로덕션 읽기 — EC2 세션. `terms_renderer.py:40` 이 `…@0.1-draft` 라벨을 남기므로 모집단이 원장에 정확히 찍혀 있다 (`eligibility.py:119`) | ★ **EC2 한 세션 다섯 번째 줄** — log_statement/pgaudit · P-1 · V-11 gps 집계+backups · R-08/CN-1/TH-5/VN-5 · 이것. (A) 확정본이 올라가는 순간 이 사람들 전부가 중대변경 재동의 대상(마스터 초안 :42 3단 구조). 매일 는다 |
+| B-6 | **초안 동의 원장 집계 — 두 번, 결정일로 나눠서** | 프로덕션 읽기 — EC2 세션. `terms_renderer.py:40` 이 `…@0.1-draft` 라벨을 남기므로 모집단이 원장에 찍혀 있다 (`eligibility.py:119`). `accepted_at` 은 `consent_service.py:317` | ★ **EC2 한 세션 다섯 번째 줄**. SQL 은 아래. **G-3 배포 직전 1회(의사결정용) + 배포 직후 1회(확정 모집단 — 게이트가 동결선)**. 배포 전 숫자는 배포 시점엔 옛 값이다 |
+
+```sql
+-- B-6. 9/09 이전 = 유산, 9/09 이후 = 결정 (나) 이후 집행 지연분. 경위가 다르다
+SELECT notice_version,
+       count(*) FILTER (WHERE accepted_at <  '2026-09-09') AS before_decision,
+       count(*) FILTER (WHERE accepted_at >= '2026-09-09') AS after_decision,
+       count(*) AS total
+FROM consent_ledger
+WHERE notice_version LIKE '%-draft%'
+GROUP BY notice_version ORDER BY total DESC;
+```
+
+★ **순서 정정 (2026-09-11)**: G-3 배포가 (A) 14건보다 **앞선다**. G-3 는 9/09 (나) 로
+결정된 승인 코드(`320baea`)인데 이틀째 미배포이고, 그동안 프로덕션은 결정이 하지 말라고
+한 일(초안 동의 수집)을 하고 있다. 문서를 채우는 동안에도 모집단은 는다. G-3 가 켜지면
+CL 포함 전 국가가 DRAFT 동안 닫히므로 H13 의 "열린 문" 급박성도 흡수된다 — H13 한
+문장은 xfail 10건·결재문 정합성 문제로 돌아간다. 배포 자체는 §0-2 승인 + §5-3 롤백
+번들이 필요하다. 개발 세션은 배포하지 않는다.
+
 | B-5 | **iOS Debug 빌드 호스트 결정** — `Debug.xcconfig` 가 34130df 이후 `api.pigos.io` 를 가리킨다. 주석·문서 7곳은 여전히 localhost 라고 적혀 있다 | 34130df 의 의도 미기록 — 되돌리면 그 용도가 깨질 수 있다 | (가) 34130df 되돌림 **← 두 세션 권고**: env 를 잊으면 (가)는 연결 실패로 보이고 (나)는 프로덕션에 계정이 조용히 생긴다 / (나) 문서 7곳 현실화. **확인할 한 줄**: 왜 Release 가 아니라 Debug 를 바꿨나. **공통·B-5 전에 가능**: `MAC_VERIFY_CHECKLIST:36` 에 `PIGOS_API_BASE_URL` env 필수 명기. 확정 후 Debug 기대값 단위 테스트로 고정. `PLATFORM_PARITY` §9-7-3 |
 | B-2 | `pigos_ro` 읽기 전용 롤 생성 | 프로덕션 권한 변경 — 개발 범위 밖 | `KPI_K_LOOP` P-1. SQL 은 그 문서에 완성돼 있다 |
 | B-3 | K-2d 확정 통보 (115일 폐사 제외 삭제) | 값이 내려가는 정의 변경 | `KPI_K_LOOP` P-2 |
