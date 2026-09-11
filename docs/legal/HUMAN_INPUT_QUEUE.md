@@ -128,7 +128,7 @@ Brian 실행      §6 — 결정 불필요, 실행만
 | # | 항목 | 왜 막혀 있나 | 푸는 것 |
 |---|---|---|---|
 | B-1 | ~~모바일 2개 저장소 451 처리 확인~~ → **iOS 608b418 빌드 1회** | Android `b88c571` DONE. iOS 는 커밋됐으나 컴파일 0회 — Xcode 없음, push 금지라 CI 도 안 돈다 | push 승인 1회 (CI macos-15 가 빌드·테스트) 또는 Mac 빌드. ★ **배포를 막지는 않는다** — §9-7-2 |
-| B-5 | **iOS Debug 빌드 호스트 결정** — `Debug.xcconfig` 가 34130df 이후 `api.pigos.io` 를 가리킨다. 주석·문서 7곳은 여전히 localhost 라고 적혀 있다 | 34130df 의 의도 미기록 — 되돌리면 그 용도가 깨질 수 있다 | (가) 34130df 되돌림 / (나) 문서 7곳 현실화. **공통**: `MAC_VERIFY_CHECKLIST` 에 `PIGOS_API_BASE_URL` env 필수 명기 — 없으면 수동 확인이 곧 프로덕션 가입 시도다. `PLATFORM_PARITY` §9-7-3 |
+| B-5 | **iOS Debug 빌드 호스트 결정** — `Debug.xcconfig` 가 34130df 이후 `api.pigos.io` 를 가리킨다. 주석·문서 7곳은 여전히 localhost 라고 적혀 있다 | 34130df 의 의도 미기록 — 되돌리면 그 용도가 깨질 수 있다 | (가) 34130df 되돌림 **← 두 세션 권고**: env 를 잊으면 (가)는 연결 실패로 보이고 (나)는 프로덕션에 계정이 조용히 생긴다 / (나) 문서 7곳 현실화. **확인할 한 줄**: 왜 Release 가 아니라 Debug 를 바꿨나. **공통·B-5 전에 가능**: `MAC_VERIFY_CHECKLIST:36` 에 `PIGOS_API_BASE_URL` env 필수 명기. 확정 후 Debug 기대값 단위 테스트로 고정. `PLATFORM_PARITY` §9-7-3 |
 | B-2 | `pigos_ro` 읽기 전용 롤 생성 | 프로덕션 권한 변경 — 개발 범위 밖 | `KPI_K_LOOP` P-1. SQL 은 그 문서에 완성돼 있다 |
 | B-3 | K-2d 확정 통보 (115일 폐사 제외 삭제) | 값이 내려가는 정의 변경 | `KPI_K_LOOP` P-2 |
 | B-4 | 9/17 전 판단 | — | 격리 3차 연장 대신 "게시 문서 없이 열어둘 것인가" |
