@@ -73,6 +73,7 @@ Brian 실행      §6 — 결정 불필요, 실행만
 | H14 | **게시 언어 세트** — 공개 개인정보 처리방침이 **ko·en 뿐**이다(`public_notice.py`). 법정 요건은 BR `pt-BR`(부속조항 제8조가 포어를 정본으로 지정)·TH `th`·VN `vi` 이고, 정작 게시 언어에 있는 KR 은 PigOS 비대상(A-rule)이다. **언어 세트가 법역 정책과 반대로 붙어 있다** | OPEN(대표+법무) — **H13 `CURRENT_PUBLICATION_SET` 의 입력**. 별건으로 처리하지 말 것 |
 | H15 | **프론트 `ru` 로케일 노출 유지 여부** — UI 는 러시아어 8번째 로케일을 제공하는데 백엔드 룰 엔진·AI 답변은 ru 미지원(의도)이다. 사용자는 UI 가 러시아어면 **서비스가 지원된다고 읽는다** — 마스터 제10조③ 미지원국 취급과 어긋난다. V16 국가 분포에 RU 유입은 없었다 | OPEN(대표) — 유입 재확인 후 프론트에서도 내리는 쪽이 정합적 |
 | H16 | **버전 전이 분류표** — `notice_version` 의 어느 전이가 중대변경(재동의)이고 어느 것이 고지만으로 족한가. `0.1-draft → 1.0` 은 전원 재동의가 자명하나, 그 뒤 `1.0 → 1.1` 부터는 목적별로 갈린다(마스터 :42 3단 구조). 재동의 화면·서버 비교 계약이 이 표 없이는 판정 필드를 가질 수 없다 | OPEN(대표+법무) — `LEGAL_P0_MANDATORY_CONSENT_LOGIN_GATE.md` 구현 메모. H11 과 한 쌍 |
+| H17 | **pigos.io 공개 방침·약관 두 벌** — `pigos.io/privacy`(5/30 자 한국어 구본)·`/terms`(피그플랜 문안)가 정적 서빙 중이고 푸터 5곳이 거기로 간다. 격리 정본은 `api.pigos.io/legal/privacy`. (a) /privacy·/terms → /legal/* 리다이렉트(격리본이 공개 사이트에도 노출됨) (b) 구본 내려 안내문만 (c) 승인까지 유지 | OPEN(대표+법무) — `KNOWN_PUBLICATION_EXPOSURE` "격리 밖 노출". ★ 지금 노출 중 |
 > D-01~D-04는 조건부 BUSINESS_APPROVED(2026-07-21) — 변호사 반대 시 자동 REOPEN.
 
 ## 3. 변호사 회신 필요 ([COUNSEL] — LAWYER_BRIEF 30건 요지)
@@ -151,6 +152,7 @@ CL 포함 전 국가가 DRAFT 동안 닫히므로 H13 의 "열린 문" 급박성
 번들이 필요하다. 개발 세션은 배포하지 않는다.
 
 | B-7 | **FCR 을 실제로 본 농장 수** — D-15 기울기 측정 | 프로덕션 읽기 — EC2 세션 **여섯 번째 줄**. 계측(F-0005)이 0 이라 "본" 것은 못 세고, "FCR 이 None 이 아니었던 농장"(CLOSED 그룹 + 귀속 사료 보유)을 센다. 집계만, PII 0 | `SELECT count(DISTINCT g.farm_id) FROM finisher_groups g JOIN feed_records fr ON fr.group_id=g.id WHERE g.deleted_at IS NULL AND fr.deleted_at IS NULL AND g.end_date IS NOT NULL AND g.head_count_out IS NOT NULL AND g.avg_exit_weight_kg IS NOT NULL AND g.avg_entry_weight_kg IS NOT NULL;` 이 수가 0 이면 (a)/(b) 는 다시 대칭이다. ★ **그리고 0 이면 D-15 보다 큰 게 나온다** — CLOSED 그룹 + 귀속 사료를 가진 농장이 지금까지 없었다는 뜻이라, 사료 트랙은 "있는 데이터로 지표를 만드는" 분석 프로젝트가 아니라 **입력 경로 프로젝트**(feed_type↔단계 매핑 · measurement_basis · entry/exit weight 수집)가 된다. F-0011 PHASE 1 계약 설계에 더 투자하기 전에 이 숫자를 본다 — 같은 세션이니 **⑥을 ⑦보다 먼저**, 또는 한 번에 |
+| B-8 | **백업 복구 리허설** — 복구해본 적 없는 백업은 백업이 아니다 | `~/pigos-backups/` 와 S3 `pigos-db-backup` 이 있으나 복원 실행 기록 0 | EC2 세션 **여덟 번째 줄**: 최신 덤프를 빈 DB 에 `pg_restore` → `alembic current` == head 확인. V-11 조건 6 과 같은 폴더. 프로덕션 DB 에 쓰지 않는다 — 별도 DB 이름 |
 | B-5 | **iOS Debug 빌드 호스트 결정** — `Debug.xcconfig` 가 34130df 이후 `api.pigos.io` 를 가리킨다. 주석·문서 7곳은 여전히 localhost 라고 적혀 있다 | 34130df 의 의도 미기록 — 되돌리면 그 용도가 깨질 수 있다 | (가) 34130df 되돌림 **← 두 세션 권고**: env 를 잊으면 (가)는 연결 실패로 보이고 (나)는 프로덕션에 계정이 조용히 생긴다 / (나) 문서 7곳 현실화. **확인할 한 줄**: 왜 Release 가 아니라 Debug 를 바꿨나. **공통·B-5 전에 가능**: `MAC_VERIFY_CHECKLIST:36` 에 `PIGOS_API_BASE_URL` env 필수 명기. 확정 후 Debug 기대값 단위 테스트로 고정. `PLATFORM_PARITY` §9-7-3 |
 | B-2 | `pigos_ro` 읽기 전용 롤 생성 | 프로덕션 권한 변경 — 개발 범위 밖 | `KPI_K_LOOP` P-1. SQL 은 그 문서에 완성돼 있다 |
 | B-3 | K-2d 확정 통보 (115일 폐사 제외 삭제) | 값이 내려가는 정의 변경 | `KPI_K_LOOP` P-2 |

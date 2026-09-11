@@ -148,7 +148,7 @@ iOS      →  success / 초록      (fail-OPEN)
 | iOS 계정 삭제 화면 | NEEDED | **BLOCKED** | App Store 5.1.1(v). `AuthService`/`DTO` 는 있으나 View 미발견 |
 | 양자(cross-foster) 입력 | NEEDED | **PLANNED** | 웹 `2fedb9c` 로 신규. 모바일 양쪽 없음 |
 | `/kpi/presentation` 미소비 | NEEDED | **BLOCKED** | §3 참조 |
-| `pigos.io/privacy` 구 방침 링크 | NEEDED (확인) | **PENDING_RECHECK** | 앱이 어느 URL 을 여는지 미확인 |
+| `pigos.io/privacy` 구 방침 링크 | NEEDED (확인) | **NOT_APPLICABLE** (앱) · **★ 웹 노출 OPEN** | 2026-09-11 실측: Android·iOS 소스에 pigos.io/privacy·/terms 링크 0건 — 앱은 열지 않는다. 그러나 공개 사이트 자체가 5/30 자 한국어 구본 방침과 피그플랜 문안 약관을 서빙 중 — `KNOWN_PUBLICATION_EXPOSURE` "격리 밖 노출" · H17 |
 
 ```
 LEGACY_ROWS

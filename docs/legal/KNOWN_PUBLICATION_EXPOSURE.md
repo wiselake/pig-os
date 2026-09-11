@@ -173,6 +173,32 @@ runtime resolver 에 들어가지 못하게 하는 것**이다(같은 RUN 의 �
 
 ---
 
+## ★ 격리 밖에서 새로 실측된 공개 노출 — pigos.io (2026-09-11)
+
+이 문서는 `api.pigos.io/legal/privacy` 만 다뤄 왔다. 공개 사이트 저장소(`pigos-landing`,
+HEAD `ec08df5` 2026-08-27)를 읽으니 **다른 방침·약관이 공개 서빙 중**이다.
+
+```
+pigos.io/privacy          src/pages/privacy.astro   115줄 · 한국어 전용 정적 본문 · "시행일 2026년 05월 30일"
+                          ★ api.pigos.io/legal/privacy(격리 중인 정본)와 다른 문서다
+pigos.io/terms            src/pages/terms.astro     104줄 · 한국어 · "피그플랜" 3회 · 시행일 2026-05-30
+                          ★ PigOS 마스터 약관(publish_candidate)이 아니라 피그플랜 계열 문안
+pigos.io/legal/privacy    302 → api.pigos.io/legal/privacy   (ec08df5, App Store 제출용)
+푸터·쿠키 배너 링크       /privacy 로 간다 (GoogleAnalytics.astro:34 등 5곳) — /legal/privacy 가 아니다
+앱                        Android·iOS 소스에 pigos.io/privacy·/terms 링크 0건 (api 호스트만) → PLATFORM_PARITY §2 PENDING_RECHECK 해소
+```
+
+즉 지금 공개 상태는 **방침 두 벌**이다 — 하나는 격리 마커가 붙은 정본(api), 하나는
+5/30 자 한국어 구본(landing). 사용자가 푸터에서 누르면 구본이 열린다. 8건 전부 DRAFT 인
+상태에서 공개 사이트가 피그플랜 문안 약관을 PigOS 약관처럼 내고 있다.
+
+```
+성격    격리 항목이 아니라 **격리 밖 노출**. 마커가 없어서 CI 가 못 잡는다
+소유    법무(내용) + 개발(라우팅). 개발이 할 수 있는 건 /privacy·/terms → /legal/* 리다이렉트 한 줄이나,
+        그러면 공개 사이트가 마커 붙은 격리본을 가리키게 된다 — 그것도 결정이다
+결정    HUMAN_INPUT_QUEUE H17
+```
+
 ## 해소 절차 — ★ 2026-09-10 재정의
 
 초판은 "변호사 회신 → PUBLISHED → 해제" 한 경로만 두었다. 그래서 회신이 늦으면 **격리 연장
