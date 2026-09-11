@@ -350,6 +350,13 @@ Feed Cost 두 값은 EXPANSION_DECISION §5-2 와 HANDOFF §6-5 둘 다 **Paid h
 만들어져 있다. **이미 있는 사실 위에 두 번째를 얹지 않기**다. 나중에 "왜 FCR 은 열고
 이 둘은 닫았나"의 답이 이 문장이다.
 
+step 1c: 응답 계약 `schemas/feed.py:FeedBasicOut` 을 지금 둔다 — `withheld` 칸 포함. 라우터 0.
+노출 전이라 비용 0. 노출 뒤에 유보 이유를 넣으면 게시된 계약 변경(세 클라이언트).
+원가 칸이 비었을 때 "0" 인지 "못 냈다" 인지를 응답이 말한다 — M-3 fail-OPEN 과 같은 모양을 막는다.
+
+★ B-7 이 0 이면 이 기능의 성격이 바뀐다 — 분석이 아니라 입력 경로 프로젝트. PHASE 1 계약
+설계 전에 B-7 을 본다 (HUMAN_INPUT_QUEUE B-7).
+
 step 1b: 제외 집합 동치 테스트 3건 추가 — feed_metrics 가 FCR 을 유보(NO_GAIN·NO_FEED)하면
 kpi_service 도 None 이어야 하고, 원가만 유보(COST_INCOMPLETE)하면 양쪽 다 FCR 을 보고한다.
 그 상태("FCR 은 뜨고 Feed Cost 만 빔")의 이유는 feed_metrics.withheld 에만 있고 KPI

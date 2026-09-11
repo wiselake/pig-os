@@ -84,3 +84,16 @@ def test_result_is_immutable():
     r = fm.compute(_cohort())
     with pytest.raises(dataclasses.FrozenInstanceError):
         r.fcr = 1.0  # type: ignore[misc]
+
+
+def test_result_maps_onto_the_response_contract_with_withheld_reasons():
+    """계약(FeedBasicOut)에 유보 이유 칸이 있고, 산식 결과가 손실 없이 실린다.
+    원가만 유보된 경우 fcr 은 값, 원가 둘은 None, withheld 가 그 이유를 든다."""
+    from app.schemas.feed import FeedBasicOut
+    r = fm.compute(_cohort(uncosted_rows=1))
+    out = FeedBasicOut(**dataclasses.asdict(r))
+    assert out.fcr == 2.7 and out.feed_cost_per_pig is None
+    assert out.withheld == {"FEED_COST_PER_PIG": fm.COST_INCOMPLETE,
+                            "FEED_COST_PER_KG_GAIN": fm.COST_INCOMPLETE}
+    assert set(FeedBasicOut.model_fields) == set(dataclasses.asdict(r))
+
