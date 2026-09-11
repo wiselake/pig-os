@@ -43,7 +43,7 @@ async def test_country_comes_from_the_farm_not_the_client(client: AsyncClient, d
                          headers=h)
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body["country"] == "BR" and body["country_source"] == "FARM"
+    assert body["farm_country"] == "BR" and body["selected_country"] == "BR"
     assert body["group"] == "BR"
     assert "ADDENDUM_BR" in body["required_version"]
 
@@ -52,7 +52,7 @@ async def test_country_falls_back_to_the_org_without_farm_scope(client: AsyncCli
     _, _, h = await _user_with_farm(db, "US")
     r = await client.get("/api/v1/consent/diff", headers=h)
     assert r.status_code == 200, r.text
-    assert r.json()["country_source"] == "ORG" and r.json()["country"] == "US"
+    assert r.json()["selected_country"] == "US" and r.json()["farm_country"] is None
     assert r.json()["farm_id"] is None
 
 
@@ -138,3 +138,33 @@ async def test_other_users_farm_is_forbidden(client: AsyncClient, db: AsyncSessi
 async def test_requires_auth(client: AsyncClient):
     r = await client.get("/api/v1/consent/diff")
     assert r.status_code == 401
+
+
+async def test_jurisdiction_is_the_signup_paths_resolve_not_a_fallback(client: AsyncClient, db: AsyncSession):
+    """US 조직 아래 BR 농장 — 가입 경로(resolve)는 더 엄격한 BR 을 고르고 counsel_review 를 켠다.
+    diff 가 'FARM 우선' 이나 'ORG 우선' 폴백을 따로 두면 같은 계정에 법역 답이 둘이 된다.
+    같은 함수를 태우는지 build_signup_plan 과 동치로 고정한다."""
+    from app.services.consent_service import build_signup_plan
+
+    tag = uuid.uuid4().hex[:6]
+    org = Organization(name=f"Org {tag}", country="US", timezone="UTC")
+    db.add(org)
+    await db.flush()
+    user = User(org_id=org.id, username=f"u{tag}", email=f"u{tag}@example.com", name="U",
+                password_hash=hash_password("Test1234!"), role="FARM_OWNER")
+    farm = Farm(org_id=org.id, farm_code=f"F-{tag}", name="F", country="BR", timezone="UTC")
+    db.add_all([user, farm])
+    await db.flush()
+    db.add(UserFarm(user_id=user.id, farm_id=farm.id))
+    await db.flush()
+    h = {"Authorization": f"Bearer {create_access_token(user.id, org.id, [user.role])}"}
+
+    body = (await client.get("/api/v1/consent/diff", params={"farm_id": str(farm.id)},
+                             headers=h)).json()
+    expected = build_signup_plan(selected_country="US", farm_country="BR", farm_state=None,
+                                 lang=None, include_body=False)
+    assert body["jurisdiction"] == expected.jurisdiction.code == "BR"
+    assert body["counsel_review"] is expected.jurisdiction.counsel_review is True
+    assert body["required_version"] == expected.notice_version
+    assert body["selected_country"] == "US" and body["farm_country"] == "BR"
+

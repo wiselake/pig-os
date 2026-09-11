@@ -118,13 +118,16 @@ class ConsentDiffOut(BaseModel):
 
     가입 전 signup-plan 은 selected_country 를 쿼리로 받는다 — 계정이 없으니 그게 맞다.
     로그인 사용자의 diff 에서 같은 일을 하면, 문서가 적은 법역(KR·CN 은 부속조항이 없다)을
-    지정해 "동의 완료"로 보이게 만들 수 있다. 법역은 farm.country(농장 스코프) 또는
-    organization.country(계정 스코프)에서 도출하고, 그 출처를 응답에 적는다.
+    지정해 "동의 완료"로 보이게 만들 수 있다. 법역은 organization.country 와 farm.country 를
+    가입 경로와 같은 resolve() 에 태워 도출한다 — 폴백 규칙을 따로 두지 않는다.
+
+    ★ 버전 동일성만 답한다. 동의의 충분성(증적 방식·주별 요건)은 답하지 않는다.
     """
-    jurisdiction: str                     # 도출된 법역 코드
+    jurisdiction: str                     # 도출된 법역 코드 — 가입 경로와 같은 resolve() 의 답
     group: str
-    country: str                          # 도출에 쓴 ISO2
-    country_source: str                   # FARM | ORG
+    selected_country: str                 # organization.country (없으면 farm.country)
+    farm_country: str | None              # farm.country — farm_id 가 있을 때만
+    counsel_review: bool                  # 둘이 달라 resolve 가 엄격한 쪽을 고른 경우 True
     farm_id: UUID | None
     required_version: str                 # 문서 세트 전체의 notice_version (items 의 공통값)
     any_draft: bool                       # 필요 버전 자체가 초안인가 — 초안이면 재동의를 요구할 수 없다
