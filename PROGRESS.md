@@ -29,6 +29,11 @@ f0934c0  차단 안내 8 로케일 — 원문 코드 대신 사유
 8f57d1d  백엔드 로케일 카탈로그 파리티 가드
 44ded3f · 6165306   이모지 → lucide + 아이콘 스케일
 (9/11)   H13 (4) US 허용목록 — 해석 충돌 10건 xfail(strict) 로 고정, 결재 문장 대기
+(9/11)   개발 생태 실측 → docs/DEV_ECOSYSTEM_AUDIT_20260911.md
+         ★ CI 가 2026-06-14 이후 한 번도 안 돌았음(없는 브랜치 트리거) → main 트리거 + 통합테스트
+           + 빈 DB 마이그레이션 (f4d684e) · npm critical/high 6 → 0 (21a2ad7) · venv 복구
+         ★ pigos.io 가 5/30 구본 방침·피그플랜 문안 약관을 공개 서빙 중 → H17
+(9/11)   /consent/diff (f402ed4·437403e) + 웹 두 화면 이전 (e23c29d) · Feed Basic v1 (8c8519c·bb04b57·784fcd2)
 (9/11)   모바일 T3 — pigos-android b88c571 (451 → 지역 차단 문구) DONE,
          pigos-ios 608b418 (사유코드 뱃지 DEBUG) PENDING_RECHECK(Xcode 없음)
          ★ PLATFORM_PARITY §9-7-1 의 전제 3개가 틀렸음을 §9-7-2 에 기록.
@@ -55,7 +60,8 @@ f0934c0  차단 안내 8 로케일 — 원문 코드 대신 사유
 ### 검증
 
 ```
-백엔드   1479 passed · 1 skipped · 12 xfailed(strict)   (9/11 오후 — consent/diff · feed 추가)
+백엔드   1481 passed · 1 skipped · 12 xfailed(strict)   (9/11 — 빈 DB 리허설 동일)
+프론트   40 파일 · 223 tests · tsc · build 통과   (node 22.23.2, next 15.5.25)
 프론트   40 파일 · 219 tests · tsc 통과   (node 22.23.2)
 ruff     F841 3건만 (선존)
 ```

@@ -196,6 +196,17 @@ v22.23.2   전량 통과 확인 — .nvmrc 정본
 
 ---
 
+### 0-5-b. 2026-09-11 추가 — 두 가지 환경 함정
+
+```
+uv venv     "Failed to uninstall … sqlalchemy-2.0.49.dist-info … missing RECORD" 가 실행마다 뜨면
+            stale dist-info 가 남은 것이다. 해당 dist-info 디렉터리를 지우고 uv sync — 고쳐짐 (9/11)
+Node        쉘 기본 node 는 20.11.1 이다. vitest 는 22.12+ 가 필요하다(rolldown styleText).
+            PATH 앞에 %APPDATA%/nvm/v22.23.2 를 두고 돌린다. npm run test:run 은 preflight 가 exit 78 로 막아준다
+CI          2026-09-11 전까지 ci.yml 은 한 번도 실행된 적 없다(트리거가 없는 브랜치). "CI 가 돈다"는
+            말은 gh run list 로 확인하고 한다 — docs/DEV_ECOSYSTEM_AUDIT_20260911.md
+```
+
 ## 관련
 
 ```
