@@ -2031,6 +2031,12 @@
       "desc": "동의하신 문서 중 변경된 내용이 있습니다. 현재 버전을 확인해 주세요.",
       "review": "변경사항 확인"
     },
+    "diff": {
+      "required": "현재 버전",
+      "recorded": "동의한 버전",
+      "never": "기록 없음",
+      "changed": "동의 이후 변경됨"
+    },
     "dismiss": "닫기"
   },
   "forgotPassword": {

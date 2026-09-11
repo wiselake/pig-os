@@ -1501,7 +1501,7 @@ US 주(state)는 저장돼 있지 않아 farm_state=None 으로 판정한다 —
 | | `platform_implementation_status` | 근거 |
 |---|---|---|
 | Core | `DONE` | `consent_service.consent_diff` · 라우터 `/consent/diff` · 테스트 9건 (`test_consent_diff.py`, resolve 동치 포함) |
-| Web | `PLANNED` | 재동의 화면 없음. `AmendmentBanner` 는 배너 수준 |
+| Web | `DONE` | `AmendmentBanner` · `/settings/data` 가 `/consent/diff` 하나를 읽는다 (같은 커밋). 예전에는 `farms.list → signupPlan(farm.country)` + `current` 를 클라이언트에서 합쳐 비교했다 — 법역을 정하는 곳이 둘. 목적별 필요/기록 버전을 나란히 표시, 판정 없음. 필요 버전이 초안이면 배너 억제(초안에는 재동의 불가, G-3). 8 로케일 `consent.diff.*` 4키. 테스트 15건 |
 | Android | `PLANNED` | 소비 0건. `ConsentAmendmentViewModel` 이 있으나 이 계약을 모른다 |
 | iOS | `PLANNED` | 소비 0건 |
 

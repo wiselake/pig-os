@@ -2031,6 +2031,12 @@
       "desc": "Alguns documentos que você aceitou foram alterados. Revise a versão atual.",
       "review": "Revisar alterações"
     },
+    "diff": {
+      "required": "Versão atual",
+      "recorded": "Versão que você aceitou",
+      "never": "Sem registro",
+      "changed": "Atualizado desde a sua aceitação"
+    },
     "dismiss": "Dispensar"
   },
   "forgotPassword": {

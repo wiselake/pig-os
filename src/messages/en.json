@@ -2031,6 +2031,12 @@
       "desc": "Some documents you agreed to have changed. Please review the current version.",
       "review": "Review changes"
     },
+    "diff": {
+      "required": "Current version",
+      "recorded": "Version you agreed to",
+      "never": "Not yet recorded",
+      "changed": "Updated since you agreed"
+    },
     "dismiss": "Dismiss"
   },
   "forgotPassword": {

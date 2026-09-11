@@ -2,28 +2,35 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { screen, fireEvent, waitFor } from "@testing-library/react";
 import { renderWithClient } from "../test-utils";
 
-// next-intl/next-navigation은 setup 전역 mock((k)=>k). auth/consent/farms만 개별 mock.
-const h = vi.hoisted(() => ({
-  activeFarmId: "f1" as string | null,
-  accessToken: "tok" as string | null,
-  farms: [{ id: "f1", country: "KR" }] as { id: string; country: string }[],
-  current: [{ notice_version: "MASTER_TERMS@0.1" }] as { notice_version: string | null }[],
-  planVersion: "MASTER_TERMS@0.2",
-}));
+// next-intl/next-navigation은 setup 전역 mock((k)=>k). auth/consent 만 개별 mock.
+// ★ 입력은 GET /consent/diff 하나다 — farms.list · signupPlan 은 더 이상 부르지 않는다.
+//   국가는 서버가 정한다 (PLATFORM_PARITY §9-8).
+type Item = { purpose_code: string; required_version: string; recorded_version: string | null };
+const h = vi.hoisted(() => {
+  const state = {
+    activeFarmId: "f1" as string | null,
+    accessToken: "tok" as string | null,
+    anyDraft: false,
+    items: [] as { purpose_code: string; required_version: string; recorded_version: string | null }[],
+  };
+  return Object.assign(state, {
+    farmsList: vi.fn(),
+    signupPlan: vi.fn(),
+    diff: vi.fn(() => Promise.resolve({ any_draft: state.anyDraft, required_version: "x", items: state.items })),
+  });
+});
+const { farmsList, signupPlan, diff } = h;
 
 vi.mock("@/store/auth.store", () => ({
   useAuthStore: (sel: (s: { activeFarmId: string | null; accessToken: string | null }) => unknown) =>
     sel({ activeFarmId: h.activeFarmId, accessToken: h.accessToken }),
 }));
-vi.mock("@/lib/api/endpoints/farms", () => ({
-  farmsApi: { list: vi.fn(() => Promise.resolve(h.farms)) },
-}));
-vi.mock("@/lib/api/endpoints/consent", () => ({
-  consentApi: {
-    current: vi.fn(() => Promise.resolve(h.current)),
-    signupPlan: vi.fn(() => Promise.resolve({ notice_version: h.planVersion })),
-  },
-}));
+vi.mock("@/lib/api/endpoints/farms", () => ({ farmsApi: { list: h.farmsList } }));
+vi.mock("@/lib/api/endpoints/consent", () => ({ consentApi: { diff: h.diff, signupPlan: h.signupPlan } }));
+
+const outdatedItems = (): Item[] => [
+  { purpose_code: "SERVICE_OPERATION", required_version: "MASTER_TERMS@0.2", recorded_version: "MASTER_TERMS@0.1" },
+];
 
 import AmendmentBanner from "@/components/consent/AmendmentBanner";
 
@@ -31,20 +38,36 @@ describe("AmendmentBanner (개정 재고지)", () => {
   beforeEach(() => {
     h.activeFarmId = "f1";
     h.accessToken = "tok";
-    h.farms = [{ id: "f1", country: "KR" }];
-    h.current = [{ notice_version: "MASTER_TERMS@0.1" }];
-    h.planVersion = "MASTER_TERMS@0.2";
+    h.anyDraft = false;
+    h.items = outdatedItems();
+    farmsList.mockClear(); signupPlan.mockClear(); diff.mockClear();
   });
 
-  it("기록 버전 != 현재 문서 버전이면 배너 노출", async () => {
+  it("기록 버전 != 필요 버전이면 배너 노출", async () => {
     renderWithClient(<AmendmentBanner />);
     expect(await screen.findByText("amendment.title")).toBeInTheDocument();
     expect(screen.getByText("amendment.review")).toBeInTheDocument();
   });
 
   it("버전 일치면 아무것도 렌더 안 함(null)", async () => {
-    h.planVersion = "MASTER_TERMS@0.1"; // current와 동일 → outdated=false
+    h.items = [{ purpose_code: "SERVICE_OPERATION", required_version: "MASTER_TERMS@0.1", recorded_version: "MASTER_TERMS@0.1" }];
     renderWithClient(<AmendmentBanner />);
+    await waitFor(() => expect(diff).toHaveBeenCalled());
+    await waitFor(() => expect(screen.queryByText("amendment.title")).not.toBeInTheDocument());
+  });
+
+  it("★ 국가는 서버가 정한다 — farms.list · signupPlan 을 부르지 않고 diff 만 부른다", async () => {
+    renderWithClient(<AmendmentBanner />);
+    await screen.findByText("amendment.title");
+    expect(diff).toHaveBeenCalledWith("f1");
+    expect(farmsList).not.toHaveBeenCalled();
+    expect(signupPlan).not.toHaveBeenCalled();
+  });
+
+  it("필요 버전 자체가 초안이면 고지하지 않는다 — 초안에는 재동의를 받을 수 없다(G-3)", async () => {
+    h.anyDraft = true;
+    renderWithClient(<AmendmentBanner />);
+    await waitFor(() => expect(diff).toHaveBeenCalled());
     await waitFor(() => expect(screen.queryByText("amendment.title")).not.toBeInTheDocument());
   });
 
@@ -70,24 +93,25 @@ describe("AmendmentBanner 경계 (게이트가 아님)", () => {
   beforeEach(() => {
     h.activeFarmId = "f1";
     h.accessToken = "tok";
-    h.farms = [{ id: "f1", country: "KR" }];
-    h.current = [{ notice_version: "MASTER_TERMS@0.1" }];
-    h.planVersion = "MASTER_TERMS@0.2";
+    h.anyDraft = false;
+    h.items = outdatedItems();
   });
 
   it("동의 기록이 0행이면 배너가 뜨지 않는다 — 프로덕션 원장이 정확히 이 상태다", async () => {
-    // AmendmentBanner.tsx:44  `if (!current?.length || !plan) return false`
+    // recorded_version 이 전부 null 이면 비교 대상이 없다 (`i.recorded_version &&`).
     // 동의를 한 번도 남기지 않은 사용자에게는 아무 표시도 없다. 즉 원장 0행
     // 상태를 이 배너로는 절대 발견할 수 없다.
-    h.current = [];
+    h.items = [{ purpose_code: "SERVICE_OPERATION", required_version: "MASTER_TERMS@0.2", recorded_version: null }];
     renderWithClient(<AmendmentBanner />);
     await waitFor(() => expect(screen.queryByText("amendment.title")).not.toBeInTheDocument());
   });
 
-  it("notice_version 이 null 인 기록만 있어도 배너가 뜨지 않는다", async () => {
-    // 버전을 남기지 못한 행은 비교 대상이 되지 못한다(`c.notice_version &&`).
-    // 증빙이 부실할수록 오히려 조용해진다.
-    h.current = [{ notice_version: null }];
+  it("기록 버전이 null 인 목적만 있어도 배너가 뜨지 않는다", async () => {
+    // 버전을 남기지 못한 행은 비교 대상이 되지 못한다. 증빙이 부실할수록 오히려 조용해진다.
+    h.items = [
+      { purpose_code: "SERVICE_OPERATION", required_version: "MASTER_TERMS@0.2", recorded_version: null },
+      { purpose_code: "ANON_AGG_STATS", required_version: "MASTER_TERMS@0.2", recorded_version: null },
+    ];
     renderWithClient(<AmendmentBanner />);
     await waitFor(() => expect(screen.queryByText("amendment.title")).not.toBeInTheDocument());
   });

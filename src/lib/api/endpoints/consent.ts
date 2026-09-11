@@ -1,6 +1,6 @@
 import { apiClient } from "@/lib/api/client";
 import type {
-  ConsentStatus, RecordConsentRequest, SignupPlan, WithdrawRequest,
+  ConsentDiff, ConsentStatus, RecordConsentRequest, SignupPlan, WithdrawRequest,
 } from "@/types/api.types";
 
 // 동의 인프라 — 가입/설정 플랜 조회, 기록, 현재상태, 철회. (TERMS_DISPLAY §7)
@@ -26,6 +26,14 @@ export const consentApi = {
 
   current: (farm_id?: string) =>
     apiClient.get<ConsentStatus[]>("/api/v1/consent/current", { params: farm_id ? { farm_id } : {} }).then((r) => r.data),
+
+  /**
+   * 목적별 (필요 버전, 기록 버전). 인증 필요. ★ 국가를 보내지 않는다 — 서버가 정한다.
+   * 로그인 뒤의 "낡았는가" 비교는 이것 하나로 한다. signupPlan 을 farm.country 로 다시 불러
+   * 클라이언트에서 비교하면 법역 답이 둘이 된다 (PLATFORM_PARITY §9-8).
+   */
+  diff: (farm_id?: string | null) =>
+    apiClient.get<ConsentDiff>("/api/v1/consent/diff", { params: farm_id ? { farm_id } : {} }).then((r) => r.data),
 
   withdraw: (body: WithdrawRequest) =>
     apiClient.post<ConsentStatus>("/api/v1/consent/withdraw", body).then((r) => r.data),

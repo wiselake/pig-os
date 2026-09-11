@@ -2031,6 +2031,12 @@
       "desc": "Một số tài liệu bạn đã đồng ý đã thay đổi. Vui lòng xem lại phiên bản hiện tại.",
       "review": "Xem thay đổi"
     },
+    "diff": {
+      "required": "Phiên bản hiện tại",
+      "recorded": "Phiên bản bạn đã đồng ý",
+      "never": "Chưa có bản ghi",
+      "changed": "Đã cập nhật kể từ khi bạn đồng ý"
+    },
     "dismiss": "Bỏ qua"
   },
   "forgotPassword": {

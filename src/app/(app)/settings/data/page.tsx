@@ -1,15 +1,18 @@
 "use client";
-import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck, Info } from "lucide-react";
 import { consentApi } from "@/lib/api/endpoints/consent";
-import { farmsApi } from "@/lib/api/endpoints/farms";
 import { useAuthStore } from "@/store/auth.store";
-import type { ConsentStatus, SignupPlan } from "@/types/api.types";
+import type { ConsentDiffItem } from "@/types/api.types";
 
 // 설정 → 데이터·프라이버시 (TERMS_DISPLAY §4 설정화면, §7 철회·제외 플로우).
-// 현재 유효 동의 상태 + 목적별 철회/이의/제외요청. D-04 철회효과 고지.
+// 목적별 (필요 버전, 기록 버전) + 철회/이의/제외요청. D-04 철회효과 고지.
+//
+// ★ 입력은 GET /consent/diff 하나다 (PLATFORM_PARITY §9-8). 예전에는 farms.list →
+//   signupPlan(farm.country) + current 를 따로 받아 여기서 합쳤다 — 법역을 정하는 곳이
+//   둘이 되는 구조라 서버 계약으로 옮겼다. 이 화면은 두 버전을 **나란히 보여줄 뿐**
+//   "재동의 필요" 판정을 하지 않는다 — 그 판정(H11·H16)은 아직 결정 전이다.
 const STATUS_CLS: Record<string, string> = {
   GRANTED: "bg-green-soft text-success border-success/30",
   NOTICE_GIVEN: "bg-bg2 text-text3 border-border",
@@ -28,44 +31,43 @@ const ACTION_FOR: Record<string, string | null> = {
   EXTERNAL_AI_PROCESSING: null,
 };
 
+function VersionLines({ item, t }: { item: ConsentDiffItem; t: ReturnType<typeof useTranslations> }) {
+  const changed = !!item.recorded_version && item.recorded_version !== item.required_version;
+  return (
+    <div className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11px] font-mono text-text3">
+      <span>{t("diff.required")}</span>
+      <span className="truncate" title={item.required_version}>{item.required_version}</span>
+      <span>{t("diff.recorded")}</span>
+      {item.recorded_version ? (
+        <span className="truncate" title={item.recorded_version}>
+          {item.recorded_version}
+          {changed && <span className="ml-2 font-sans font-semibold text-warning">{t("diff.changed")}</span>}
+        </span>
+      ) : (
+        <span className="font-sans">{t("diff.never")}</span>
+      )}
+    </div>
+  );
+}
+
 export default function DataPrivacyPage() {
   const t = useTranslations("consent");
   const qc = useQueryClient();
   const activeFarmId = useAuthStore((s) => s.activeFarmId);
 
-  const { data: farms } = useQuery({ queryKey: ["farms"], queryFn: () => farmsApi.list() });
-  const farm = useMemo(
-    () => farms?.find((f) => f.id === activeFarmId) ?? farms?.[0],
-    [farms, activeFarmId],
-  );
-
-  const { data: current = [] } = useQuery({
-    queryKey: ["consent", "current", activeFarmId],
-    queryFn: () => consentApi.current(activeFarmId ?? undefined),
+  const { data: diff } = useQuery({
+    queryKey: ["consent", "diff", activeFarmId],
+    queryFn: () => consentApi.diff(activeFarmId),
     enabled: !!activeFarmId,
-  });
-
-  const { data: plan } = useQuery<SignupPlan>({
-    queryKey: ["consent", "plan", farm?.country],
-    queryFn: () => consentApi.signupPlan({
-      selected_country: farm!.country, farm_country: farm!.country, include_body: true,
-    }),
-    enabled: !!farm?.country,
   });
 
   const withdraw = useMutation({
     mutationFn: (args: { purpose_code: string; action: string }) =>
       consentApi.withdraw({ purpose_code: args.purpose_code, farm_id: activeFarmId, action: args.action }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["consent", "current", activeFarmId] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["consent", "diff", activeFarmId] }),
   });
 
-  const byCode = useMemo(() => {
-    const m: Record<string, ConsentStatus> = {};
-    for (const c of current) m[c.purpose_code] = c;
-    return m;
-  }, [current]);
-
-  const purposes = plan?.purposes.filter((p) => p.visible) ?? [];
+  const items = diff?.items ?? [];
 
   return (
     <div className="max-w-2xl mx-auto px-7 py-6">
@@ -81,17 +83,17 @@ export default function DataPrivacyPage() {
         <p className="text-xs text-text2 leading-relaxed">{t("withdrawEffectNotice")}</p>
       </div>
 
-      {plan?.notice_version && (
+      {diff?.required_version && (
         <p className="text-[11px] font-mono text-text3 mb-3">
-          {t("documentsTitle")}: {plan.notice_version}
+          {t("documentsTitle")}: {diff.required_version}
         </p>
       )}
 
       <div className="space-y-2">
-        {purposes.map((p) => {
-          const cur = byCode[p.purpose_code];
+        {items.map((p) => {
           const action = ACTION_FOR[p.purpose_code];
-          const withdrawn = cur && ["WITHDRAWN", "OBJECTED", "EXCLUSION_REQUESTED"].includes(cur.consent_status);
+          const status = p.recorded_status;
+          const withdrawn = !!status && ["WITHDRAWN", "OBJECTED", "EXCLUSION_REQUESTED"].includes(status);
           return (
             <div key={p.purpose_code} className="bg-surface border border-border rounded-xl px-4 py-3">
               <div className="flex items-start justify-between gap-3">
@@ -99,12 +101,13 @@ export default function DataPrivacyPage() {
                   <div className="text-sm font-semibold text-text">{t(`purpose.${p.purpose_code}.label`)}</div>
                   <p className="text-xs text-text3 mt-0.5 leading-relaxed">{t(`purpose.${p.purpose_code}.desc`)}</p>
                 </div>
-                {cur && (
-                  <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border ${STATUS_CLS[cur.consent_status] ?? "bg-bg2 text-text3 border-border"}`}>
-                    {t(`status.${cur.consent_status}`)}
+                {status && (
+                  <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border ${STATUS_CLS[status] ?? "bg-bg2 text-text3 border-border"}`}>
+                    {t(`status.${status}`)}
                   </span>
                 )}
               </div>
+              <VersionLines item={p} t={t} />
               {action && !withdrawn && (
                 <button
                   onClick={() => withdraw.mutate({ purpose_code: p.purpose_code, action })}

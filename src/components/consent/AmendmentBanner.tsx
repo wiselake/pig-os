@@ -1,49 +1,40 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useQuery } from "@tanstack/react-query";
 import { BellRing, X } from "lucide-react";
 import { consentApi } from "@/lib/api/endpoints/consent";
-import { farmsApi } from "@/lib/api/endpoints/farms";
 import { useAuthStore } from "@/store/auth.store";
-import { useState } from "react";
 
 // 개정 재고지 배너 (TERMS_DISPLAY §6): 기록된 notice_version 이 현재 문서 버전과 다르면
 // 로그인 시 변경 안내. 강제 재동의 여부는 법무 판정(후속) — 여기선 고지+설정 이동만.
+//
+// ★ 비교의 입력은 GET /consent/diff 하나다 (PLATFORM_PARITY §9-8). 예전에는 farms.list 로
+//   farm.country 를 얻어 signupPlan 을 다시 부르고 클라이언트에서 비교했다 — 그러면
+//   법역을 정하는 곳이 서버(가입 경로)와 여기 둘이 된다. 국가는 서버가 정한다.
+//
+// ★ 이 배너는 게이트가 아니다 (LEGAL-P0-MANDATORY-CONSENT-LOGIN-GATE). 기록이 0행이면
+//   아무것도 뜨지 않는다 — "동의가 아예 없음"은 처음부터 범위 밖이다.
 export default function AmendmentBanner() {
   const t = useTranslations("consent");
   const activeFarmId = useAuthStore((s) => s.activeFarmId);
   const isAuthed = useAuthStore((s) => !!s.accessToken);
   const [dismissed, setDismissed] = useState(false);
 
-  const { data: farms } = useQuery({
-    queryKey: ["farms"], queryFn: () => farmsApi.list(), enabled: isAuthed,
-  });
-  const farm = useMemo(
-    () => farms?.find((f) => f.id === activeFarmId) ?? farms?.[0],
-    [farms, activeFarmId],
-  );
-
-  const { data: current } = useQuery({
-    queryKey: ["consent", "current", activeFarmId],
-    queryFn: () => consentApi.current(activeFarmId ?? undefined),
+  const { data: diff } = useQuery({
+    queryKey: ["consent", "diff", activeFarmId],
+    queryFn: () => consentApi.diff(activeFarmId),
     enabled: isAuthed && !!activeFarmId,
   });
 
-  const { data: plan } = useQuery({
-    queryKey: ["consent", "plan", farm?.country],
-    queryFn: () => consentApi.signupPlan({
-      selected_country: farm!.country, farm_country: farm!.country, include_body: false,
-    }),
-    enabled: !!farm?.country,
-  });
-
-  // 기록이 하나라도 있고, 그 중 어떤 것이든 현재 문서 버전과 다르면 개정 발생.
+  // 기록이 있는 목적 중 하나라도 필요 버전과 다르면 개정 발생.
+  // 필요 버전 자체가 초안(any_draft)이면 고지하지 않는다 — 초안에는 재동의를 받을 수
+  // 없고(G-3, record 가 451), "검토하라"고 보내도 할 수 있는 일이 없다.
   const outdated = useMemo(() => {
-    if (!current?.length || !plan) return false;
-    return current.some((c) => c.notice_version && c.notice_version !== plan.notice_version);
-  }, [current, plan]);
+    if (!diff || diff.any_draft) return false;
+    return diff.items.some((i) => i.recorded_version && i.recorded_version !== i.required_version);
+  }, [diff]);
 
   if (dismissed || !outdated) return null;
 

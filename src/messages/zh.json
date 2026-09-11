@@ -2031,6 +2031,12 @@
       "desc": "您同意的部分文件已变更。请查看当前版本。",
       "review": "查看变更"
     },
+    "diff": {
+      "required": "当前版本",
+      "recorded": "您同意的版本",
+      "never": "尚无记录",
+      "changed": "自您同意后已更新"
+    },
     "dismiss": "关闭"
   },
   "forgotPassword": {
