@@ -1,24 +1,74 @@
 name: CI
 
+# ★ 2026-09-11 이전에는 `pull_request: branches: [development]` 였다. `development`
+#   브랜치는 존재한 적이 없다 — 2026-06-14 생성 이후 이 워크플로는 **한 번도 실행되지
+#   않았다** (`gh run list --workflow=ci.yml` → 0건). 테스트가 있고 스텝이 있어도
+#   트리거가 없으면 없는 것과 같다. 작업 브랜치는 main 이다.
 on:
+  push:
+    branches: [main]
   pull_request:
-    branches: [development]
+    branches: [main]
 
 jobs:
   backend:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.12 = 프로덕션 이미지(api/Dockerfile FROM python:3.12-slim)
+        # 3.14 = 개발 머신(RUN_COMMON_RULES §0-5 · 1479 passed 의 기준)
+        # 둘이 갈리면 어느 쪽이 거짓인지 여기서 먼저 드러난다.
+        python: ["3.12", "3.14"]
     defaults:
       run:
         working-directory: api
+    services:
+      postgres:
+        # 프로덕션은 EC2 로컬 PG 17.11 (INFRA_DB_STRATEGY §1). 로컬 compose 는 16 —
+        # CI 는 프로덕션 쪽에 맞춘다. 16 에서만 되는 것은 여기서 잡힌다.
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: pigos
+          POSTGRES_PASSWORD: pigos
+          POSTGRES_DB: pigos
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U pigos"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+asyncpg://pigos:pigos@localhost:5432/pigos
+      TEST_DATABASE_URL: postgresql+asyncpg://pigos:pigos@localhost:5432/pigos_test
+      REDIS_URL: redis://localhost:6379/0
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
-      - run: uv python install 3.12
-      - run: uv sync
+      - run: uv python install ${{ matrix.python }}
+      - run: uv sync --python ${{ matrix.python }}
       - name: Lint (ruff)
         run: uv run ruff check .
-      - name: Unit tests
-        run: uv run pytest tests/unit -q
+      - name: Create test database
+        run: |
+          sudo apt-get install -y -qq postgresql-client >/dev/null
+          PGPASSWORD=pigos psql -h localhost -U pigos -d pigos -c "CREATE DATABASE pigos_test;"
+      # ★ 빈 DB 에 마이그레이션만으로 스키마를 세운다 — 재해복구·새 환경 구축이 하는
+      #   바로 그 일이다. 로컬 DB 는 손으로 만든 객체가 섞여 있어 이걸 증명하지 못한다.
+      - name: Migrations from empty (alembic upgrade head)
+        run: uv run alembic upgrade head
+      # ★ test_migration_parity 는 2026-08-25 부터 저장소에 있었지만 CI 가 integration
+      #   디렉터리를 돌지 않아 한 번도 CI 에서 실행되지 않았다. 여기서 켠다.
+      - name: Tests (unit + integration, PREFLIGHT exit 78 = environment, not failure)
+        run: uv run pytest tests -q -p no:cacheprovider
 
   frontend:
     runs-on: ubuntu-latest
@@ -37,5 +87,3 @@ jobs:
         run: npx tsc --noEmit
       - name: Build
         run: npm run build
-
-# Production deploy is manual only (no auto-deploy on merge).
