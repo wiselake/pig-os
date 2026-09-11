@@ -19,10 +19,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import ForbiddenError
 from app.core.permissions import can_access_farm
 from app.db.models.consent import ConsentRecord
-from app.db.models.platform import User
+from app.db.models.platform import Farm, Organization, User
 from app.policy import consent_matrix as cm
 from app.schemas.consent import (
     ConsentChoice,
+    ConsentDiffItem,
+    ConsentDiffOut,
     ConsentStatusOut,
     DocMeta,
     GateOut,
@@ -263,6 +265,59 @@ async def current_consents(
         if r.purpose_code not in latest:
             latest[r.purpose_code] = r
     return [_to_status(r) for r in latest.values()]
+
+
+async def consent_diff(
+    db: AsyncSession, *, user_id: UUID, farm_id: UUID | None,
+) -> ConsentDiffOut:
+    """목적별 (필요 버전, 기록 버전) — 판정 없음 (LEGAL-P0-MANDATORY-CONSENT-LOGIN-GATE 구현 메모).
+
+    ★ 국가는 서버가 정한다. farm_id 가 있으면 그 농장(접근 권한 검증)의 country,
+      없으면 계정 조직의 country. 클라이언트가 보낸 국가는 받지 않는다 — 문서가 적은
+      법역을 지정해 "동의 완료"로 보이게 만드는 경로를 계약 첫 줄에서 닫는다.
+
+    ★ 불리언 없음. 원장이 목적별이고 마스터 :42 의 3단 구조도 목적별이다. 계정 단위
+      needs_reconsent 를 만들면 그 입도를 버리는 것이고, 분류표(H16)가 와도 계약을
+      다시 짜야 한다. 여기서는 두 사실만 나란히 놓는다.
+
+    알려진 한계: US 주(state) 는 저장하지 않으므로 farm_state=None 으로 도출한다.
+    notice_version 은 state 와 무관하나, 주별 ui_kind(NE 서면 옵트인) 는 반영되지 않는다.
+    """
+    await _assert_farm_authority(db, user_id=user_id, farm_id=farm_id)
+    if farm_id is not None:
+        farm = await db.get(Farm, farm_id)
+        assert farm is not None  # authority 검증이 존재를 보장한다
+        country, source = farm.country, "FARM"
+    else:
+        user = await db.get(User, user_id)
+        org = await db.get(Organization, user.org_id) if user and user.org_id else None
+        if org is None:
+            raise HTTPException(409, "NO_JURISDICTION_SOURCE")
+        country, source = org.country, "ORG"
+
+    plan = build_signup_plan(
+        selected_country=country, farm_country=country, farm_state=None,
+        lang=None, include_body=False,
+    )
+    recorded = {c.purpose_code: c for c in
+                await current_consents(db, user_id=user_id, farm_id=farm_id)}
+    items = []
+    for p in plan.purposes:
+        if not p.visible:
+            continue
+        r = recorded.get(p.purpose_code)
+        items.append(ConsentDiffItem(
+            purpose_code=p.purpose_code, lawful_basis=p.lawful_basis, ui_kind=p.ui_kind,
+            required_version=plan.notice_version,
+            recorded_version=r.notice_version if r else None,
+            recorded_status=r.consent_status if r else None,
+            recorded_at=r.accepted_at if r else None,
+        ))
+    return ConsentDiffOut(
+        jurisdiction=plan.jurisdiction.code, group=plan.jurisdiction.group,
+        country=country, country_source=source, farm_id=farm_id,
+        required_version=plan.notice_version, any_draft=plan.any_draft, items=items,
+    )
 
 
 async def withdraw(

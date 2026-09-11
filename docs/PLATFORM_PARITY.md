@@ -1470,6 +1470,34 @@ B-5 와 무관하게 지금 가능한 것: `MAC_VERIFY_CHECKLIST.md:36` 한 줄.
 
 ---
 
+## 9-8. `CONSENT_DIFF` — API 계약 추가 (2026-09-11 등재)
+
+```
+GET /api/v1/consent/diff?farm_id=     인증 필요. 목적별 (required_version, recorded_version)
+```
+
+`LEGAL_P0_MANDATORY_CONSENT_LOGIN_GATE.md` 구현 메모의 계약 세 줄이 코드다:
+
+```
+1  국가는 서버가 정한다 — farm.country(FARM) 또는 organization.country(ORG). 쿼리로 국가를 보내도 무시
+2  판정 필드 없음 — 계정 단위 불리언을 만들지 않는다. 목적별 두 사실만 나란히
+3  "동의한 적 없음"(None) 과 "철회함"(WITHDRAWN) 이 구분된다
+```
+
+★ 이것은 **판정을 하지 않는다.** 어느 전이가 재동의인가(H16)·어느 모드로 막는가(H11)는
+결정 뒤에 이 위에 얹는다. 로그인 경로에는 여전히 동의 판정이 없다 — 그 문서의
+`OPEN — NOT REMEDIATED` 는 그대로다. 이 계약은 그 판정이 읽을 **입력**이다.
+
+알려진 한계: US 주(state)는 저장돼 있지 않아 farm_state=None 으로 도출한다.
+notice_version 은 state 와 무관하나 주별 ui_kind(NE 서면 옵트인)는 반영되지 않는다.
+
+| | `platform_implementation_status` | 근거 |
+|---|---|---|
+| Core | `DONE` | `consent_service.consent_diff` · 라우터 `/consent/diff` · 테스트 8건 (`test_consent_diff.py`) |
+| Web | `PLANNED` | 재동의 화면 없음. `AmendmentBanner` 는 배너 수준 |
+| Android | `PLANNED` | 소비 0건. `ConsentAmendmentViewModel` 이 있으나 이 계약을 모른다 |
+| iOS | `PLANNED` | 소비 0건 |
+
 ## 10. 후속 STEP (이번 범위 아님)
 
 ```

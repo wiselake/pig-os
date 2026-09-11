@@ -98,6 +98,39 @@ class ConsentStatusOut(BaseModel):
     collection_context: str
 
 
+class ConsentDiffItem(BaseModel):
+    """목적 하나에 대한 두 사실 — 지금 필요한 버전과 원장에 적힌 버전. 판정 없음.
+
+    LEGAL-P0-MANDATORY-CONSENT-LOGIN-GATE 구현 메모: 계정 단위 불리언은 만들지 않는다.
+    어느 전이가 재동의인가(H16)·어느 모드로 막는가(H11)는 이 위에 한 겹 얹는다.
+    """
+    purpose_code: str
+    lawful_basis: str
+    ui_kind: str                          # 지금 계획의 UI 종류 (NOTICE/OPT_IN/…)
+    required_version: str                 # 서버가 도출한 법역의 현재 notice_version
+    recorded_version: str | None          # 원장 최신 행의 notice_version. 행이 없으면 None
+    recorded_status: str | None           # GRANTED · NOTICE_GIVEN · WITHDRAWN … 행이 없으면 None
+    recorded_at: datetime | None          # 그 행의 accepted_at
+
+
+class ConsentDiffOut(BaseModel):
+    """★ 국가는 서버가 정한다. 클라이언트 입력을 받지 않는다.
+
+    가입 전 signup-plan 은 selected_country 를 쿼리로 받는다 — 계정이 없으니 그게 맞다.
+    로그인 사용자의 diff 에서 같은 일을 하면, 문서가 적은 법역(KR·CN 은 부속조항이 없다)을
+    지정해 "동의 완료"로 보이게 만들 수 있다. 법역은 farm.country(농장 스코프) 또는
+    organization.country(계정 스코프)에서 도출하고, 그 출처를 응답에 적는다.
+    """
+    jurisdiction: str                     # 도출된 법역 코드
+    group: str
+    country: str                          # 도출에 쓴 ISO2
+    country_source: str                   # FARM | ORG
+    farm_id: UUID | None
+    required_version: str                 # 문서 세트 전체의 notice_version (items 의 공통값)
+    any_draft: bool                       # 필요 버전 자체가 초안인가 — 초안이면 재동의를 요구할 수 없다
+    items: list[ConsentDiffItem]
+
+
 class WithdrawRequest(BaseModel):
     purpose_code: str
     farm_id: UUID | None = None
