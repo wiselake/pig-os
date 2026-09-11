@@ -1358,6 +1358,72 @@ iOS       608b418 은 Mac/CI 빌드 1회가 남는다. 다만 배포를 막지�
           ★ push 금지 중이라 CI 로 검증할 수 없다. 해제 후 첫 push 에서 확인
 ```
 
+### 9-7-3. ★ iOS Debug 빌드가 프로덕션을 가리킨다 (2026-09-11 · 다른 세션 발견 · 이 세션 디스크 확인)
+
+T3 의 남은 검증이 "Mac 에서 빌드해 온보딩 화면 확인"인데, 그 빌드가 `api.pigos.io`
+를 친다. 서 있는 규칙(프로덕션 쓰기 금지 · 신규 가입 실제 enable 금지)과 정면 충돌.
+
+```
+Config/Debug.xcconfig:3-4     PIGOS_API_SCHEME = https / PIGOS_API_HOST = api.pigos.io
+Config/Release.xcconfig:2-3   동일
+git log --follow             6a725c2  http / localhost:8000 으로 신설 (컴파일 미검증)
+                             34130df  "Android parity + QA fixes — production-ready"
+                                      → https / api.pigos.io  ("Connect to production API")
+                                      2026-08-25, author wiselake
+```
+
+**주석·문서 7곳은 하나도 안 따라갔다** — 전부 "Debug=localhost(http)" 라고 적혀 있다:
+
+```
+Config/Debug.xcconfig:1,5      "시뮬레이터/로컬 백엔드" · "로컬 평문(HTTP) 허용 — Debug 전용"
+project.yml:31                 "Debug=localhost(http), Release=api.pigos.io(https)"
+AppConfig.swift:14,25          같은 내용 2곳
+docs/MAC_VERIFY_CHECKLIST.md:36  체크박스 "Debug baseURL = http://localhost:8000" — 지금 돌리면 실패
+docs/PROGRESS.md:21            "§1 Base URL 환경분리 ✅"
+CLAUDE.md:30                   "Debug=localhost:8000"
+```
+
+`PIGOS_ALLOWS_LOCAL_NETWORKING = YES` 는 https 프로덕션 호스트와 같이 남아 의미가
+없고, 게다가 **어디에도 배선돼 있지 않다** (project.yml·swift·plist 0건 — project.yml:73
+"ATS 예외 없음"). 값만 있고 읽는 곳이 없다.
+
+**CI 는 안전하다** — 확인함:
+
+```
+ci.yml:61   xcodebuild test  -configuration 없음 → Debug
+PigOSTests  APIClientTests:59 · SyncServiceTests:63  baseURL http://localhost + StubURLProtocol
+            LivePayloadDecodingTests:124  https://example.invalid (저장 픽스처)
+→ 단위 테스트는 AppConfig.baseURL 을 쓰지 않는다. CI 가 api.pigos.io 를 치지 않는다
+```
+
+**수동 확인의 안전한 경로는 이미 코드에 있다**: `AppConfig.swift:19` — Debug 빌드는
+launch env `PIGOS_API_BASE_URL` 로 호스트를 덮어쓴다. Mac 에서 온보딩 화면을
+확인할 때 이 env 를 로컬(또는 스테이징)로 주면 34130df 를 되돌리지 않고도
+프로덕션 가입 시도 없이 검증된다. **MAC_VERIFY_CHECKLIST 에 그 env 를 필수로
+적어야 한다** — 지금은 안 적혀 있어 정직하게 따르면 프로덕션을 친다.
+
+**`#if DEBUG` 는 확정** — 선례가 아니라 이미 의존 중인 동작이다:
+
+```
+AppConfig.swift:18-19   "Release 빌드에서는 오버라이드 자체를 컴파일하지 않는다"
+                        #if DEBUG 안에서만 PIGOS_API_BASE_URL 을 읽는다
+AppConfig.swift:50      PIGOS_USE_MOCK_DATA 판정도 같은 조건
+```
+
+Release 에서 DEBUG 가 참이면 출시 바이너리가 환경변수로 API 호스트를 바꿀 수 있다는
+뜻이다. 608b418 의 뱃지는 그 조건 위에 얹힌 것이라 같이 안전하다.
+
+**고치지 않았다 — 결정 사항**: 34130df 가 무엇을 위해 바꿨는지(시뮬레이터에서
+프로덕션 QA?) 기록이 없다. 되돌리면 그 용도가 깨진다. 두 갈래:
+
+```
+(가) 34130df 되돌림  Debug = http/localhost:8000  — 문서 7곳이 다시 맞고, 로컬 QA 는
+                     PIGOS_API_BASE_URL 로 프로덕션을 가리키면 된다 (역방향 override)
+(나) 문서 7곳을 현실에 맞춤  Debug = 프로덕션. MAC_VERIFY_CHECKLIST 에 env 필수 명기
+```
+
+→ `HUMAN_INPUT_QUEUE` §6 B-5. 어느 쪽이든 **MAC_VERIFY_CHECKLIST 의 env 명기는 공통**.
+
 ### 배포 전 확인할 것
 
 ```

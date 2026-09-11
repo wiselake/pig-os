@@ -61,6 +61,11 @@ pigos-ios      608b418   사유코드 뱃지 #if DEBUG · testUnknownReasonCodeS
 - 클라이언트 게이트 우회 불가 — `canSubmitStep` 이 plan null/실패도 막고, 테스트가 있다
 - iOS 는 문장이 제대로 나오고 그 밑에 뱃지만 하나 더 붙어 있었다
 
+★ **부수 발견 (다른 세션, 디스크 확인)**: iOS `Config/Debug.xcconfig` 가 34130df 이후
+프로덕션(`api.pigos.io`)을 가리킨다. 문서 7곳은 localhost 라고 적혀 있다. iOS 수동
+검증은 `PIGOS_API_BASE_URL` env 없이 돌리면 프로덕션 가입 시도가 된다 —
+PLATFORM_PARITY §9-7-3 · HUMAN_INPUT_QUEUE B-5. CI 단위 테스트는 스텁이라 안전.
+
 **4항목 사유코드 테이블은 만들지 않는다 — 결정**. KR_REFERENCE_ONLY / HOLD_D07 /
 LAUNCH_NOT_ENABLED 의 사용자 문구는 D-13 · Q-B 로 변호사에게 묻는 성격 규정 그
 자체라, 답 전에 8 개 언어에 박는 것은 승인 전 정책 반영이다. 중립 문구 한 벌만 쓴다.
