@@ -278,10 +278,68 @@ notes: >
 
 ---
 
+## PIGOS-F-0011 — FEED_BASIC
+
+```yaml
+feature_id: PIGOS-F-0011
+name: Feed Basic — FCR · Feed Cost/pig · Feed Cost/kg gain (EPIC 4)
+issued: 2026-09-11                                    # 착수 시점 발급 (§0 규율)
+required_platforms: [core, web]                       # 모바일은 READ_CACHE 소비만 — 산식 하드코딩 금지 (HANDOFF §0-6)
+paths:
+  core:
+    - api/app/db/models/health.py                     # FeedRecord (quantity_kg · unit_cost · currency · group_id)
+    - api/app/services/feed_service.py                # 입력 CRUD (기존)
+    - api/app/services/kpi_service.py:438-535         # FCR = SUM(feed_records.quantity_kg) / gain, CLOSED 그룹 (기존)
+    - api/app/engine/rules/grow_finish.py:17          # fcr.high (기존)
+    - api/app/services/report_service.py              # cost-summary: feed_cost = unit_cost×qty (기존)
+  web:
+    - src/app/(app)/feed/page.tsx                     # 입력 (기존)
+    - src/app/(app)/reports/cost/page.tsx             # 원가 리포트 (기존)
+  android: NOT_APPLICABLE                             # v1 은 웹만. 산식은 서버에만 둔다
+  ios:     NOT_APPLICABLE
+offline_mode: READ_CACHE                              # 값은 서버 계산. 오프라인 재계산 금지
+analytics_events: []                                  # 미정의
+```
+
+### 착수 실측 (2026-09-11 · step 0)
+
+```
+있는 것
+  FCR                kpi_service:535 — 기본 KPI 응답에 실려 전 사용자에게 나간다
+  kpi_definitions    FCR 행 있음 (c5e7a9b1 KR_MAP · c7d9e1f3 country policy: SECONDARY · CONTEXT_ONLY)
+  snapshot           KpiSnapshot.fcr 컬럼 있음 (ops.py:73) · _WITHHELD 아님 → 잡 성공 시 영속
+  cost-summary       feed_cost(unit_cost×qty) · feed_cost_coverage 로 미입력분 표시
+
+없는 것
+  FEED_COST_PER_PIG · FEED_COST_PER_KG_GAIN   산식·정의행·테스트 전부 없음
+  canonical formula 버전 표기                  FCR 도 산식 문서(specs/2026-03-19)와 코드 대조 미실시
+  bounded action checklist                     없음
+
+★ ①≠② 발견
+  routers/base/kpi.py:6  "FCR → Addon #1 (ADDON_FCR) — handled in addons/fcr router"
+  addons/               __init__.py 뿐. fcr 라우터 없음. require_addon("ADDON_FCR") 호출 0건
+  ops.py:72             "only populated when ADDON_FCR subscribed" — 실제로는 구독과 무관
+  → FCR 은 문서상 유료, 런타임상 무료. COUNTRY_PRODUCT_SPEC_BR:58 도 유료라 적음
+  → 이 기능이 고치지 않는다. D-15(과금 경계) 입력으로 기록만 한다
+```
+
+### 범위 결정 — (나) 계산만, 응답 미노출 (두 세션 권고 · 대표 미확인)
+
+```
+(가) 새 두 값을 KPI 응답에 실어 무료로 노출   → 나중에 유료로 옮기면 "있던 것을 뺏는" 변경
+(나) 산식·정의·테스트만 만들고 응답에 안 실음  → D-15 결재 후 한 줄로 노출. 되돌리기 싼 쪽
+```
+
+Feed Cost 두 값은 EXPANSION_DECISION §5-2 와 HANDOFF §6-5 둘 다 **Paid hypothesis** 로
+적고 있다. 승인 전 paywall 금지 규칙 때문에 게이트를 달 수 없고, 게이트 없이 노출하면
+사실상 무료 확정이 된다. 그래서 (나). 대표가 한 단어로 (가)를 고르면 그때 노출한다.
+
+---
+
 ## 부록 — 다음에 등록할 후보 (아직 ID 미발급)
 
 ```
-Weekly Brief · Health Watch · Feed Basic · Root Cause Candidate ·
+Weekly Brief · Health Watch · Root Cause Candidate ·
 Benchmark Depth · Multi-farm · Contextual AI Copilot
 ```
 

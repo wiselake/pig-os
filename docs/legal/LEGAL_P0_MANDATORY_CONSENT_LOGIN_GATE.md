@@ -179,3 +179,32 @@ api/app/routers/base/auth.py:40                  판정이 없는 login
 src/app/(auth)/login/page.tsx:199-219            판정이 없는 웹 로그인
 src/middleware.ts:61                             쿠키 존재만 보는 라우팅 가드
 ```
+
+---
+
+## 구현 메모 — 2026-09-11 (두 세션 합의, 코드 0)
+
+**diff 의 양쪽은 이미 있다.** 새 데이터가 아니라 두 엔드포인트의 비교다.
+
+```
+필요 버전   GET /consent/signup-plan → SignupPlan.notice_version      (schemas/consent.py:63)
+            manifest → terms_renderer 실시간 계산
+기록 버전   GET /consent/current     → ConsentStatusOut.notice_version (schemas/consent.py:89)
+            ★ purpose_code · lawful_basis · consent_status 와 함께 목적별로 나온다
+```
+
+진짜 새 작업은 둘: **재동의 화면**(웹 `AmendmentBanner` 는 배너 수준뿐) · **판정 규칙**(미결).
+서버 비교 계약은 선택 — 세 클라이언트가 같은 비교를 세 번 구현하지 않게 하는 값은 있다.
+
+★ **불리언 금지.** `ConsentStatusOut` 이 이미 목적별이고 마스터 :42 의 3단 구조도
+목적별이다("선택 목적 = 항상 별도 동의"). 계정 단위 `needs_reconsent: bool` 은 데이터
+모델이 가진 입도를 버리는 것이고, 나중에 분류표가 와도 계약을 다시 짜야 한다.
+
+```
+만들면 안 되는 것   { "needs_reconsent": true }
+만든다면            [ { purpose_code, required_version, recorded_version, lawful_basis }, … ]
+                    판정 필드 없음. 분류표(H16)가 오면 한 겹 얹는다
+```
+
+모드(차단 / 배너 / 유예)는 H11, 어느 버전 전이가 중대변경인가는 **H16** — 둘 다 결정 전에는 박지 않는다.
+
