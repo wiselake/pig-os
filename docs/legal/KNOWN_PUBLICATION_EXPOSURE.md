@@ -127,15 +127,43 @@ FCM 오기·상호 오기)은 실재했고 지금도 `_FORBIDDEN` 이 잘 막고
   "last_remediation_at": "2026-09-16T17:30:00+09:00",
   "remediation_note": "★ 키 이름: last_remediation_at 은 가장 최근 부분 정정일이다. 종료(마커 0) 시에만 remediated_at 을 새로 만든다. 2026-09-16: V-11 조건 1·6 을 프로덕션 read-only 로 실측해 종결하고 [확인 중] 행을 [수집하지 않음] 으로 병합했다 — 조건 1: farms 80행 중 gps_lat·gps_lng non-null 0건(둘 중 하나만 있는 행도 0건, 좌표값 미출력) / 조건 6: 2026-09-16 03:40 전체 백업을 격리된 PostgreSQL 17 에 복원해 farms 79행 lat 0 lng 0 확인, audit_log 390행 중 farms 관련 0건·gps 언급 0건, public 스키마에 다른 좌표 컬럼 없음. 결재 4 (a) '사용하지 않는다' 의 확정조건 5개가 이로써 전부 충족됐다. ★ 그럼에도 status 는 PARTIALLY_REMEDIATED 다 — SOURCE 마커 0 ≠ PRODUCTION 마커 0. api.pigos.io/legal/privacy 는 배포 전까지 정정 전 본문을 서빙하며, 격리 종료는 프로덕션 엔드포인트에서 마커 0 이 확인된 뒤에만 가능하다. 이전 정정(2026-09-10): 언어별 24건 → 1건. 실행 결정 Brian(대표 구두 포괄 승인 하의 위임): [V] 11건 문안 정정 · [OPEN] 10건은 임의 기간을 만들지 않고 마커만 제거 (보유기간 정책 자체는 RETENTION_POLICY=OPEN 으로 별도 유지) · [COUNSEL] 1건은 제7조를 '법률 검토 중' 공개 조항으로 전환 · [ ] 2건은 부칙을 확정본 게시 시 기재로 변경.",
   "source_marker_total": 0,
-  "production_marker_total": "UNKNOWN_UNTIL_DEPLOY — 프로덕션은 아직 정정 전 본문을 서빙한다"
+  "production_marker_total": "★ 48 (언어별 24) — 2026-09-16 17:4x KST HTTP 실측. V 11 · OPEN 10 · COUNSEL 1 · 빈 대괄호 2, ko/en 동일. 즉 2026-09-10 의 24→1 정정은 저장소에만 있고 프로덕션에 배포된 적이 없다 (프로덕션 api/content/legal/public_privacy.ko.md 는 6f16e41, 2026-08-27 자). 공개 노출은 2026-09-03 최초 실측 이래 줄어든 적이 없다."
 }
 ```
 <!-- QUARANTINE_MANIFEST_END -->
 
 ```
-SOURCE      0건   ← 48건(en 24 + ko 24) → 2건(9/10) → 0건(9/16, V-11 종결)
-PRODUCTION  2건   ★ 배포 전까지 그대로. api.pigos.io/legal/privacy 는 정정 전 본문을 서빙한다
+SOURCE      0건   ← 48건(en 24 + ko 24) → 2건(9/10 정정) → 0건(9/16 V-11 종결)
+PRODUCTION  ★ 48건 — 줄어든 적이 없다 (2026-09-16 HTTP 실측)
 ```
+
+### ★★ 2026-09-16 발견 — 9/10 정정은 배포된 적이 없다
+
+오늘 처음으로 **공개 URL 을 직접 세어봤다.** 문서들이 "24 → 1" 이라고 적어온 동안
+공개본은 한 번도 바뀌지 않았다.
+
+```
+실측 (2026-09-16, curl)
+  api.pigos.io/legal/privacy?lang=ko    V 11 · OPEN 10 · COUNSEL 1 · [ ] 2  = 24
+  api.pigos.io/legal/privacy?lang=en    동일 = 24                            합계 48
+
+프로덕션 파일    ~/pigos/api/content/legal/public_privacy.ko.md
+                 mtime 2026-08-28 17:12 · sha256 badf088d… · 마커 11건
+                 = 커밋 6f16e41 (2026-08-27) 의 내용
+정정 커밋        ec99391 (2026-09-11) — 저장소에만 있다. 배포 0회
+```
+
+★ **이것이 SOURCE 와 PRODUCTION 을 나눈 이유 그 자체다.** 오늘 상단 정의를 고치면서
+"소스 0 ≠ 공개 0" 이라고 적었는데, 실제로는 그 간극이 **6일이 아니라 2주**였고 크기도
+2건이 아니라 48건이었다. 어제까지의 모든 보고에서 "언어별 24 → 1" 은 저장소 상태였다.
+
+```
+정정 전 서술    "PARTIALLY_REMEDIATED (언어별 24 → 1)"
+정확한 서술     "소스는 정정됐고 공개본은 2026-09-03 실측 그대로다"
+```
+
+**만료(2026-09-17)까지 배포가 없으면 격리는 노출 48건인 채로 만료된다.** 이것은
+"거의 다 고쳤는데 하나 남았다" 가 아니라 **아무것도 공개적으로 고쳐지지 않았다** 이다.
 
 ★ **이 둘을 섞지 않는다.** 소스에서 마커를 지운 것과 공개 URL 에서 사라진 것은 다르다.
 격리 종료 조건은 후자다("상단 정의" 절).
