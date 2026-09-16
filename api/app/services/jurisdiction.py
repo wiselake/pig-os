@@ -170,7 +170,8 @@ def resolve(
         notes.append(f"launch not enabled for {country} (H13 allowlist)")
 
     if gate.signup_blocked:
-        notes.append(f"signup blocked: {gate.reason_code}")
+        # 사유는 게이트가 들고 있다. 예전엔 CN 문구를 그대로 붙여 KR 에도 "CN, D-07 HOLD" 가 찍혔다.
+        notes.append(f"signup blocked ({country}, {gate.reason_code})")
 
     return Jurisdiction(
         code=code,
@@ -182,3 +183,16 @@ def resolve(
         doc_addendum=_ADDENDUM.get(group),
         notes=notes,
     )
+
+# ★ B-9 (2026-09-16): 가입 차단 assert 를 여기 두지 않는다.
+#
+# origin/main `8a80ea4` 은 여기에 signup_overrides · resolve_for_signup ·
+# assert_signup_allowed 를 두었다. 같은 판단을 `eligibility` 파사드도 하고 있어
+# **가입 허용 판단이 두 군데**가 됐고, G-3(게시 승인)·H13(개시 허용목록)은 파사드
+# 쪽에만 얹혀 있다. 한쪽만 통과하는 경로가 생기면 LEGAL-P0-CONSENT-AUTHORITY 가
+# 겪은 "동의 화면은 막는데 가입은 뚫린다" 가 재현된다.
+#
+# 그래서 이 모듈은 **순수 정책 계층**으로 남는다 — resolve 까지만 하고 HTTP 를 모른다.
+# 차단은 `eligibility.assert_country_entry_allowed` 하나. 저쪽의 회귀 케이스는
+# `tests/unit/test_signup_gate_absorbed.py` 로 이식했고, 원본 커밋은 origin 에 보존돼 있다.
+# 이 규칙은 그 파일의 test_jurisdiction_exposes_no_second_signup_assert 가 강제한다.
