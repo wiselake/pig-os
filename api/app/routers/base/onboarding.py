@@ -11,9 +11,10 @@ Extended flow (advanced):
 """
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from app.core.dependencies import CurrentUser, DbDep, FarmDep, require_farm_role, require_role
+from app.core.rate_limit import require_signup_quota
 from app.schemas.auth import OnboardingCompleteRequest, OnboardingCompleteResponse
 from app.schemas.farm import FarmConfigSet, FarmCreate, FarmResponse, OnboardingStatus
 from app.services import auth_service, eligibility, farm_service
@@ -21,7 +22,8 @@ from app.services import auth_service, eligibility, farm_service
 router = APIRouter(prefix="/onboarding", tags=["Onboarding"])
 
 
-@router.post("/complete", response_model=OnboardingCompleteResponse, status_code=201)
+@router.post("/complete", response_model=OnboardingCompleteResponse, status_code=201,
+             dependencies=[Depends(require_signup_quota)])
 async def onboarding_complete(body: OnboardingCompleteRequest, db: DbDep):
     """
     One-step onboarding: create org + user + farm in a single call.

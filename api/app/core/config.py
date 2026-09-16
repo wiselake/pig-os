@@ -34,6 +34,13 @@ class Settings(BaseSettings):
     # 풀러 유휴 타임아웃보다 짧아야 의미가 있다.
     db_keepalive_interval: int = 20
     redis_url: str = "redis://localhost:6379/0"
+
+    # ── 가입 남용 방지 (rate_limit.py) ────────────────────────────────────────
+    # ★ 제품 정책이 아니라 **운영 기본값**이다. 정상 농가가 막히지 않는 선으로 두고,
+    #   실제 트래픽을 보고 조정한다. 0 이하 = 비활성(개발·테스트).
+    #   근거: docs/runs/RATE_LIMIT_POLICY.md
+    rate_limit_signup_per_hour: int = 5      # 한 출처에서 시간당 가입 시도
+    rate_limit_auth_per_minute: int = 20     # 로그인·토큰·비밀번호 재설정
     secret_key: str = "change-me-in-production-at-least-32-chars"
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 15

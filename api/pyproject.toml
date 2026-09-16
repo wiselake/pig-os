@@ -50,6 +50,7 @@ testpaths = ["tests"]
 addopts = "-v --tb=short"
 markers = [
     "real_publication_set: 게시 문서 manifest 를 실제 상태(현재 전부 DRAFT)로 둔다 — G-3 게이트 검증용",
+    "real_rate_limit: 운영 rate limit 기본값을 그대로 쓴다 (기본은 비활성 — integration/conftest.py)",
 ]
 
 [tool.coverage.run]

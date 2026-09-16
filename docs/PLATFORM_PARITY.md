@@ -1505,6 +1505,31 @@ US 주(state)는 저장돼 있지 않아 farm_state=None 으로 판정한다 —
 | Android | `PLANNED` | 소비 0건. `ConsentAmendmentViewModel` 이 있으나 이 계약을 모른다 |
 | iOS | `PLANNED` | 소비 0건 |
 
+## 9-9. `SIGNUP_RATE_LIMIT_429` — API 계약 추가 (2026-09-16 등재)
+
+```
+POST /api/v1/auth/register          한도 초과 → 429 detail="RATE_LIMITED:signup"  header Retry-After
+POST /api/v1/onboarding/complete    〃 (같은 버킷)
+POST /api/v1/auth/login · password-reset/{request,confirm}   → "RATE_LIMITED:auth"
+```
+
+기본값·근거: `docs/runs/RATE_LIMIT_POLICY.md`. 값은 settings(env)에서 오고 0 이하면 비활성.
+
+★ **기존 계약과 같은 모양**을 썼다 — `detail` 에 `TOKEN:{bucket}` 문자열. 모바일 두
+클라이언트가 이미 `SIGNUP_BLOCKED:{reason}` 을 그 형태로 다룬다(§9-7-2). 새 status·새
+포맷을 발명하지 않았다.
+
+| | `platform_implementation_status` | 근거 |
+|---|---|---|
+| Core | `DONE` | `app/core/rate_limit.py` · 라우터 5곳 · 테스트 11건 (`test_rate_limit.py`) |
+| Web | `PLANNED` | 429 안내 문구 없음. 지금은 일반 오류로 뜬다 |
+| Android | `PLANNED` | 429 미처리 — 451 과 같은 경로를 타므로 `consent_blocked_title` 이 아니라 일반 실패가 된다 |
+| iOS | `PLANNED` | 429 미처리 |
+
+★ 세 클라이언트 전부 **아직 429 를 모른다.** 가입이 다시 열리기 전에 최소 한 줄씩은
+필요하다 — "잠시 후 다시 시도해 주세요" 수준이면 족하고, 법률 판단이 들어가지 않으므로
+H17·D-13 같은 결정에 걸리지 않는다.
+
 ## 10. 후속 STEP (이번 범위 아님)
 
 ```

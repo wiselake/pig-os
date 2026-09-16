@@ -48,6 +48,24 @@ _async_engine = create_async_engine(_ASYNC_TEST_URL, echo=False, future=True, po
 
 
 @pytest.fixture(autouse=True)
+def _disable_rate_limit(request, monkeypatch):
+    """가입 rate limit 을 끈다 — 제한기 자체를 검증하는 파일만 예외.
+
+    ★ 왜 필요한가: 통합 테스트는 한 파일에서 계정을 여럿 만든다. 운영 기본값(5/시간)이
+      그대로 걸리면 **다른 기능의 테스트가 429 로 깨진다** — 실제로 2026-09-16 에
+      21건이 그렇게 깨졌다. 제한기는 옳게 동작한 것이고, 테스트가 자기가 검증하지 않는
+      운영 정책에 묶여 있던 것이 문제다.
+
+    `_approved_publication_set` 과 같은 방식이다: 기본은 비활성, 검증하는 쪽이 켠다.
+    """
+    if request.node.get_closest_marker("real_rate_limit"):
+        return
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "rate_limit_signup_per_hour", 0)
+    monkeypatch.setattr(settings, "rate_limit_auth_per_minute", 0)
+
+
+@pytest.fixture(autouse=True)
 def _approved_publication_set(request, monkeypatch):
     """게시 문서를 승인본으로 두고 테스트한다 — G-3 게이트의 기본 우회.
 
