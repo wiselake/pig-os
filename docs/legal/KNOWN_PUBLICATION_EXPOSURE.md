@@ -110,34 +110,59 @@ FCM 오기·상호 오기)은 실재했고 지금도 `_FORBIDDEN` 이 잘 막고
     {
       "source_path": "api/content/legal/public_privacy.en.md",
       "runtime_url": "https://api.pigos.io/legal/privacy?lang=en",
-      "source_sha256": "48c02aceefc1c2bc9c107826583c7a211043071dd231eed5ea1361f19f91663f",
-      "markers": {
-        "V": 1
-      },
-      "expected_total": 1,
-      "remaining": "V-11 정밀 위치정보(농장 좌표) — 사실 확인 미완 (조건 1·6, 프로덕션 DB)"
+      "source_sha256": "bdb3e9699bb290c9db3badc7dd5db722afa79ef48decaf0d71892b29523b76fe",
+      "markers": {},
+      "expected_total": 0,
+      "remaining": "none — V-11 조건 6건 전부 실측 종결 (2026-09-16). ★ 단 이것은 SOURCE 기준이다"
     },
     {
       "source_path": "api/content/legal/public_privacy.ko.md",
       "runtime_url": "https://api.pigos.io/legal/privacy?lang=ko",
-      "source_sha256": "086932d9eefc555968f93211cb0776d813bb62e28b65eb21e83663c5fee56ac8",
-      "markers": {
-        "V": 1
-      },
-      "expected_total": 1,
-      "remaining": "V-11 정밀 위치정보(농장 좌표) — 사실 확인 미완 (조건 1·6, 프로덕션 DB)"
+      "source_sha256": "b309f8d17272a706f97bd3266dff3836b6b1cd5f238ffeeac2e48930eeca6b18",
+      "markers": {},
+      "expected_total": 0,
+      "remaining": "none — V-11 조건 6건 전부 실측 종결 (2026-09-16). ★ 단 이것은 SOURCE 기준이다"
     }
   ],
-  "last_remediation_at": "2026-09-10T00:00:00+09:00",
-  "remediation_note": "★ 키 이름: last_remediation_at 은 가장 최근 부분 정정일이다. 종료(마커 0) 시에만 remediated_at 을 새로 만든다 — 부분 정정일을 완료일처럼 읽지 않게 하려는 것. 언어별 24건 → 1건. 실행 결정 Brian(2026-09-10, 대표 구두 포괄 승인 하의 위임): [V] 11건은 완료된 실측으로 문안 정정 · [OPEN] 10건은 ★임의 기간을 만들지 않고 마커만 제거 (보유기간 정책 자체는 RETENTION_POLICY=OPEN 으로 별도 유지) · [COUNSEL] 1건은 제7조를 \"법률 검토 중\" 공개 조항으로 전환 · [ ] 2건은 부칙을 확정본 게시 시 기재로 변경 · T-6(취약점 점검)·T-7(재식별 방지) 문장 삭제 · 내부 스펙 파일 참조 제거. ★ 남은 1건은 V-11(정밀 위치정보) — 프로덕션 조회 권한이 없어 사실 확인이 끝나지 않았다. 추정으로 닫지 않는다."
+  "last_remediation_at": "2026-09-16T17:30:00+09:00",
+  "remediation_note": "★ 키 이름: last_remediation_at 은 가장 최근 부분 정정일이다. 종료(마커 0) 시에만 remediated_at 을 새로 만든다. 2026-09-16: V-11 조건 1·6 을 프로덕션 read-only 로 실측해 종결하고 [확인 중] 행을 [수집하지 않음] 으로 병합했다 — 조건 1: farms 80행 중 gps_lat·gps_lng non-null 0건(둘 중 하나만 있는 행도 0건, 좌표값 미출력) / 조건 6: 2026-09-16 03:40 전체 백업을 격리된 PostgreSQL 17 에 복원해 farms 79행 lat 0 lng 0 확인, audit_log 390행 중 farms 관련 0건·gps 언급 0건, public 스키마에 다른 좌표 컬럼 없음. 결재 4 (a) '사용하지 않는다' 의 확정조건 5개가 이로써 전부 충족됐다. ★ 그럼에도 status 는 PARTIALLY_REMEDIATED 다 — SOURCE 마커 0 ≠ PRODUCTION 마커 0. api.pigos.io/legal/privacy 는 배포 전까지 정정 전 본문을 서빙하며, 격리 종료는 프로덕션 엔드포인트에서 마커 0 이 확인된 뒤에만 가능하다. 이전 정정(2026-09-10): 언어별 24건 → 1건. 실행 결정 Brian(대표 구두 포괄 승인 하의 위임): [V] 11건 문안 정정 · [OPEN] 10건은 임의 기간을 만들지 않고 마커만 제거 (보유기간 정책 자체는 RETENTION_POLICY=OPEN 으로 별도 유지) · [COUNSEL] 1건은 제7조를 '법률 검토 중' 공개 조항으로 전환 · [ ] 2건은 부칙을 확정본 게시 시 기재로 변경.",
+  "source_marker_total": 0,
+  "production_marker_total": "UNKNOWN_UNTIL_DEPLOY — 프로덕션은 아직 정정 전 본문을 서빙한다"
 }
 ```
 <!-- QUARANTINE_MANIFEST_END -->
 
 ```
-합계   2건   (en 1 + ko 1)      ← 2026-09-10 정정 전 48건 (en 24 + ko 24)
-남은 것 V-11 정밀 위치정보 — 프로덕션 조회 권한 대기 (조건 1·6. 조건 2~5 는 2026-09-10 종결)
+SOURCE      0건   ← 48건(en 24 + ko 24) → 2건(9/10) → 0건(9/16, V-11 종결)
+PRODUCTION  2건   ★ 배포 전까지 그대로. api.pigos.io/legal/privacy 는 정정 전 본문을 서빙한다
 ```
+
+★ **이 둘을 섞지 않는다.** 소스에서 마커를 지운 것과 공개 URL 에서 사라진 것은 다르다.
+격리 종료 조건은 후자다("상단 정의" 절).
+
+### V-11 종결 실측 — 2026-09-16 (프로덕션 read-only)
+
+결재 4 **(a) 사용하지 않는다** 의 확정조건 5개가 전부 충족됐다.
+
+```
+① DB non-null 0건        farms 80행 · gps_lat non-null 0 · gps_lng non-null 0 · 한쪽만 있는 행 0
+                         ★ 좌표값은 출력하지 않았다. 집계만 (SET default_transaction_read_only=on)
+② API·웹 write path      0건 (2026-09-10 실측)
+③ 모바일 위치 권한       0건 (2026-09-10 실측 — 권한이 없으면 OS 가 정밀 위치를 주지 않는다)
+④ analytics/SDK          0건 (2026-09-10)
+⑤ 백업·로그·EXIF         ★ 오늘 닫혔다 —
+                         백업: 2026-09-16 03:40 전체 덤프를 격리 PG17 에 복원 → farms 79행 lat 0 lng 0
+                         로그: audit_log 390행 중 farms 관련 0건 · gps 문자열 언급 0건
+                         스키마: public 에 다른 좌표 컬럼 없음 (매칭된 이름은 platform·calculated_at 등 오탐)
+                         EXIF: 유입 경로 없음 (2026-09-10)
+```
+
+프로덕션 80행 / 백업 79행 차이는 백업 시각(03:40) 이후 생성된 농장 1건으로 설명된다 —
+불일치가 아니다.
+
+**정정 내용**: `[확인 중] 정밀 위치정보` 행을 삭제하고 `[수집하지 않음]` 에 병합하되,
+**컬럼이 남아 있다는 사실을 문장에 넣었다.** "수집하지 않음" 만 적고 컬럼을 숨기는 것이
+CLOSURE_COMMON V-11 이 지적한 부정확 고지 그 자체이기 때문이다.
 
 ★ 최초 실측은 en 라이브 HTML 24건이었으나, `?lang=ko` 도 동일하게 공개 서빙되므로
 **양쪽 모두 등록**했다. 한쪽만 걸면 나머지가 무방비가 된다.
