@@ -5,7 +5,10 @@
 ```
 push        safety/pigos-20260916 (3180969, 137 commits) · safety/android-20260916 (b88c571) · safety/ios-20260916 (b33c315)
             ★ main 직접 push 0 · 배포 0 · 프로덕션 쓰기 0 — Brian 결정(2026-09-16): CI green + 배포 영향 확인 전 main merge 금지
-PR          wiselake/pig-os#2 (draft) — 재작성 CI 의 최초 실행(run 35049601480). 결과가 새 기준점 (로컬 1481 ≠ Actions)
+PR          wiselake/pig-os#2 (draft) — ★ CI GREEN (run 35049978252, b3ea993, 2026-09-16 12:00 KST)
+            backend 3.12: 1481 passed · 1 skipped · 12 xfailed (2:16) | 3.14: 동일 (2:01) | frontend: tsc·223·build
+            빈 postgres 17 에 alembic upgrade head 완주 → Actions 기준점 = 로컬과 동일
+            첫 run 은 ruff 47건으로 실패 — 로컬도 47건. "F841 3건"은 변경파일 기준이었다 (b3ea993 로 0건)
             ★ base 는 main 이 아니라 ci-base/pigos-20260827(merge-base). origin/main 에 8a80ea4(Lou, 9/10 push)가
               있어 safety 와 3파일 충돌 → merge ref 불가 → CI 가 큐잉조차 안 됐다. 해소는 B-9 (권한 게이트 = STOP)
 격리        KNOWN_PUBLICATION_EXPOSURE 모순 4곳 정정 (3180969) — 종료조건 = 마커 0 · A/B/C/D 분리 · V-11 미완 · last_remediation_at

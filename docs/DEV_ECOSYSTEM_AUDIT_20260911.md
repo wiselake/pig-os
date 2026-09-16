@@ -58,8 +58,15 @@ google-services.json     Firebase 클라이언트 설정. APK 에 어차피 들�
 ```
 
 `test_migration_parity` 는 8/25 부터 있었고 로컬에서는 통과했지만 CI 는 한 번도
-안 돌렸다. 새 안전장치가 아니라 **쓰여 있던 것을 켠 것**이다. push 해제 후 첫 push 에서
-처음 실행된다.
+안 돌렸다. 새 안전장치가 아니라 **쓰여 있던 것을 켠 것**이다.
+
+★ **2026-09-16 실전 결과** (safety/pigos-20260916 → PR #2, base ci-base/pigos-20260827):
+```
+run 35049601480   backend ✗ ruff 47건 (로컬도 47 — "3건"은 변경파일 기준) · frontend ✓
+run 35049978252   backend 3.12 ✓ 1481/1/12 (2:16) · 3.14 ✓ (2:01) · frontend ✓   ← 기준점
+```
+CI 가 큐잉조차 안 되던 원인이 하나 더: origin/main 이 갈라져(8a80ea4) merge ref 를 못 만들면
+pull_request 워크플로는 **조용히 안 돈다**. 그래서 ci-base/* 리허설 base 를 두었다 (B-9).
 
 ### 2-2. 취약 의존성 (`21a2ad7`)
 
