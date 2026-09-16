@@ -1,11 +1,26 @@
 # KNOWN_PUBLICATION_EXPOSURE — 공개 법무문서 미해결 마커 한시 격리
 
 > **성격**: allowlist 가 아니라 **quarantine** 이다. 현재 오염 상태를 정확히 고정해
-> 두고 그 밖의 모든 변화를 실패시킨다. 신규 1건 추가도, 기존 1건 감소도 실패다.
+> 두고 **기록 없는** 모든 변화를 실패시킨다. 신규 1건 추가도, 무기록 1건 감소도 실패다
+> (감소 자체가 금지는 아니다 — "실패 조건" 절).
 >
 > **★ 이 문서는 문제를 해결하지 않는다.** 노출은 지금도 진행 중이다
-> (`CONTAINED_NOT_REMEDIATED`). 해결은 `CURRENT_PUBLICATION_SET` 대표 결정 후
-> 승인본 등록으로만 가능하다.
+> (`PARTIALLY_REMEDIATED`, 언어별 24 → 1).
+>
+> **★ 이 격리의 종료조건은 하나다 — `PUBLIC_INTERNAL_MARKER_EXPOSURE = 0`.**
+> 공개 URL 에 사내 검토 마커가 보이지 않으면 끝난다. 변호사 회신도, 게시 세트 결재도
+> 이 조건의 입력이 아니다 (2026-09-10 재정의 — "해소 절차" 절, 경로 A).
+> 초판이 "`CURRENT_PUBLICATION_SET` 결정 후 승인본 등록으로만 해결" 이라 적은 것은
+> 문제 하나를 넷으로 나누기 전의 문장이며 **폐기**한다. 지금은 네 표면이 따로 간다:
+>
+> ```
+> A  PUBLIC_INTERNAL_MARKER_EXPOSURE   48 → 2 (V-11 en/ko)   ← 이 문서. 종료 = 0
+> B  PUBLICATION_VALIDITY              CURRENT_PUBLICATION_SET · 변호사 · PUBLISHED   ← 신규 가입·정식 공표 게이트 (G-1 · H13)
+> C  RETENTION                         RETENTION_POLICY = OPEN · RETENTION_ENFORCEMENT = NOT_IMPLEMENTED   ← R-05
+> D  pigos.io/privacy · /terms         구본·피그플랜 문안 공개 서빙   ← H17 (격리 밖, 아래 절)
+> ```
+>
+> A 를 닫았다고 B·C·D 가 닫힌 게 아니고, B 가 늦는다고 A 를 계속 노출할 이유도 없다.
 >
 > **★ 절대 만료가 있다.** `2026-09-17T23:59:59+09:00` 이 지나면 무조건 CI FAIL 이다 (1차 연장 후 값 — manifest `expires_at` 과 동일).
 > 자동 연장 없음. 연장하려면 사유를 적고 `expires_at` 을 바꾸는 **별도 커밋**이
@@ -113,8 +128,8 @@ FCM 오기·상호 오기)은 실재했고 지금도 `_FORBIDDEN` 이 잘 막고
       "remaining": "V-11 정밀 위치정보(농장 좌표) — 사실 확인 미완 (조건 1·6, 프로덕션 DB)"
     }
   ],
-  "remediated_at": "2026-09-10T00:00:00+09:00",
-  "remediation_note": "언어별 24건 → 1건. 실행 결정 Brian(2026-09-10, 대표 구두 포괄 승인 하의 위임): [V] 11건은 완료된 실측으로 문안 정정 · [OPEN] 10건은 ★임의 기간을 만들지 않고 마커만 제거 (보유기간 정책 자체는 RETENTION_POLICY=OPEN 으로 별도 유지) · [COUNSEL] 1건은 제7조를 \"법률 검토 중\" 공개 조항으로 전환 · [ ] 2건은 부칙을 확정본 게시 시 기재로 변경 · T-6(취약점 점검)·T-7(재식별 방지) 문장 삭제 · 내부 스펙 파일 참조 제거. ★ 남은 1건은 V-11(정밀 위치정보) — 프로덕션 조회 권한이 없어 사실 확인이 끝나지 않았다. 추정으로 닫지 않는다."
+  "last_remediation_at": "2026-09-10T00:00:00+09:00",
+  "remediation_note": "★ 키 이름: last_remediation_at 은 가장 최근 부분 정정일이다. 종료(마커 0) 시에만 remediated_at 을 새로 만든다 — 부분 정정일을 완료일처럼 읽지 않게 하려는 것. 언어별 24건 → 1건. 실행 결정 Brian(2026-09-10, 대표 구두 포괄 승인 하의 위임): [V] 11건은 완료된 실측으로 문안 정정 · [OPEN] 10건은 ★임의 기간을 만들지 않고 마커만 제거 (보유기간 정책 자체는 RETENTION_POLICY=OPEN 으로 별도 유지) · [COUNSEL] 1건은 제7조를 \"법률 검토 중\" 공개 조항으로 전환 · [ ] 2건은 부칙을 확정본 게시 시 기재로 변경 · T-6(취약점 점검)·T-7(재식별 방지) 문장 삭제 · 내부 스펙 파일 참조 제거. ★ 남은 1건은 V-11(정밀 위치정보) — 프로덕션 조회 권한이 없어 사실 확인이 끝나지 않았다. 추정으로 닫지 않는다."
 }
 ```
 <!-- QUARANTINE_MANIFEST_END -->
@@ -142,7 +157,7 @@ FCM 오기·상호 오기)은 실재했고 지금도 `_FORBIDDEN` 이 잘 막고
 
 ```
 신규 마커 1건 추가           FAIL
-기존 마커 1건 감소           FAIL   ← green 으로 넘기지 않는다. 문서가 바뀐 것이므로
+무기록 마커 1건 감소         FAIL   ← green 으로 넘기지 않는다. 문서가 바뀐 것이므로
                                     왜 줄었는지 기록하며 명세를 갱신해야 한다
 종류 구성 변경               FAIL   예: V 11 → 10, OPEN 10 → 11 (합계 같아도)
 등록되지 않은 파일에 마커     FAIL
@@ -151,6 +166,21 @@ source_sha256 불일치         FAIL   ← 본문이 바뀌었는데 명세가 �
 ```
 
 **wildcard·정규식 예외는 두지 않는다.** 파일·해시·종류·개수 전부 명시값이다.
+
+★ **마커 감소 자체가 금지된 것이 아니다.** 정상 remediation 은 이렇게 한다 — 한 변경세트에서
+**원자적으로**:
+
+```
+1  source 수정 (api/content/legal/public_privacy.{en,ko}.md)
+2  변경 사유 (무엇을 어떤 실측 근거로 고쳤나)
+3  manifest 의 markers · expected_total · remaining 갱신
+4  source_sha256 재계산
+5  last_remediation_at + remediation_note 에 기록
+```
+
+다섯 개가 같은 커밋에 있으면 테스트는 통과한다. 테스트가 막는 것은 **1 만 하고 2~5 를
+안 한 것** — 누군가 문구만 지워 green 을 만드는 경우다. 2026-09-10 의 24 → 1 정정이
+정확히 이 절차로 통과했다. "정상 remediation 도 테스트가 막는가" 라는 질문의 답은 아니오다.
 
 ---
 
@@ -208,12 +238,12 @@ pigos.io/legal/privacy    302 → api.pigos.io/legal/privacy   (ec08df5, App Sto
 
 | 마커 | 건수 | 누가 닫나 | 변호사 필요? |
 |---|---|---|---|
-| `[V — 실측 확인 필요]` | 11 | **실측 완료**(V-1·V-10·V-11, 2026-09-10) → 대표 문안 승인 | 아니오 |
+| `[V — 실측 확인 필요]` | 11 | **10건 실측·정정 완료**(2026-09-10) · **1건(V-11 정밀 위치정보) 사실확인 미완** — 조건 1·6, EC2 read-only 1회 → 대표 문안 승인 | 아니오 |
 | `[OPEN — 운영 확정]` | 10 | 대표·운영 값 확정 + **★ 집행 잡** | 아니오 |
 | `[COUNSEL]` | 1 | 제7조 controller/processor = D-13 | **예** |
 | `[ ]` 빈 대괄호 | 2 | 공고일·시행일 — 대표 | 아니오 |
 
-**23 / 24 가 변호사 없이 닫힌다.**
+**23 / 24 가 변호사 없이 닫힌다.** 그중 22 는 닫혔고, V-11 1건(언어별 2)이 남아 manifest 와 일치한다.
 
 ### 남은 1건 — 마커에서 조항으로
 
@@ -285,9 +315,11 @@ OCR           행 삭제  (기능 자체가 없다)
 ### 그래서 지금 상태
 
 ```
-PUBLIC_INTERNAL_MARKER_EXPOSURE   = PARTIALLY_REMEDIATED   (언어별 24 → 1)
-RETENTION_POLICY                  = OPEN                    ← 닫히지 않았다
-RETENTION_ENFORCEMENT             = NOT_IMPLEMENTED         ← purge 잡 0건
+A  PUBLIC_INTERNAL_MARKER_EXPOSURE   = PARTIALLY_REMEDIATED   (언어별 24 → 1)   ← 이 격리
+B  PUBLICATION_VALIDITY              = 8건 전부 DRAFT_LAWYER_PENDING            ← G-1 · H13, 별건
+C  RETENTION_POLICY                  = OPEN                    ← 닫히지 않았다   ← R-05, 별건
+   RETENTION_ENFORCEMENT             = NOT_IMPLEMENTED         ← purge 잡 0건
+D  pigos.io 구본·피그플랜 문안        = 공개 서빙 중                              ← H17, 별건
 ```
 
 ★ 이 격리를 닫아도 **R-05 는 살아 있다.** 보유기간에 숫자를 쓰려면 그때 다시
