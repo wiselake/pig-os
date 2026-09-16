@@ -5,7 +5,9 @@
 ```
 push        safety/pigos-20260916 (3180969, 137 commits) · safety/android-20260916 (b88c571) · safety/ios-20260916 (b33c315)
             ★ main 직접 push 0 · 배포 0 · 프로덕션 쓰기 0 — Brian 결정(2026-09-16): CI green + 배포 영향 확인 전 main merge 금지
-PR          wiselake/pig-os#2 (draft, safety → main) — 재작성 CI 의 최초 실행. 결과가 새 기준점 (로컬 1481 ≠ Actions)
+PR          wiselake/pig-os#2 (draft) — 재작성 CI 의 최초 실행(run 35049601480). 결과가 새 기준점 (로컬 1481 ≠ Actions)
+            ★ base 는 main 이 아니라 ci-base/pigos-20260827(merge-base). origin/main 에 8a80ea4(Lou, 9/10 push)가
+              있어 safety 와 3파일 충돌 → merge ref 불가 → CI 가 큐잉조차 안 됐다. 해소는 B-9 (권한 게이트 = STOP)
 격리        KNOWN_PUBLICATION_EXPOSURE 모순 4곳 정정 (3180969) — 종료조건 = 마커 0 · A/B/C/D 분리 · V-11 미완 · last_remediation_at
 만료        2026-09-17 23:59:59 KST — V-11 조건 1·6 EC2 read-only 가 유일한 blocker (B-6·B-7·B-8 같은 세션)
 ```
