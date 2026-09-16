@@ -8,7 +8,11 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    # ci-base/* — main 이 갈라져 PR 의 merge ref 를 만들 수 없을 때, merge-base 에 세운
+    # 임시 base. 2026-09-16 첫 실행이 그 경우였다 (origin/main 8a80ea4 vs safety 브랜치 충돌
+    # → GitHub 이 merge commit 을 못 만들어 pull_request 워크플로가 아예 큐잉되지 않았다).
+    # 리허설용이며 merge 대상이 아니다.
+    branches: [main, "ci-base/**"]
 
 jobs:
   backend:

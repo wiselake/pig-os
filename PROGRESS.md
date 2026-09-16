@@ -1,5 +1,15 @@
 # PigOS 진행 상황
 
+## [현재상태 2026-09-16] — 원격 백업 완료 · Draft PR #2 · main/프로덕션 미변경
+
+```
+push        safety/pigos-20260916 (3180969, 137 commits) · safety/android-20260916 (b88c571) · safety/ios-20260916 (b33c315)
+            ★ main 직접 push 0 · 배포 0 · 프로덕션 쓰기 0 — Brian 결정(2026-09-16): CI green + 배포 영향 확인 전 main merge 금지
+PR          wiselake/pig-os#2 (draft, safety → main) — 재작성 CI 의 최초 실행. 결과가 새 기준점 (로컬 1481 ≠ Actions)
+격리        KNOWN_PUBLICATION_EXPOSURE 모순 4곳 정정 (3180969) — 종료조건 = 마커 0 · A/B/C/D 분리 · V-11 미완 · last_remediation_at
+만료        2026-09-17 23:59:59 KST — V-11 조건 1·6 EC2 read-only 가 유일한 blocker (B-6·B-7·B-8 같은 세션)
+```
+
 ## [현재상태 2026-09-10] — 법무 P0 게시 게이트 + 환경 결정론화 (로컬 커밋만, **push·배포 0**)
 
 ★ **개발이 멈춘 것이지 법무 트랙이 끝난 게 아니다.** 아직 첫 단계 앞이다.
