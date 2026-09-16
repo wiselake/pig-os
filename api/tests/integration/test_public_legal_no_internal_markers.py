@@ -92,16 +92,16 @@ def _fmt(path: Path, hits: dict[str, list[str]]) -> str:
     return "\n".join(lines)
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "V-11 (정밀 위치정보) 사실 확인 미완 — 프로덕션 조회 권한(pigos_ro) 대기. "
-        "다른 23건은 2026-09-10 정정으로 닫혔다. 격리(KNOWN_PUBLICATION_EXPOSURE)가 "
-        "여전히 살아 있는 enforcer 이며 2026-09-17 에 만료된다. "
-        "★ strict=True — V-11 이 닫혀 이 테스트가 통과하면 XPASS 로 실패한다. "
-        "그때 이 xfail 을 지우고 격리 문서를 삭제한다."
-    ),
-)
+# ★ 2026-09-16: xfail 을 제거했다. V-11 이 실측으로 닫히면서 소스 마커가 0 이 됐고,
+#   strict xfail 이 설계대로 XPASS 로 울려 이 자리를 알려주었다.
+#
+#   ☞ 그 xfail 의 주석은 "그때 이 xfail 을 지우고 **격리 문서를 삭제한다**" 였는데,
+#     뒤쪽 절반은 아직 하지 않는다. 소스 마커 0 과 공개 URL 마커 0 은 다르다 —
+#     api.pigos.io/legal/privacy 는 배포 전까지 정정 전 본문을 서빙한다.
+#     격리 종료는 **프로덕션 엔드포인트에서** 마커 0 이 확인된 뒤다
+#     (KNOWN_PUBLICATION_EXPOSURE "상단 정의").
+#
+#   즉 지금부터 이 테스트가 소스의 enforcer 이고, 격리 문서는 프로덕션의 enforcer 다.
 @pytest.mark.parametrize("name", PUBLIC_SERVED)
 def test_publicly_served_notice_has_no_internal_markers(name: str) -> None:
     """게이트 없이 공개되는 문서 — 1건이라도 있으면 FAIL."""
