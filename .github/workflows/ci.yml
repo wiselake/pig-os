@@ -14,6 +14,13 @@ on:
     # 리허설용이며 merge 대상이 아니다.
     branches: [main, "ci-base/**"]
 
+# 같은 브랜치에 연달아 push 하면 앞선 실행을 취소한다. 2026-09-16 에 문서 커밋 하나로
+# 런이 둘 겹쳤다 — 러너 시간을 쓰고, 어느 것이 최신 결과인지도 헷갈린다.
+# ★ main 은 취소하지 않는다. main 의 각 커밋은 그 자체로 기록이어야 한다.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   backend:
     runs-on: ubuntu-latest
@@ -71,8 +78,21 @@ jobs:
         run: uv run alembic upgrade head
       # ★ test_migration_parity 는 2026-08-25 부터 저장소에 있었지만 CI 가 integration
       #   디렉터리를 돌지 않아 한 번도 CI 에서 실행되지 않았다. 여기서 켠다.
+      # alembic head 가 둘 이상이면 `upgrade head` 가 어느 쪽인지 모호해진다. 위 upgrade 는
+      # 우연히 통과할 수 있어(현재 head 하나를 따라감) 따로 본다. 병합 리비전 53개짜리
+      # 이력에서 실제로 생겼던 실패 모양이다.
+      - name: Single migration head
+        run: |
+          heads=$(uv run alembic heads | grep -c '(head)' || true)
+          echo "heads=$heads"
+          test "$heads" -eq 1 || { uv run alembic heads; echo "::error::alembic head 가 $heads 개다 — 병합 리비전이 필요하다"; exit 1; }
       - name: Tests (unit + integration, PREFLIGHT exit 78 = environment, not failure)
         run: uv run pytest tests -q -p no:cacheprovider
+      # 생성물이 커밋과 어긋나면 로컬에서만 맞는 상태가 된다. 테스트가 파일을 쓰는 경우도
+      # 여기서 드러난다.
+      - name: Working tree is clean after tests
+        run: |
+          git diff --exit-code || { echo "::error::테스트 후 작업 트리가 더럽다 — 생성물이 커밋과 다르거나 테스트가 파일을 쓴다"; exit 1; }
 
   frontend:
     runs-on: ubuntu-latest
