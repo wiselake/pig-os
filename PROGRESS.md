@@ -5,14 +5,16 @@
 ```
 push        safety/pigos-20260916 (3180969, 137 commits) · safety/android-20260916 (b88c571) · safety/ios-20260916 (b33c315)
             ★ main 직접 push 0 · 배포 0 · 프로덕션 쓰기 0 — Brian 결정(2026-09-16): CI green + 배포 영향 확인 전 main merge 금지
-PR          wiselake/pig-os#2 (draft) — ★ CI GREEN (run 35049978252, b3ea993, 2026-09-16 12:00 KST)
-            backend 3.12: 1481 passed · 1 skipped · 12 xfailed (2:16) | 3.14: 동일 (2:01) | frontend: tsc·223·build
-            빈 postgres 17 에 alembic upgrade head 완주 → Actions 기준점 = 로컬과 동일
-            첫 run 은 ruff 47건으로 실패 — 로컬도 47건. "F841 3건"은 변경파일 기준이었다 (b3ea993 로 0건)
-            ★ 이 GREEN 은 코드품질·마이그레이션 기준점이지 **main merge 결과의 GREEN 이 아니다**
-              — base 가 ci-base/* 다. B-9 해소 후 main 기준으로 다시 돌려야 한다
-            ★ base 는 main 이 아니라 ci-base/pigos-20260827(merge-base). origin/main 에 8a80ea4(Lou, 9/10 push)가
-              있어 safety 와 3파일 충돌 → merge ref 불가 → CI 가 큐잉조차 안 됐다. 해소는 B-9 (권한 게이트 = STOP)
+PR          wiselake/pig-os#2 (draft, base=main) — ★ CI GREEN on main merge (run 35068086502, 3c97fe2)
+            backend 3.12: 1497 passed · 1 skipped · 12 xfailed (2:16) | 3.14: 동일 (2:14) | frontend: tsc·223·build
+            빈 postgres 17 에 alembic upgrade head 완주. mergeable=true · state=clean
+            → CI infrastructure GREEN · codebase MAIN-MERGE-READY (merge 판단만 남음, 자동 merge 하지 않는다)
+
+            경과  run 35049601480  ruff 47건 실패 (로컬도 47 — "F841 3건"은 변경파일 기준)
+                  run 35049978252  b3ea993 GREEN 1481 — 단 base 가 ci-base/* 라 main merge 의 GREEN 은 아니었다
+                  run 35068086502  3c97fe2 GREEN 1497 — base=main. 이것이 기준점
+            ★ CI 가 큐잉조차 안 되던 원인: origin/main 8a80ea4(Lou, 9/10 push, 금지기간)과 3파일 충돌 →
+              GitHub 이 merge ref 를 못 만들면 pull_request 워크플로는 조용히 안 돈다. B-9 로 해소
 격리        KNOWN_PUBLICATION_EXPOSURE 모순 4곳 정정 (3180969) — 종료조건 = 마커 0 · A/B/C/D 분리 · V-11 미완 · last_remediation_at
 만료        2026-09-17 23:59:59 KST — V-11 조건 1·6 EC2 read-only 가 유일한 blocker (B-6·B-7·B-8 같은 세션)
 ```
