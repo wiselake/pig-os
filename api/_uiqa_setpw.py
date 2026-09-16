@@ -2,9 +2,11 @@
 ORM은 모델-DB 스키마 드리프트(users.username 부재)로 못 씀 → 존재 컬럼만 raw SQL UPDATE.
 일회용: 풀스펙 QA(RBAC A2/A3)용 5역할 로그인 활성화. 실행: api/.venv python _uiqa_setpw.py"""
 import asyncio
+
 from sqlalchemy import text
-from app.db.session import AsyncSessionLocal
+
 from app.core.security import hash_password
+from app.db.session import AsyncSessionLocal
 
 EMAILS = [
     "uiqa_farm_owner@pigos.io", "uiqa_farm_manager@pigos.io",
