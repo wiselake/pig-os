@@ -8,8 +8,8 @@ Revision ID: f2b4d6e8a0c1
 Revises: e1a3c5d7f9b2
 """
 import sqlalchemy as sa
-from alembic import op
 
+from alembic import op
 from app.db.operational_defaults_seed import OPERATIONAL_DEFAULTS, to_bounds
 
 revision = "f2b4d6e8a0c1"

@@ -11,17 +11,17 @@ Revises: 1e6172486c75, e1d2c3b4a5f6
 Create Date: 2026-07-22
 """
 from collections.abc import Sequence
-from typing import Union
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 revision: str = "d4a1b2c3e5f7"
 # DAG 정정: 1e6172486c75 는 e1d2c3b4a5f6 가 이미 조상으로 물고 있어 이중 클레임이었다.
-down_revision: Union[str, Sequence[str], None] = "e1d2c3b4a5f6"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | Sequence[str] | None = "e1d2c3b4a5f6"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 PURPOSE_CODES = (
     "SERVICE_OPERATION", "ANON_AGG_STATS", "AI_MODEL_TRAINING",
