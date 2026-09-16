@@ -39,6 +39,7 @@ from app.routers.base import (
     members,
     notifications,
     onboarding,
+    ops,
     orgs,
     piglets,
     pilot_signups,
@@ -139,6 +140,10 @@ from app.routers.integrations import qbridge as qbridge_integration  # noqa: E40
 app.include_router(qbridge_integration.router, prefix=V1)
 
 # ── Base routers ─────────────────────────────────────────────────────────────
+# ★ 운영 상태는 V1 prefix 밖이다 — /health 와 나란히 둔다.
+#   모니터링이 API 버전에 묶이면 버전을 올릴 때 감시가 끊긴다.
+app.include_router(ops.router)
+
 app.include_router(auth.router,        prefix=V1)
 app.include_router(orgs.router,        prefix=V1)
 app.include_router(onboarding.router,  prefix=V1)
