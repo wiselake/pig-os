@@ -3,7 +3,7 @@ TRACK4 게이트 C — PeriodLockedError 409→423 일관화.
 잠긴 기간 이벤트 가드(_ensure_period_unlocked)가 PeriodLockedError(HTTP 423)를 던지는지.
 죽은 409/ raw HTTPException 제거 확인.
 """
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,7 +25,7 @@ def test_period_locked_error_is_423():
 
 async def _lock(db, farm, user, *, y=2026, m=3, unlocked=False):
     db.add(PeriodLock(farm_id=farm.id, period_year=y, period_month=m, locked_by=user.id,
-                      unlocked_at=datetime.now(timezone.utc) if unlocked else None))
+                      unlocked_at=datetime.now(UTC) if unlocked else None))
     await db.flush()
 
 
