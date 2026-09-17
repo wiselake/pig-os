@@ -39,14 +39,15 @@ The Company processes the following items in order to provide the Service. The c
 | Payment·credit information | Payment method information (processed by the Payment Gateway), payment·refund history, Credits purchase·deduction·expiration history | Direct input·generation |
 | Customer support information | Consultation·inquiry content, handling history | Direct input |
 
-② **Classification by collection status**: Whether and when the above items are actually collected is distinguished as follows. Each item is **[V — actual verification required]** until whether it is actually implemented·collected is confirmed by actual measurement, and this table shall be corrected in accordance with the verification results. **Features·items that may be introduced in the future shall not be stated as [Currently Collected] until they are actually introduced·notified.**
+② **Classification by collection status**: Whether and when the above items are actually collected is distinguished as follows. **Items that may be introduced in the future are not listed under [Currently Collected] until they are actually introduced and notified.**
 
 | Collection Category | Items (examples) | Actual-measurement Flag |
 |---|---|---|
-| **[Currently Collected]** — collected at all times when using the Service | Account·login identification information (including mobile phone number), organization·permission information (including permission change history), device identifier·device·environment information, access·usage logs, cookie·analytics identifiers, Farm Production Records·KPI, region·language settings, customer support information | [V — actual verification required] |
-| **[Collected When Feature Is Used]** — collected only when the relevant feature is used | AI input·output (when AI features are used), uploaded images·OCR documents (when documents are uploaded), offline synchronization temporary stored copies (when offline mode is used), payment·credit information (upon paid payment) | [V — actual verification required] |
-| **[Planned for Future Collection — Not Included in the Notice]** — not currently collected. Upon actual introduction, to be collected after amendment of the notice·separate notification (and consent where necessary) | Advertising identifiers (on the premise that no advertising SDK is currently embedded), items relating to insurance·credit·loans·transaction matching, and other items to be reviewed upon business expansion | [V — actual verification required] / Statement before introduction prohibited |
-| **[Not Collected]** | Information of children under 14 years of age (a non-target Service — Article 5), sensitive data such as thoughts·beliefs·health (not collected without separate specification·consent), precise location information | [V — actual verification required] |
+| **[Currently Collected]** — collected at all times when using the Service | Account·login identification information (including mobile phone number), organization·permission information (including permission change history), device identifier·device·environment information, access·usage logs, cookie·analytics identifiers, Farm Production Records·KPI, region·language settings, customer support information |
+| **[Collected When Feature Is Used]** — collected only when the relevant feature is used | AI input·output (when AI features are used — not stored on Company servers), offline synchronization temporary stored copies (when offline mode is used) |
+| **[Planned for Future Collection — Not Included in the Notice]** — not currently collected. Upon actual introduction, to be collected after amendment of the notice·separate notification (and consent where necessary) | Advertising identifiers (no advertising SDK is embedded), payment·credit information (payment features have not commenced), uploaded images·OCR documents (feature has not commenced), and items to be reviewed upon business expansion such as insurance·credit·lending·transaction-matching related items |
+| **[Not Collected]** | Information of children under 14 years of age (a non-target Service — Article 5), sensitive data such as thoughts·beliefs·health (not collected without separate specification·consent) |
+| **[Under Verification]** | Precise location information (farm coordinates) | [V — actual verification required] |
 
 ③ Farm data such as Farm Production Records may not constitute personal data in the case of corporate farms; however, in the case of sole-proprietor (natural person) farms, it may be treated as personal data, and therefore the Company conservatively applies the protection level of this notice.
 
@@ -77,12 +78,7 @@ The Company does not currently automatically make decisions that produce legal o
 
 | Source | Information Provided (examples) | Actual-measurement Flag |
 |---|---|---|
-| Organization Administrator·Farm Owner | Account identification information, affiliation·permission information of employees·contract farmers·users | [V — actual verification required] |
-| Integrator (affiliated integration entity) | Contract-farmer·contract-rearing relationship information, production-performance integration data | [V — actual verification required] |
-| Invitation from another user | Information necessary to process invitations, such as the email·contact of the invited user | [V — actual verification required] |
-| External system·API integration | Data integrated from farm management systems·devices·external services | [V — actual verification required] |
-| Payment Gateway (PG) | Payment processing results, payment·refund status information | [V — actual verification required] |
-| Publicly available sources | Public information within the scope permitted by law | [V — actual verification required] |
+| Organization Administrator·Farm Owner | Account identification information, affiliation·permission information of employees·contract farmers·users |
 
 ② Where an Organization Administrator·Farm Owner·Integrator enters the personal data of its employees or contract farmers into the Service, the responsibility for securing a lawful basis for the collection·processing of, and for notifying, such Data Subjects lies in principle with the relevant organizational customer, and the roles between the Company and the organizational customer are determined in Article 7 and in a separate **B2B Data Processing Addendum (DPA)**.
 ③ **Duty to give notice of indirect collection**: In countries that require the Data Subject to be notified of the fact·source·items, etc., of personal data collected from sources other than the Data Subject, such as the EU·GB, the Company or the relevant organizational customer shall give notice in accordance with the deadline·method prescribed by the applicable law (e.g., Article 14 of the GDPR·UK GDPR), and the specific procedure·allocation of responsibility shall be determined in the Country-specific Notice and the B2B DPA.
@@ -103,12 +99,12 @@ The Company does not currently automatically make decisions that produce legal o
 | Other analytics·error-collection tools | — | — | **None currently adopted** — upon adoption, this table will be updated and notified in advance |
 
 ③ **Means of refusal**: Users may refuse automatic collection through (i) refusing·deleting cookie storage via browser settings, (ii) the Google Analytics opt-out browser add-on (https://tools.google.com/dlpage/gaoptout), and (iii) the cookie settings tool provided by the Service (where provided).
-④ **Prior consent for non-essential analytics cookies (EU·GB, etc.)**: In countries that require prior consent (opt-in) before execution for non-essential analytics·measurement cookies (including Google Analytics), such as the EU·GB, the Company shall, through a consent management platform (CMP) or cookie banner, **block the execution of non-essential tags such as Google Analytics until consent is obtained, obtain consent on a country-by-country basis, manage the consent·withdrawal history as logs, and deactivate the relevant tags upon withdrawal**. The specific implementation matters (banner·CMP·tag control·consent logs) are determined in `TERMS_DISPLAY_SPEC.md` and the development scope, and this is **[operational actual measurement required — V process]** such that its enforcement is not asserted as definite until actual implementation is confirmed.
+④ **Prior consent for non-essential analytics cookies (EU·GB, etc.)**: In countries that require prior consent (opt-in) before execution for non-essential analytics·measurement cookies (including Google Analytics), such as the EU·GB, the Company shall, through a consent management platform (CMP) or cookie banner, **block the execution of non-essential tags such as Google Analytics until consent is obtained, obtain consent on a country-by-country basis, manage the consent·withdrawal history as logs, and deactivate the relevant tags upon withdrawal**. Signups for such jurisdictions are not currently open.
 ⑤ Where cookie storage is refused, the use of some features may be restricted.
 
 ## Article 7 (Roles of the Company and Customer in Personal Data Processing — controller/processor)
 
-① The Service is a B2B-type service used jointly by individual users and enterprise·organizational customers, and depending on the type of processing, the roles of the Company (WiseLake) and the enterprise customer under personal data protection law (personal data controller/controller, processor/processor, joint controller) may differ. The table below sets out the **anticipated role classification**; because the confirmed legal roles differ according to the individual contract structure·factual circumstances, final confirmation requires legal counsel's review **[COUNSEL]**.
+① The Service is a B2B-type service used jointly by individual users and enterprise·organizational customers, and depending on the type of processing, the roles of the Company (WiseLake) and the enterprise customer under personal data protection law (personal information controller / processor / joint controller) may differ. The table below sets out the **roles currently expected**. **The allocation of roles under this Article is under legal review; upon confirmation the Company will amend and notify this Notice in accordance with Article 15 (Amendment and Notification of this Notice).**
 
 | Type of Processing | Anticipated Role |
 |---|---|
@@ -138,19 +134,18 @@ The Company does not currently automatically make decisions that produce legal o
 
 ## Article 9 (Retention and Use Period of Personal Data)
 
-① As a matter of principle, the Company destroys personal data without delay once the purpose of collection·use is achieved, and upon a Member's withdrawal, personal data is destroyed without delay except for the exceptions set out in the following paragraphs. The retention·deletion standards for each item are as set out in the following table. **For items whose period is marked as [OPEN — to be confirmed operationally], the period is confirmed through the internal data retention policy and operational actual measurement (V process), and no arbitrary long-term retention period (a specific number of years) is stated in this notice.**
+① As a matter of principle, the Company destroys personal data once the purpose of collection·use is achieved. Item-by-item retention·deletion criteria are set out in the table below. **This Notice does not state arbitrary long-term retention periods; for items for which no period is stated below, the Company will amend and notify this Notice once the retention·deletion policy is established.**
 
 | Item | Retention·Deletion Standard |
 |---|---|
-| Account information (identification·login·organization·permission) | Destroyed without delay upon Member withdrawal or achievement of purpose — provided that items with a statutory retention obligation are subject to Paragraph 2. [OPEN — to be confirmed operationally: whether to apply a withdrawal grace period·dormancy handling] |
-| Farm source data (production records·individuals·performance) | Retained during the use period, destroyed or returned upon contract termination·withdrawal. Return·deletion of organizational-customer data follows the B2B DPA. [OPEN — to be confirmed operationally] |
-| Offline local temporary stored copies | Deleted from the terminal upon completion of synchronization or deletion of app data. [OPEN — to be confirmed operationally: retention limit for unsynchronized portions] |
-| AI input·output | Retained during the period necessary for feature provision, then deleted. Training use (Purpose ③) is limited to the scope·period of separate consent. [OPEN — to be confirmed operationally] |
-| OCR-target uploaded documents·images | Deleted after completion of recognition processing·reflection of results. Portions processed by external AI processors follow the zero-retention contractual principle (Article 8). [OPEN — to be confirmed operationally: whether·period to retain originals] |
-| Access·security logs | Website visit records (access logs): 3 months (Protection of Communications Secrets Act). Other security·usage logs: [OPEN — to be confirmed operationally]. |
-| Customer support records | Retained for the necessary period after completion of consultation·inquiry handling. Consumer complaint·dispute-resolution records are subject to Paragraph 2 (3 years). [OPEN — to be confirmed operationally] |
-| Backup data | Sequentially renewed·completely deleted according to the backup rotation cycle. Backup remnants after deletion of the original are deleted within the rotation cycle. [OPEN — to be confirmed operationally: backup cycle·point of complete deletion] |
-| Consent history (consent ledger) | Retained for the period permitted·required by the applicable law even after the end of processing, for the purpose of evidencing consent·withdrawal. [OPEN — to be confirmed operationally / COUNSEL — retention basis·period] |
+| Account information (identification·login·organization·permission) | Upon Member withdrawal or achievement of the purpose, identifying information is destroyed so that the individual can no longer be identified. Items subject to a statutory retention obligation are governed by Paragraph 2. |
+| Farm source data (production records·individuals·performance) | Retained during the use period. Upon withdrawal the farm is deactivated; return·deletion of organizational-customer data follows the B2B DPA. |
+| Offline local temporary stored copies | Stored on the user’s device and deleted from the device upon completion of synchronization or deletion of app data. |
+| AI input·output | Not stored on Company servers. Training use (Purpose ③) is limited to the scope of separate consent. |
+| Access·security logs | Website visit records (access logs) are retained for 3 months (Protection of Communications Secrets Act). |
+| Customer support records | Records concerning consumer complaints and dispute resolution are retained for 3 years (Paragraph 2). |
+| Backup data | Sequentially renewed·deleted according to the backup rotation cycle; backup remnants after deletion of the original are also deleted within the rotation cycle. |
+| Consent history (consent ledger) | Retained after the end of processing, to the extent permitted·required by applicable law, in order to evidence consent·withdrawal. |
 | Payment·tax·statutory retention items | The statutory period under Paragraph 2 |
 
 ② **Items subject to a statutory retention obligation** are retained separately from other personal data for the period prescribed by the relevant law and are not used beyond the retention purpose. The retention table under Republic of Korea law is as follows, and the statutory retention obligations of other countries are stated in the Country-specific Notice.
@@ -184,14 +179,13 @@ The Company does not currently automatically make decisions that produce legal o
 
 ## Article 11 (Measures to Ensure the Safety of Personal Data)
 
-The Company takes the following technical·managerial·physical measures. The actual level of implementation·operation of the measures below is **[operational actual measurement required — V process]** and is confirmed·corrected through actual measurement·comparison with development.
+The Company takes the following technical·managerial·physical measures.
 
 1. Passwords are stored with protective measures applied that make restoration impossible, such as a secure one-way hash, and encrypted storage of other key information and encrypted communication of the transmission section
 2. Minimization·differential grant of access rights (organization-farm-user permission system) and access control, retention·inspection of access records
-3. Operation of security systems against hacking·malicious code, vulnerability inspection, data backup
+3. Operation of security systems against hacking·malicious code, data backup
 4. Minimization of personnel handling personal data and regular training
 5. Establishment·implementation of an internal management plan and inspection of compliance
-6. Measures to prevent re-identification of anonymization outputs and review of appropriateness (Article 3, Paragraph 4)
 
 ## Article 12 (Notification of Personal Data Breach Incidents)
 
@@ -226,7 +220,7 @@ Data Subjects may contact the supervisory authority of the competent country for
 
 **Supplementary Provisions**
 
-- Date of notice: [ ] / Effective date: [ ]
+- Date of notice·Effective date: to be stated upon publication of the confirmed version of this Notice.
 - Revision history: [Table of version·date of notice·effective date·summary of changes — maintained at all times]
 
 ---
