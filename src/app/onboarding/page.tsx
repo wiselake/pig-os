@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslations, useLocale } from "next-intl";
+import { rateLimitMessage, resolveApiError } from "@/lib/api/errors";
 
 import { authApi } from "@/lib/api/endpoints/auth";
 import { consentApi } from "@/lib/api/endpoints/consent";
@@ -94,6 +95,7 @@ export default function OnboardingPage() {
   // 로케일 = next-intl provider(= NEXT_LOCALE 쿠키). UI는 useTranslations, API엔 locale 전달.
   const locale = useLocale();
   const t = useTranslations("onboarding");
+  const tErr = useTranslations("errors");
 
   /**
    * 서버가 준 detail 을 화면 상태로 옮긴다.
@@ -103,13 +105,23 @@ export default function OnboardingPage() {
    *   사용자가 고쳐서 다시 시도할 수 있는 성질이 아니다. 빨간 오류 상자에 영문
    *   코드를 그대로 띄우면 장애로 읽힌다.
    */
-  const applyDetail = (detail: unknown, fallback: string) => {
+  const applyDetail = (detail: unknown, fallback: string, err?: unknown) => {
     if (typeof detail === "string" && detail.includes("PUBLICATION_NOT_APPROVED")) {
       setBlocked(true);
       setError(null);
       return;
     }
     setBlocked(false);
+    // ★ 429 는 "요청이 너무 잦다" 이지 가입 실패도 법역 차단도 아니다. detail 원문
+    //   ("RATE_LIMITED:signup")을 그대로 띄우면 영문 상수가 화면에 나온다 — 451 에서
+    //   겪은 것과 같은 모양. 입력값은 form state 에 그대로 남는다.
+    if (err !== undefined) {
+      const e = resolveApiError(err);
+      if (e.kind === "rateLimited") {
+        setError(rateLimitMessage(tErr, e));
+        return;
+      }
+    }
     setError(typeof detail === "string" ? detail : fallback);
   };
 
@@ -168,7 +180,7 @@ export default function OnboardingPage() {
         // 절대 삼키지 않는다. 서버가 준 사유가 있으면 그대로 보여준다
         // (451 SIGNUP_BLOCKED:{reason} 계약 보존).
         const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-        applyDetail(detail, t("consentRecordFailed"));
+        applyDetail(detail, t("consentRecordFailed"), err);
         return;   // ★ 여기서 멈춘다 — setAuth·쿠키·navigation 없음
       }
 
@@ -186,7 +198,7 @@ export default function OnboardingPage() {
     },
     onError: (err: unknown) => {
       const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      applyDetail(detail, "Something went wrong. Please try again.");
+      applyDetail(detail, "Something went wrong. Please try again.", err);
     },
   });
 

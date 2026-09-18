@@ -10,7 +10,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { authApi } from "@/lib/api/endpoints/auth";
-import { resolveApiError, withRequestId } from "@/lib/api/errors";
+import { rateLimitMessage, resolveApiError, withRequestId } from "@/lib/api/errors";
 import { useAuthStore } from "@/store/auth.store";
 import { identifyUser } from "@/lib/analytics";
 
@@ -224,6 +224,8 @@ export default function LoginPage() {
       const e = resolveApiError(err);
       if (e.status === 401) setServerError(t("errInvalid"));
       else if (e.status === 422) setServerError(t("errFormat"));
+      // 429 는 비밀번호 오류가 아니다 — 위 401 분기 앞에 status 로 걸리지 않는 것이 중요하다.
+      else if (e.kind === "rateLimited") setServerError(rateLimitMessage(tErr, e));
       else setServerError(withRequestId(tErr(e.messageKey), e.requestId));
     }
   };

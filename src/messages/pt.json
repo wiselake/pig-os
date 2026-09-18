@@ -330,6 +330,7 @@
     "conflict": "Isso conflita com dados existentes. Atualize e tente novamente.",
     "validation": "Algumas informações são inválidas. Verifique e tente novamente.",
     "rateLimited": "Muitas tentativas. Aguarde um momento e tente novamente.",
+    "rateLimitedRetryIn": "Você poderá tentar novamente em cerca de {minutes} min.",
     "dbUnavailable": "O serviço está temporariamente indisponível. Tente novamente em instantes.",
     "serverError": "Ocorreu um problema do nosso lado. Contate o suporte com este código:"
   },

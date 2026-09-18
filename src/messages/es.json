@@ -330,6 +330,7 @@
     "conflict": "Esto entra en conflicto con datos existentes. Actualice e inténtelo de nuevo.",
     "validation": "Algunos datos no son válidos. Revíselos e inténtelo de nuevo.",
     "rateLimited": "Demasiados intentos. Espere un momento e inténtelo de nuevo.",
+    "rateLimitedRetryIn": "Podrás intentarlo de nuevo en unos {minutes} min.",
     "dbUnavailable": "El servicio no está disponible temporalmente. Inténtelo en unos momentos.",
     "serverError": "Ocurrió un problema de nuestro lado. Contacte con soporte con este código:"
   },

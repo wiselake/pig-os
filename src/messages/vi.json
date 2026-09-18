@@ -330,6 +330,7 @@
     "conflict": "Dữ liệu bị xung đột. Vui lòng tải lại và thử lại.",
     "validation": "Một số thông tin không hợp lệ. Vui lòng kiểm tra và thử lại.",
     "rateLimited": "Quá nhiều lần thử. Vui lòng đợi một lát rồi thử lại.",
+    "rateLimitedRetryIn": "Bạn có thể thử lại sau khoảng {minutes} phút.",
     "dbUnavailable": "Dịch vụ tạm thời không khả dụng. Vui lòng thử lại sau giây lát.",
     "serverError": "Đã xảy ra sự cố từ phía chúng tôi. Vui lòng liên hệ hỗ trợ kèm mã này:"
   },

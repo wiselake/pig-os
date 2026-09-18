@@ -330,6 +330,7 @@
     "conflict": "This conflicts with existing data. Refresh and try again.",
     "validation": "Some information is invalid. Please check and try again.",
     "rateLimited": "Too many attempts. Please wait a moment and try again.",
+    "rateLimitedRetryIn": "You can try again in about {minutes} min.",
     "dbUnavailable": "Service is temporarily unavailable. Please try again in a moment.",
     "serverError": "Something went wrong on our side. Please contact support with this code:"
   },
