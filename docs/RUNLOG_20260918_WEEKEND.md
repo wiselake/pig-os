@@ -73,3 +73,20 @@ push: PigOS safety/pigos-20260916 은 `7d13e26` 까지 push 됨 (이후 `698bda3
 | pigos-android #5 | fail (인프라) | `0e1d450` run 35321591116 (변동 없음, 수정 안 함) |
 
 변경 0.
+
+## CP-6 · 2026-09-19 05:53 KST — PR #2 빨강 (시간대 경계 날짜 의존, 코드 변경 없이 발생)
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| G1 PR #3 | **DONE (유지)** | head `d088e73` · base `origin/main@8a80ea4` 미변동 · MERGEABLE/CLEAN · 3 checks SUCCESS. 코드 변경 0 |
+| PR #2 | **red** | head `fe6e455`(docs-only) run **35371186151 failure** — backend(3.12)·(3.14) 둘 다 `tests/integration/test_kpi_presentation_resolver.py::test_future_presentation_row_ignored` `assert 10 == 30`. frontend success. mergeStateStatus=BLOCKED |
+| pigos-ios #4 | green | `e750daa` run 35321586461 (변동 없음) |
+| pigos-android #5 | fail (인프라) | `0e1d450` run 35321591116 (변동 없음) |
+
+**PR #2 실패 원인(기록만, 수정 안 함)**
+- 테스트는 `tomorrow = date.today() + 1`(러너 로컬 = UTC)로 미래 행을 만들고, 리졸버는 `governance_today()` = `GOVERNANCE_TZ` 기본 `Asia/Seoul` 로 발효일을 판정한다(`kpi_policy_resolver.py:230`, `farm_time.py:98-103`).
+- run 시각 2026-09-18 **16:54 UTC** = 09-19 01:54 KST → KST 의 "오늘" 이 UTC 의 "내일" 과 같아 미래 행이 이미 발효 → 10.
+- 즉 **15:00–24:00 UTC(00:00–09:00 KST) 창에서만 깨지는 시간대 경계 날짜 의존**. 같은 테스트가 `origin/main` 에도 그대로 있다(grep 1건) → PR #3 도 동일 위험. PR #3 의 green run 35293878390 은 01:05 UTC(10:05 KST) 실행이라 창 밖이었다.
+- docs-only 커밋이 트리거했을 뿐 코드 원인 아님. 임의 수정 금지 지시 → **재실행도 하지 않는다**(KST 낮에 재실행하면 초록이 되겠지만 그것은 문제를 가리는 것). 결정 큐 D9 로 올린다.
+
+**G1 영향**: PR #3 head 는 green 그대로이고 base 도 안 움직였다 → merge-ready 유지. 단 **base 가 움직여 CI 재실행이 필요해지면 KST 09:00–24:00 에 돌려야 한다**(그 외 시간엔 이 테스트로 빨강). 인계 패킷에 명시.
