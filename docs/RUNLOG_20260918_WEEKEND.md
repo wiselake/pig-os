@@ -62,3 +62,14 @@ push: PigOS safety/pigos-20260916 은 `7d13e26` 까지 push 됨 (이후 `698bda3
 | pigos-android #5 | fail (인프라) | `0e1d450` run 35321591116 (변동 없음, 수정 안 함) |
 
 변경 0 · 인계 패킷 갱신 불필요.
+
+## CP-5 · 2026-09-19 01:53 KST
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| G1 PR #3 | **DONE (유지)** | head `d088e73` · base `origin/main@8a80ea4` 미변동 · MERGEABLE/CLEAN · 3 checks SUCCESS. 코드 변경 0 |
+| PR #2 | green | head `950e49d` run **35347118078 success** · MERGEABLE/CLEAN |
+| pigos-ios #4 | green | `e750daa` run 35321586461 (변동 없음) |
+| pigos-android #5 | fail (인프라) | `0e1d450` run 35321591116 (변동 없음, 수정 안 함) |
+
+변경 0.
