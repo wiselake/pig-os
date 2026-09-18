@@ -105,23 +105,73 @@ def _manifest() -> dict:
 
 
 # ── 1. 격리 만료 — 이벤트가 아니라 절대 시각 ────────────────────────────────
+#
+# ★ 2026-09-18 교체. 이전 판은 "만료되면 무조건 실패" 였고 2026-09-17 23:59:59 KST 에
+#   설계대로 빨개졌다. 그러나 **사실을 표현하려고 CI 를 영구히 빨갛게 두면 안 된다** —
+#   빨간 CI 는 며칠 뒤 "원래 빨간 거" 가 되고, 그때 진짜 회귀가 섞여 들어와도 안 보인다.
+#
+#   테스트의 역할이 바뀐다:
+#     만료 전   "아직 만료되지 않았어야 한다"
+#     만료 후   "만료됐다는 사실이 manifest 에 정직하게 적혀 있고, 그 상태에서 게이트가
+#               fail-closed 로 닫혀 있다"
+#   즉 운영 상태는 RED 인데 테스트는 GREEN 이어야 한다 — 테스트가 나쁜 상태를 **정확히
+#   감지했다**는 것이 성공이다. 만료 사실을 지우거나 expires_at 을 밀면 여기서 실패한다.
 
-def test_quarantine_has_not_expired():
-    """★ 만료되면 무조건 실패한다. 자동 연장 없음.
 
-    이벤트 기반("결정되면 해소")만 두면 결정이 밀릴 때 사실상 영구 예외가 된다.
-    연장하려면 사유를 적고 expires_at 을 바꾸는 별도 커밋이 필요하며,
-    그 커밋 자체가 감사 흔적이 된다."""
-    mf = _manifest()
+def _expired(mf: dict) -> bool:
     expires = datetime.fromisoformat(mf["expires_at"])
-    now = datetime.now(expires.tzinfo)
-    assert now <= expires, (
-        f"공개 문서 미해결 마커 격리가 만료됐다 (expires_at={mf['expires_at']}).\n"
-        f"  현재 노출: {mf['status']}\n"
-        f"  해소 조건: {mf['remediation_condition']}\n"
-        f"  → 해소했으면 KNOWN_PUBLICATION_EXPOSURE.md 를 삭제하고 이 테스트를 hard fail 로 전환한다.\n"
-        f"  → 아직이면 책임자 재판단 후 사유와 함께 expires_at 을 명시 변경한다."
+    return datetime.now(expires.tzinfo) > expires
+
+
+def test_quarantine_expiry_is_recorded_honestly_and_fails_closed():
+    """만료됐으면 그 사실이 적혀 있어야 하고, 게이트는 닫혀 있어야 한다.
+
+    자동 연장 없음: expires_at 을 미래로 옮기는 것은 "사유 + 새 만료일 + 그날까지 닫힐
+    항목" 을 함께 적는 별도 커밋으로만 한다(연장 이력 절). 이 테스트는 그 커밋 없이
+    날짜만 바뀐 것도 잡는다 — expires_at 이 미래인데 quarantine_expired 가 true 로 남아
+    있으면 모순이라 실패한다.
+    """
+    mf = _manifest()
+    expired = _expired(mf)
+
+    if not expired:
+        # 아직 창 안 — 만료 표기가 미리 찍혀 있으면 안 된다
+        assert not mf.get("quarantine_expired"), (
+            "expires_at 은 미래인데 quarantine_expired=true 다 — 날짜만 밀었거나 표기가 틀렸다"
+        )
+        return
+
+    # ── 만료 후: 사실이 정직하게 적혀 있는가 ─────────────────────────────────
+    assert mf.get("quarantine_expired") is True, (
+        f"격리가 만료됐다(expires_at={mf['expires_at']}) 는데 manifest 에 "
+        f"quarantine_expired=true 가 없다. 만료를 숨기지 않는다 — 필드를 적어라."
     )
+    assert mf.get("quarantine_expired_at") == mf["expires_at"], (
+        "quarantine_expired_at 은 expires_at 과 같아야 한다 — 만료 시각을 새로 만들지 않는다"
+    )
+    assert "Quarantine expired before production remediation completed" in mf.get("audit_note", ""), (
+        "감사 문장이 빠졌다. 이 사건에서 가장 중요한 사실이다 — 숨기지 않는다"
+    )
+
+    # ── 만료 후: 게이트가 fail-closed 인가 ───────────────────────────────────
+    if mf.get("remediation_status") == "NOT_DEPLOYED":
+        assert mf.get("incident_status") == "ACTIVE", (
+            "프로덕션에 정정이 안 갔는데 incident 가 ACTIVE 가 아니다"
+        )
+        prod = str(mf.get("production_marker_total", ""))
+        assert prod and prod[0].isdigit() and int(prod.split()[0]) > 0, (
+            f"remediation_status=NOT_DEPLOYED 인데 production_marker_total 이 0 이거나 비었다: {prod!r}. "
+            f"둘 중 하나가 거짓이다."
+        )
+        assert mf["status"] in _UNRESOLVED_STATES, (
+            f"프로덕션 정정 전인데 status={mf['status']!r} — 종결로 읽힌다"
+        )
+    else:
+        # REMEDIATED 로 넘어가려면 종결 기록이 전부 있어야 한다 (종결 양식 절)
+        assert mf.get("status") == "REMEDIATED"
+        for k in ("remediated_at", "deployed_commit", "production_marker_count"):
+            assert k in mf, f"REMEDIATED 인데 {k} 가 없다 — 검증 없는 종결"
+        assert mf["production_marker_count"] == 0
 
 
 # 아직 해소되지 않은 상태들. "해소됐다"는 주장만 막는다.

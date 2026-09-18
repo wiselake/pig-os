@@ -154,7 +154,7 @@ PR #2              만료 테스트 FAIL — 의도된 빨강
   "remediation_status": "NOT_DEPLOYED",
   "incident_status": "ACTIVE",
   "audit_note": "Quarantine expired before production remediation completed. 소스는 2026-09-16 에 마커 0 이 됐으나 프로덕션은 2e372b1(2026-08-28)을 그대로 서빙 중이다 — 2026-09-10 정정도 배포된 적 없다. 만료일은 밀지 않았다.",
-  "production_marker_total": "★ 48 (언어별 24) — 2026-09-16 17:4x KST HTTP 실측. V 11 · OPEN 10 · COUNSEL 1 · 빈 대괄호 2, ko/en 동일. 즉 2026-09-10 의 24→1 정정은 저장소에만 있고 프로덕션에 배포된 적이 없다 (프로덕션 api/content/legal/public_privacy.ko.md 는 6f16e41, 2026-08-27 자). 공개 노출은 2026-09-03 최초 실측 이래 줄어든 적이 없다.",
+  "production_marker_total": 48,
   "source_marker_total": 0,
   "remediation_pr": "wiselake/pig-os#3 hotfix/legal-markers-20260917 @ d088e73 — CI green, merge 대기 (결재 3·4·6·7)",
   "observed_at": "2026-09-10T00:00:00+09:00",
@@ -183,7 +183,9 @@ PR #2              만료 테스트 FAIL — 의도된 빨강
     }
   ],
   "last_remediation_at": "2026-09-16T17:30:00+09:00",
-  "remediation_note": "★ 키 이름: last_remediation_at 은 가장 최근 부분 정정일이다. 종료(마커 0) 시에만 remediated_at 을 새로 만든다. 2026-09-16: V-11 조건 1·6 을 프로덕션 read-only 로 실측해 종결하고 [확인 중] 행을 [수집하지 않음] 으로 병합했다 — 조건 1: farms 80행 중 gps_lat·gps_lng non-null 0건(둘 중 하나만 있는 행도 0건, 좌표값 미출력) / 조건 6: 2026-09-16 03:40 전체 백업을 격리된 PostgreSQL 17 에 복원해 farms 79행 lat 0 lng 0 확인, audit_log 390행 중 farms 관련 0건·gps 언급 0건, public 스키마에 다른 좌표 컬럼 없음. 결재 4 (a) '사용하지 않는다' 의 확정조건 5개가 이로써 전부 충족됐다. ★ 그럼에도 status 는 PARTIALLY_REMEDIATED 다 — SOURCE 마커 0 ≠ PRODUCTION 마커 0. api.pigos.io/legal/privacy 는 배포 전까지 정정 전 본문을 서빙하며, 격리 종료는 프로덕션 엔드포인트에서 마커 0 이 확인된 뒤에만 가능하다. 이전 정정(2026-09-10): 언어별 24건 → 1건. 실행 결정 Brian(대표 구두 포괄 승인 하의 위임): [V] 11건 문안 정정 · [OPEN] 10건은 임의 기간을 만들지 않고 마커만 제거 (보유기간 정책 자체는 RETENTION_POLICY=OPEN 으로 별도 유지) · [COUNSEL] 1건은 제7조를 '법률 검토 중' 공개 조항으로 전환 · [ ] 2건은 부칙을 확정본 게시 시 기재로 변경."
+  "remediation_note": "★ 키 이름: last_remediation_at 은 가장 최근 부분 정정일이다. 종료(마커 0) 시에만 remediated_at 을 새로 만든다. 2026-09-16: V-11 조건 1·6 을 프로덕션 read-only 로 실측해 종결하고 [확인 중] 행을 [수집하지 않음] 으로 병합했다 — 조건 1: farms 80행 중 gps_lat·gps_lng non-null 0건(둘 중 하나만 있는 행도 0건, 좌표값 미출력) / 조건 6: 2026-09-16 03:40 전체 백업을 격리된 PostgreSQL 17 에 복원해 farms 79행 lat 0 lng 0 확인, audit_log 390행 중 farms 관련 0건·gps 언급 0건, public 스키마에 다른 좌표 컬럼 없음. 결재 4 (a) '사용하지 않는다' 의 확정조건 5개가 이로써 전부 충족됐다. ★ 그럼에도 status 는 PARTIALLY_REMEDIATED 다 — SOURCE 마커 0 ≠ PRODUCTION 마커 0. api.pigos.io/legal/privacy 는 배포 전까지 정정 전 본문을 서빙하며, 격리 종료는 프로덕션 엔드포인트에서 마커 0 이 확인된 뒤에만 가능하다. 이전 정정(2026-09-10): 언어별 24건 → 1건. 실행 결정 Brian(대표 구두 포괄 승인 하의 위임): [V] 11건 문안 정정 · [OPEN] 10건은 임의 기간을 만들지 않고 마커만 제거 (보유기간 정책 자체는 RETENTION_POLICY=OPEN 으로 별도 유지) · [COUNSEL] 1건은 제7조를 '법률 검토 중' 공개 조항으로 전환 · [ ] 2건은 부칙을 확정본 게시 시 기재로 변경.",
+  "production_marker_total_incl_decision_refs": 64,
+  "production_marker_detail": "격리 종류표 기준 48 = (V 11 · OPEN 10 · COUNSEL 1 · [ ] 2) × ko/en. 종류표에 없던 [D-xx] 8×2 를 더하면 64. 2026-09-16 17:4x KST 최초 HTTP 실측, 2026-09-18 재확인. 프로덕션 파일은 6f16e41(2026-08-27) 내용 — 2026-09-10 정정(ec99391)은 배포된 적 없다. 공개 노출은 2026-09-03 최초 실측 이래 줄어든 적이 없다."
 }
 ```
 <!-- QUARANTINE_MANIFEST_END -->
