@@ -1,5 +1,18 @@
 # PigOS 진행 상황
 
+## [현재상태 2026-09-18] — 429 3-클라이언트 파리티 완료 · TRACK A FROZEN · B-10 대기
+
+```
+429 파리티  Web 8b7077c · Android pigos-android 0e1d450 (fix/rate-limit-429, 446/0 로컬) · iOS pigos-ios 7210e1c (fix/rate-limit-429, CI run 35318843546 green 216/0)
+            THREE_CLIENT_PARITY_VERIFIED = YES — 예외 명시: iOS 재설정 플로우 N/A · iOS en 단일 locale(기존 갭) · iOS UI 테스트 없음
+            정책 소스 = 서버 하나. 클라이언트 한도 상수 0(3 저장소 소스 스캔 테스트) · 자동 재시도 0 · 카운트다운 0 · 게이트/정책 변경 0
+            정본: docs/PLATFORM_PARITY.md §9-9 · §9-9-1 (PigOS cace7f0, safety/pigos-20260916)
+push        mobile 두 브랜치 remote push(비-main) · PigOS 는 safety 브랜치만. main 직접 push 0 · 배포 0 · 프로덕션 쓰기 0
+            Android CI 는 PR 열려야 실행(android.yml push:main/PR 만) → Draft PR 여부는 Brian 결정
+대기        결재 3·4·6·7 → PR #3 merge → 배포 → 검증 → REMEDIATED (TRACK A FROZEN, docs/releases/RELEASE_PACKET_20260918.md)
+            B-10 프로덕션 스크립트 적용 / lifecycle / freshness 스케줄 — 미승인 (docs/runs/B10_OFFSITE_BACKUP_20260918.md)
+```
+
 ## [현재상태 2026-09-16] — 원격 백업 완료 · Draft PR #2 · main/프로덕션 미변경
 
 ```
