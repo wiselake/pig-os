@@ -40,3 +40,14 @@ push: PigOS safety/pigos-20260916 은 `7d13e26` 까지 push 됨 (이후 `698bda3
 | 인계 패킷 | 초안 확정 | `e8c2bfd` `docs/HANDOVER_20260921.md` — G1~G5 · 결정 D1~D8 · 제9조 10행 발췌(md5 `0064210d…`) · 다음 한 수 = D1 |
 | push | safety/pigos-20260916 @ `e8c2bfd` (= PR #2 head → PR #2 CI 재실행 중) | |
 | 유지 모드 | 4시간 주기 체크포인트 예약(세션 cron `d36c6bbe`, 01/05/09/13/17/21시 :23) — G1 재확인 · CI 결과 기록 · runlog append. 코드 변경 없음 | |
+
+## CP-3 · 2026-09-18 17:53 KST
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| G1 PR #3 | **DONE (유지)** | head `d088e73` · base `origin/main@8a80ea4` 미변동 · MERGEABLE/CLEAN · backend(3.12)/backend(3.14)/frontend = SUCCESS. 재실행 불필요, 코드 변경 0 |
+| PR #2 (safety/pigos-20260916) | green | head `4f43d68` run **35322258960 success** (e8c2bfd 의 run 35322205796 은 concurrency 로 cancelled — 후속 push 에 대체됨). MERGEABLE/CLEAN |
+| pigos-ios #4 | green | `e750daa` run 35321586461 success (변동 없음) |
+| pigos-android #5 | fail (인프라) | `0e1d450` run 35321591116 failure — CP-1 원인 그대로(setup-android `tools`). 재실행·수정 안 함 |
+
+변경 0 · push 는 이 runlog 커밋만.
