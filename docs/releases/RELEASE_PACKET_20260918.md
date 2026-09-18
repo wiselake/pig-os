@@ -24,8 +24,8 @@ PROD CHANGED    NO    2e372b1 · 애플리케이션 쓰기 0 · DB 쓰기 0 · �
 ### 왜 나눴나
 
 문제는 하나다 — **공개 방침의 내부 마커 48건(D-xx 포함 64), 격리는 2026-09-17 23:59:59 KST 에 만료됐다**.
-그것을 없애려고 154커밋(속도제한·잡 의미론·ops 엔드포인트·B-9·G-3·법무 문서)을 오늘 프로덕션에
-넣을 이유가 없다. 마커 제거는 형식 게시(PUBLISHED)가 아니라 **정정 복구(correction remediation)**라
+그것을 없애려고 정규 릴리스 전체(PR #2 — 속도제한·잡 의미론·ops 엔드포인트·B-9·G-3·법무 문서)를
+프로덕션에 넣을 이유가 없다. 마커 제거는 형식 게시(PUBLISHED)가 아니라 **정정 복구(correction remediation)**라
 Path A 로 이미 분리돼 있던 경로다.
 
 ---
@@ -98,7 +98,9 @@ PUBLIC_INTERNAL_MARKER_EXPOSURE = CLOSED
 2026-09-03  최초 실측         48 확인, 격리 시작
 2026-09-10  저장소 정정       48 → 2  (소스)  ★ 배포 안 됨
 2026-09-16  저장소 정정        2 → 0  (소스)  · 밤에 PROD 48 재확인 — "9/10 정정은 배포된 적 없다"
-2026-09-17  PR #3             PROD 48 → 0  (예정)
+2026-09-17  PR #3 준비 · CI GREEN                → PROD unchanged · 23:59:59 격리 만료
+2026-09-18  [D-xx] 8×2 발견(64) · 결재 7 · fail-closed 테스트  → PROD unchanged
+2026-09-18+ 결재 3·4·6·7 후 배포 예정              → verify PASS 시 48/64 → 0, 그때 REMEDIATED
 ```
 
 종결 시 manifest 는 **불변 사건 기록**으로 남긴다:
@@ -212,7 +214,9 @@ Q1  OPEN 10건에 값을 채웠나            아니오. ec99391 diff: 미확정
 Q2  CI GREEN 의 의미                    ★ PR #3 의 초록은 9f6b8fe 이전엔 "가드 없음" 이었다 — main 에는 격리
                                         테스트도 마커 enforcer 도 없다. 9f6b8fe 로 enforcer + 재동기화 가드 추가.
                                         지운 "날짜 의존 테스트" 는 trend PSY 테스트다. 격리 만료 테스트가 아니다.
-                                        PR #2 의 만료 테스트는 오늘(9/18) 실제로 FAIL 한다 — 설계대로. 연장하지 않는다
+                                        기존 test_quarantine_has_not_expired 는 9/18 만료 사실을 만나 FAIL 했다(설계대로).
+                                        d9eeda4 에서 만료·미배포·ACTIVE 상태를 fail-closed 로 검증하는 테스트로 교체했고,
+                                        현재 final-head CI 는 GREEN 이다. 만료일은 밀지 않았다
 Q3  publish_candidate 재오염            정본에 24건 그대로. public_notice.py docstring 이 "cp 하라" 고 적혀 있었다 →
                                         정본은 안 고치고(승인 전 편집 금지) "정본에 마커가 있는 동안 서빙본 == 정본" 을
                                         실패로 만드는 가드 추가 · docstring 반대로 고침. cp 재현 시 2건 실패 확인
@@ -342,6 +346,18 @@ BLOCKER                  결재 3 / 4 / 6 / 7
 ```
 
 ★ **여기서 개발은 끝난다.** PR #3 에 이후 다른 개발을 섞지 않는다. 다음 상태 전이는 §3-1 ①~⑪ 뿐이다.
+
+## 3-4. TRACK A — FROZEN (2026-09-18)
+
+```
+TRACK A   FROZEN — 이 문서와 PR #3 에 이후 어떤 개발도 넣지 않는다. 결재·배포 기록만 덧붙인다
+PR #3     d088e73 / GREEN / TECHNICALLY MERGE-READY
+BLOCKER   결재 3 · 4 · 6 · 7
+PROD      2e372b1 / unchanged
+INCIDENT  EXPIRED · ACTIVE · NOT_DEPLOYED
+```
+
+다음 개발은 별도 브랜치·트랙: B-10 오프사이트 백업 복구(22일 중단) → 429 3클라이언트 parity → H17 → Feed Intelligence.
 
 ## 4. 권고 — 오늘 오전의 **한 단계**
 
