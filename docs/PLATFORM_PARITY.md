@@ -1522,13 +1522,39 @@ POST /api/v1/auth/login · password-reset/{request,confirm}   → "RATE_LIMITED:
 | | `platform_implementation_status` | 근거 |
 |---|---|---|
 | Core | `DONE` | `app/core/rate_limit.py` · 라우터 5곳 · 테스트 11건 (`test_rate_limit.py`) |
-| Web | `PLANNED` | 429 안내 문구 없음. 지금은 일반 오류로 뜬다 |
-| Android | `PLANNED` | 429 미처리 — 451 과 같은 경로를 타므로 `consent_blocked_title` 이 아니라 일반 실패가 된다 |
-| iOS | `PLANNED` | 429 미처리 |
+| Web | `DONE` | PigOS `8b7077c` (safety/pigos-20260916) — `src/lib/api/errors.ts` `rateLimited` + `parseRetryAfter` · onboarding/login/forgot-password 3화면 · 8 locale `errors.rateLimitedRetryIn` · vitest +21 (`apiErrors.test.ts` +9, `pages/rate-limit-429.test.tsx` 12) |
+| Android | `DONE` | pigos-android `0e1d450` (fix/rate-limit-429) — `data/remote/RateLimited.kt` · Login/Onboarding VM + 화면 · 8 locale `rate_limited(_retry_in)` · unit 446/0 (JDK 21, `testDebugUnitTest`; Robolectric 화면 테스트 포함) |
+| iOS | `DONE` | pigos-ios `7210e1c` (fix/rate-limit-429) — `APIError.rateLimited` · `APIClient` Retry-After 전달 · LoginScreen 꼬리말 제거 · `RateLimitTests.swift` 11건. Windows 에서 작성 → macOS CI run 35318843546(workflow_dispatch) **green**: SwiftLint 통과 · 216/0 (RateLimitTests 11/0) |
 
-★ 세 클라이언트 전부 **아직 429 를 모른다.** 가입이 다시 열리기 전에 최소 한 줄씩은
-필요하다 — "잠시 후 다시 시도해 주세요" 수준이면 족하고, 법률 판단이 들어가지 않으므로
-H17·D-13 같은 결정에 걸리지 않는다.
+### 9-9-1. 3-클라이언트 파리티 매트릭스 (2026-09-18)
+
+정책 소스는 서버 하나다. 클라이언트는 **뜻(한도 상태)** 과 **서버가 준 Retry-After** 만 보여준다.
+한도값 재현 없음(`MAX_SIGNUP=5` 류 상수 금지 — 세 저장소 모두 소스 스캔 테스트로 강제) ·
+자동 재시도 없음 · 카운트다운/버튼 잠금 없음 · 429 ≠ 451 ≠ 401.
+
+| 항목 | Web | Android | iOS |
+|---|---|---|---|
+| 429 → 한도 상태 매핑 (status 또는 `RATE_LIMITED` 토큰) | ✅ `resolveApiError` | ✅ `RateLimited.from(HttpException/Response)` | ✅ `APIError.from(status:detail:retryAfter:)` |
+| `Retry-After` 파싱 — delta-seconds · HTTP-date · ≤0/>86400/불명 → 없음 | ✅ | ✅ | ✅ |
+| 폴백 — 값 없으면 기본 문장만 (기본 대기시간 발명 금지) | ✅ | ✅ | ✅ |
+| 가입(register / onboarding complete) 429 | ✅ onboarding 페이지 | ✅ `OnboardingViewModel.fail` | ✅ `errorDescription` 경로 (`/auth/register`) |
+| 로그인 429 — 401 문구와 분리, 자격증명 안내 없음 | ✅ | ✅ `credentialHint=false` | ✅ `errorIsRateLimited` |
+| 비번 재설정 요청 429 — 열거 안전 "발송" 문구 대신 한도 상태 | ✅ forgot-password | ✅ `requestReset` (confirm 섹션 열지 않음) | `NOT_APPLICABLE` — iOS 에 재설정 플로우 없음(관리자 문의 alert) |
+| 비번 재설정 확정 429 — "코드 무효" 와 분리 | ✅ | ✅ `confirmReset` | `NOT_APPLICABLE` (同上) |
+| 자동 재시도 없음 (호출 1회 단언) | ✅ | ✅ `loginCalls/completeCalls/resetRequestCalls == 1` | ✅ stub handler 1회 |
+| 8 locale 문구 | ✅ 8/8 (`i18n.test.ts` 파리티) | ✅ 8/8 (`values` + 7) | ⚠️ **en 만** — 앱 자체가 `Localizable.xcstrings` en 단일 (429 와 무관한 기존 갭) |
+| 화면까지 도달 검증 | ✅ RTL 페이지 테스트 | ✅ Robolectric `LoginScreenTest` (ko 실문구) | ✗ UI 테스트 없음 — 단위/클라이언트 스텁까지 |
+| 정책 상수 부재 소스 스캔 | ✅ | ✅ `RateLimitedTest` | ✅ `testAppSourceNeverReplicatesServerPolicy` |
+
+```
+WEB_IMPLEMENTED = YES   WEB_TESTED = YES   (8b7077c · vitest)
+ANDROID_IMPLEMENTED = YES   ANDROID_TESTED = YES   (0e1d450 · 446/0 로컬. CI 는 PR 열려야 실행 — android.yml 이 push:main/PR 만)
+IOS_IMPLEMENTED = YES   IOS_COMPILED = YES   IOS_TESTED = YES   (7210e1c · CI run 35318843546 green · 216/0)
+THREE_CLIENT_PARITY_VERIFIED = YES   — 예외 2종 명시: 재설정 2행 iOS N/A(플로우 부재) · locale 행 iOS en 단일(429 이전부터의 앱 갭, 별도 항목)
+                                       화면 도달 검증은 Web·Android 만(iOS UI 테스트 부재) — 클라이언트 스텁까지로 판정
+```
+
+★ 이 트랙은 **정책·게이트를 바꾸지 않았다.** 서버 한도값·버킷·451 처리·가입 게이트 전부 그대로다.
 
 ## 10. 후속 STEP (이번 범위 아님)
 
@@ -1551,6 +1577,7 @@ STEP 5   CI + Release Gate + App Version Gate
 
 | 날짜 | 내용 |
 |---|---|
+| 2026-09-18 | §9-9 `SIGNUP_RATE_LIMIT_429` 3-클라이언트 반영 — Web `DONE`(8b7077c) · Android `DONE`(0e1d450, 446/0) · iOS `DONE`(7210e1c, CI 216/0). §9-9-1 파리티 매트릭스 신설, `THREE_CLIENT_PARITY_VERIFIED=YES`(iOS 재설정 N/A · iOS en 단일 locale 갭 별도 등재) |
 | 2026-08-27 | `MOBILE_PARITY.md` 신설 |
 | 2026-08-28 | `PLATFORM_PARITY.md` 로 `git mv`. STEP 0 — 기존 6행 evidence 재판정(DONE 2 → IN_PROGRESS, `done_with_sha=0`) · Track B 실측 고정 · `BACKEND_NO_JUDGMENT_STATE=PRESENT` 확인 · blocker 9건 등록 |
 | 2026-09-01 | 자연 실행 acceptance 결과 기록(§9-4-7) — ARQ 73/73 OK · `j_complete` 3→6 · `j_failed=0` · snapshot 219행/73농장, `psy`·`farrowing_rate` 유입 0. `ARQ_HOTFIX = PASS_ON_SUCCESS_PATH / FAILURE_PATH_LOCALLY_VERIFIED` (CLOSED 아님) · `SNAPSHOT_WRITER = OPERATIONAL` |
