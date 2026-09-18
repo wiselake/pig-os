@@ -24,11 +24,21 @@ App Store 제출에는 방침 URL 이 **필수 입력값**이다. 그런데 그 
 그래서 공개용은 `public_privacy.{ko,en}.md` 로 **따로 둔다.** 스토어 제출을 막는 것은
 URL 하나이고, 재동의 흐름은 그것과 분리해서 다룬다.
 
-## 드리프트 방지
+## ★ 이 파일들을 publish_candidate 에서 복사해 오지 말 것 (2026-09-17)
 
-이 파일들은 `docs/legal/publish_candidate/` 정본의 **사본**이다(빌드 컨텍스트가 api/ 라
-docs/ 를 런타임에 읽을 수 없다). 사본은 원본과 갈라지기 마련이므로
-`tests/integration/test_public_notice.py` 가 바이트 동일성을 강제한다.
+예전 판은 "이 파일들은 `docs/legal/publish_candidate/` 정본의 사본이니 정본을 고치면
+`cp` 로 갱신하라" 고 적었고, 테스트가 바이트 동일성을 강제했다. **그 지시가 사고의 경로였다.**
+publish_candidate 는 승인 절차의 정본이지만 승인 전인 지금은 `[OPEN]`·`[COUNSEL]`·`[V]`
+검토 마커가 24건 남아 있는 **작업 초안**이고, 그것을 그대로 복사하면 공개 URL 에 사내
+검토 표기가 노출된다 — 2026-08-27 부터 실제로 그랬다 (KNOWN_PUBLICATION_EXPOSURE, 48건).
+
+관계는 이렇다:
+
+    승인 → publish_candidate 본문 확정 → 그때 서빙본 교체 → PUBLISHED
+    승인 전 → 서빙본은 **정정본**(마커 0)이며 정본과 다른 것이 정상이다
+
+`tests/integration/test_public_legal_no_internal_markers.py` 가 두 가지를 강제한다:
+서빙본에 마커 0, 그리고 정본에 마커가 남아 있는 동안 서빙본이 정본과 같아지면 실패.
 """
 from __future__ import annotations
 
