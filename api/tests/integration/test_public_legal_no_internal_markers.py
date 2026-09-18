@@ -46,6 +46,10 @@ FORBIDDEN: dict[str, re.Pattern[str]] = {
     "COUNSEL": re.compile(r"\[COUNSEL\b[^\]]*\]"),
     "OPEN": re.compile(r"\[OPEN\b[^\]]*\]"),
     "V_MARKER": re.compile(r"\[V\s*[—―–-][^\]]*\]"),
+    # 2026-09-18 추가 — DECISION_REGISTER 참조 번호. 격리의 마커 종류표(V·OPEN·COUNSEL·[ ])에
+    # 없어서 48건 집계에 빠져 있었지만, 정보주체에게는 똑같이 의미 없는 사내 식별자다.
+    # 프로덕션·정본·정정본 세 곳에 언어별 8건씩 있었다.
+    "DECISION_REF": re.compile(r"\[D-\d{2}\]"),
     "V_PROCESS": re.compile(r"V\s*프로세스|\bV[- ]process\b", re.I),
     "OPERATIONAL_CAVEAT": re.compile(r"\[(?:운영|operational)\b[^\]]*\]"),
     "EMPTY_BRACKET": re.compile(r"\[ \]"),
