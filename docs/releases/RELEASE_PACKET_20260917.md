@@ -168,9 +168,21 @@ DECISION_REGISTER 참조 번호가 언어별 8건, 프로덕션·정본·정정�
         각 행은 실측 동작만 기재 (위 A 원문)                                    ★ 신규 — 승인/반려
 ```
 
-대표가 오전에 안 잡히면: 배포는 방어된다(노출 하루 더 > 정정본 게시 리스크). 단 기록에
-**`APPROVAL: VERBAL_2026-09-10 · SIGNED_COPY: NOT_RECEIVED · DECIDED_BY: Brian (execution under
-verbal delegation)`** 을 그대로 적는다. "승인됐었다"로 읽히면 안 된다.
+★ **NOT_RECEIVED 는 승인이 아니다.** 서명 형식은 대체할 수 있어도 **실제 결정**은 대체할 수 없다.
+결재 3·4·6·7 각각에 대해 아래 **전부**가 채워질 때만 "결정됨" 이다:
+
+```
+decision:               APPROVED | REJECTED
+decided_by:             <해당 항목의 canonical decision authority — 실제 사람>
+decided_at:             <실제 시각>
+evidence:               VERBAL | SIGNED
+recorded_by:            <기록자>
+scope:                  <정확한 결재 항목 — 예: "결재 7 제9조 보유기간 표 문안">
+written_confirmation:   RECEIVED | NOT_RECEIVED
+```
+
+`DECIDED_BY` 는 그 사람이 그 항목의 결정 권한자일 때만 성립한다. 개발 세션은 기록자일 뿐
+결정자가 아니다 — 격리 문서가 존재하는 이유가 그것이다.
 
 **D. manifest.json — 손대지 않았다.** main·hotfix 모두 8건 `DRAFT_LAWYER_PENDING`, `git diff` 0.
 정정 배포는 마커를 지우는 것이지 게시 상태를 올리는 것이 아니다.
@@ -285,10 +297,53 @@ TRACK A 의 §1-4 전부 + 아래:
 
 ---
 
+## 3-1. 순서 — 여기서부터는 개발이 아니다
+
+```
+①  결재 3·4·6·7 실제 결정 확보          (위 양식 7필드)
+②  결정 원장 기록                        DECISION_REGISTER · APPROVAL_RECORD
+③  PR #3 Ready for review
+④  required checks 가 d088e73 에 GREEN 인지 마지막 확인
+⑤  merge                                ★ merge 는 remediation 이 아니다
+⑥  배포 직전 PROD SHA 실측              아래 3-2
+⑦  롤백 지점/태그 확인
+⑧  API hotfix 배포
+⑨  scripts/verify_public_notice.sh
+⑩  PROD 마커 0 확인 (5항목 전부)
+⑪  KNOWN_PUBLICATION_EXPOSURE → REMEDIATED (양식은 그 문서에)
+```
+
+### 3-2. 배포 직전 증거 — 하나라도 어긋나면 중단
+
+```
+expected_prod_before   2e372b1
+actual_prod_before     <런타임 실측 — 컨테이너 내 파일 sha256 ↔ git show 2e372b1 대조>
+release_commit         d088e73 (또는 merge commit)
+rollback_commit        2e372b1
+rollback_ref           <deploy.sh 가 찍는 롤백 이미지 태그>
+db_migration_count     0
+```
+
+`actual_prod_before != 2e372b1` 이면 **즉시 중단** — 사이에 다른 배포가 있었다는 뜻이다.
+
+### 3-3. 현재 판정 (2026-09-18)
+
+```
+CODE                     READY
+CI                       GREEN @ d088e73
+PR #3                    TECHNICALLY MERGE-READY
+GOVERNANCE APPROVAL      PENDING (결재 3·4·6·7)
+DB                       SAFE / NO MIGRATION
+PRODUCTION               UNCHANGED (2e372b1)
+PUBLIC EXPOSURE          NOT YET REMEDIATED (48, D-xx 포함 64)
+QUARANTINE               EXPIRED 2026-09-17 23:59:59 KST — 연장 안 함
+REMAINING BLOCKER        HUMAN DECISIONS 3 / 4 / 6 / 7
+```
+
 ## 4. 권고 — 오늘 오전의 **한 단계**
 
 ```
-PR #3 의 CI 결과(run 35183930189)를 확인한다. 초록이면 Ready → merge → api 배포 → §1-4 다섯 항목.
+결재 3·4·6·7 의 실제 결정을 받는다 (§1-8 C 문안, §3 양식). 그 전에는 merge 하지 않는다.
 ```
 
 PR #2 는 그 뒤다. 초판이 "PR #2 Ready" 를 첫 행동으로 잡은 것은 48건 발견 전의 판단이었다.
