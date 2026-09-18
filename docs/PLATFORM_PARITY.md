@@ -1542,7 +1542,7 @@ POST /api/v1/auth/login · password-reset/{request,confirm}   → "RATE_LIMITED:
 | 비번 재설정 요청 429 — 열거 안전 "발송" 문구 대신 한도 상태 | ✅ forgot-password | ✅ `requestReset` (confirm 섹션 열지 않음) | `NOT_APPLICABLE` — iOS 에 재설정 플로우 없음(관리자 문의 alert) |
 | 비번 재설정 확정 429 — "코드 무효" 와 분리 | ✅ | ✅ `confirmReset` | `NOT_APPLICABLE` (同上) |
 | 자동 재시도 없음 (호출 1회 단언) | ✅ | ✅ `loginCalls/completeCalls/resetRequestCalls == 1` | ✅ stub handler 1회 |
-| 8 locale 문구 | ✅ 8/8 (`i18n.test.ts` 파리티) | ✅ 8/8 (`values` + 7) | ⚠️ **en 만** — 앱 자체가 `Localizable.xcstrings` en 단일 (429 와 무관한 기존 갭) |
+| 8 locale 문구 | ✅ 8/8 (`i18n.test.ts` 파리티) | ✅ 8/8 (`values` + 7) | ⚠️ **en 만** — 앱 자체가 `Localizable.xcstrings` en 단일 (429 와 무관한 기존 갭 · 현황/영향: `docs/runs/IOS_LOCALE_GAP_20260918.md`) |
 | 화면까지 도달 검증 | ✅ RTL 페이지 테스트 | ✅ Robolectric `LoginScreenTest` (ko 실문구) | ✗ UI 테스트 없음 — 단위/클라이언트 스텁까지 |
 | 정책 상수 부재 소스 스캔 | ✅ | ✅ `RateLimitedTest` | ✅ `testAppSourceNeverReplicatesServerPolicy` |
 
