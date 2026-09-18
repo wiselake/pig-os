@@ -28,7 +28,8 @@ for lang in ko en; do
 
   # 4  전체 detector — 한 종류만 세면 나머지가 남는다
   total=0
-  for pat in '\[V —' '\[V -' '\[OPEN' '\[COUNSEL\]' '\[ \]'; do
+  # 2026-09-18: [D-xx] 추가 — DECISION_REGISTER 참조. 격리 집계(48)에 빠져 있던 언어별 8건
+  for pat in '\[V —' '\[V -' '\[OPEN' '\[COUNSEL\]' '\[ \]' '\[D-[0-9][0-9]\]'; do
     n=$(printf '%s' "$html" | grep -o "$pat" | wc -l)
     total=$((total + n))
     [ "$n" -gt 0 ] && say "[$lang] 4 marker $pat" "FAIL ($n)"
