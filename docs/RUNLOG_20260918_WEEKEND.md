@@ -30,3 +30,13 @@
 | G5 | NOT_STARTED | — |
 
 push: PigOS safety/pigos-20260916 은 `7d13e26` 까지 push 됨 (이후 `698bda3`·`4fb3aca`·`481cd4e` 로컬). mobile 두 Draft PR 개설(#4 iOS, #5 Android) — merge 아님.
+
+## CP-2 · 2026-09-18 17:40 KST — G1~G5 1차 완료, 주말은 유지 모드
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| G4 | **DONE** | branch `test/trend-psy-frozen-as-of` `c17c5df` (origin push) — 2026-06 고정 시나리오를 `as_of=2026-06-30` 로 복원. 로컬 2 passed · ruff clean. PR 없음, PR #3 무관 |
+| G5 | **DONE (제안만)** | `5a356a3` `docs/runs/PROPOSAL_MARKER0_REQUIRED_CHECK_20260918.md`. 실측: enforcer 파일은 통합 conftest PREFLIGHT 로 DB 필요. ci.yml·protection 변경 0 |
+| 인계 패킷 | 초안 확정 | `e8c2bfd` `docs/HANDOVER_20260921.md` — G1~G5 · 결정 D1~D8 · 제9조 10행 발췌(md5 `0064210d…`) · 다음 한 수 = D1 |
+| push | safety/pigos-20260916 @ `e8c2bfd` (= PR #2 head → PR #2 CI 재실행 중) | |
+| 유지 모드 | 4시간 주기 체크포인트 예약(세션 cron `d36c6bbe`, 01/05/09/13/17/21시 :23) — G1 재확인 · CI 결과 기록 · runlog append. 코드 변경 없음 | |
