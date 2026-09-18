@@ -118,5 +118,4 @@ async def test_org_farms_endpoint_lists_subtree(client: AsyncClient, db: AsyncSe
     await db.flush()
     r = await client.get(f"/api/v1/orgs/{t['vendorA'].id}/farms", headers=_auth(vendor_admin))
     assert r.status_code == 200, r.text
-    farm_ids = {row["id"] if isinstance(row, dict) else row for row in r.json()}
     assert str(t["farmA"].id) in {str(x.get("farm_id", x.get("id"))) for x in r.json()}

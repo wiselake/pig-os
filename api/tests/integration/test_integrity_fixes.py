@@ -41,7 +41,7 @@ class TestIntegrityFixes:
             FarrowingCreate(sow_id=sow.id, mating_id=m.id, farrowing_date=date(2026, 4, 25),
                             born_alive=11, stillborn=1, mummified=0))
         # 이유 — 예전엔 group_code 오버플로로 500. 이제 성공해야.
-        w = await event_service.record_weaning(
+        await event_service.record_weaning(  # 성공 자체가 단언이다
             db, test_farm.id, test_user.id,
             WeaningCreate(sow_id=sow.id, farrowing_id=f.id, weaning_date=date(2026, 5, 16),
                           weaned_count=11))

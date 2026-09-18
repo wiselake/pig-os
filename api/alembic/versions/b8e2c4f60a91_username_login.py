@@ -7,6 +7,7 @@ Revision ID: b8e2c4f60a91
 Revises: d4f6a8c1e2b3
 """
 import sqlalchemy as sa
+
 from alembic import op
 
 revision = "b8e2c4f60a91"

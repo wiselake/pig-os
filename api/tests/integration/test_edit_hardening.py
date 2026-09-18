@@ -112,7 +112,7 @@ async def test_update_farrowing_below_weaned_blocked(db: AsyncSession, test_farm
 # ── update_weaning: 부분이유 형제 합계 초과 차단 ──────────────────────────────
 async def test_update_weaning_sibling_aware(db: AsyncSession, test_farm, test_sow, test_user):
     _, f = await _farrow(db, test_farm, test_sow, test_user, ba=12)
-    w1 = await event_service.record_weaning(
+    await event_service.record_weaning(  # 첫 부분이유 — 이후 w2 갱신의 형제 맥락만 만든다
         db, test_farm.id, test_user.id,
         WeaningCreate(sow_id=test_sow.id, farrowing_id=f.id, weaning_date=date(2026, 5, 10),
                       weaned_count=5, is_partial=True))

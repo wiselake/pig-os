@@ -15,8 +15,8 @@ import json
 from datetime import date
 
 import sqlalchemy as sa
-from alembic import op
 
+from alembic import op
 from app.db.benchmark_seed import kpi_definition_index, validate_benchmark
 
 revision = "d7f9b2c4e6a1"

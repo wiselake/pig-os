@@ -13,11 +13,18 @@ iOS 팀이 제출 준비 중 실측으로 잡았다:
 심사자가 앱 내 문구와 웹을 대조할 수 있는 부분이라 그대로 제출하면 위험했다.
 
 ★ 이 파일이 잠그는 것
-  1) `content/legal/public_privacy.*` 가 `docs/.../publish_candidate/` **정본과 바이트 동일**
-     (빌드 컨텍스트 제약으로 사본을 둘 수밖에 없다 — 사본은 반드시 갈라진다)
-  2) 렌더 결과에 **개인 메일·FCM·Firebase·상호 오기가 없다**
-  3) PIPA §30 필수기재사항(보호책임자·담당부서·연락처)이 실제로 들어 있다
-  4) 라우트가 ko·en 을 모두 서빙하고 Accept-Language 를 존중한다
+  1) 렌더 결과에 **개인 메일·FCM·Firebase·상호 오기가 없다**
+  2) PIPA §30 필수기재사항(보호책임자·담당부서·연락처)이 실제로 들어 있다
+  3) 라우트가 ko·en 을 모두 서빙하고 Accept-Language 를 존중한다
+
+★ 제거된 계약 (2026-09-03)
+  이 파일은 원래 `public_privacy.*` 가 `publish_candidate/` 와 **바이트 동일**하도록
+  강제했다. 그런데 publish_candidate 는 후보이고 `[OPEN]`·`[COUNSEL]` 이 남아 있는 것이
+  정상인 작업물이다. 그 동일성을 강제한 결과 후보의 미완성이 그대로 공개본의 미완성이
+  됐고, App Store 제출 URL 에 미해결 마커 24건이 노출됐다.
+  → 게시 경계 계약은 `test_publication_gate.py` 로 옮겼다.
+    올바른 계약은 "runtime == 승인된 PUBLISHED artifact" 이며,
+    PUBLISHED artifact 가 등록되기 전까지는 격리(KNOWN_PUBLICATION_EXPOSURE)로 대신한다.
 """
 from pathlib import Path
 
@@ -29,42 +36,13 @@ from app.services import public_notice
 pytestmark = pytest.mark.anyio
 
 _API = Path(__file__).resolve().parents[2]
-_REPO = _API.parent
-
-# (런타임 사본, 정본)
-_PAIRS = {
-    "ko": (_API / "content/legal/public_privacy.ko.md",
-           _REPO / "docs/legal/publish_candidate/PIGOS_GLOBAL_PRIVACY_NOTICE.md"),
-    "en": (_API / "content/legal/public_privacy.en.md",
-           _REPO / "docs/legal/publish_candidate/en/PIGOS_GLOBAL_PRIVACY_NOTICE_EN.md"),
-}
 
 # 다시 나타나면 안 되는 것들 — 전부 실제로 게시돼 있던 값이다.
 _FORBIDDEN = ("jhbae@wiselake.co.kr", "gyomoon@wiselake.co.kr", "gyomoon@ezfarm.co.kr",
               "FCM", "Firebase", "Wiselake Co.")
 
 
-# ── 1) 사본 ↔ 정본 드리프트 ──────────────────────────────────────────────────
-
-@pytest.mark.parametrize("lang", ["ko", "en"])
-def test_runtime_copy_matches_canonical(lang):
-    """★ 사본이 정본과 갈라지면 웹만 옛 내용을 서빙하게 된다 — 이번 사고의 구조다.
-
-    빌드 컨텍스트가 api/ 라 docs/ 를 런타임에 읽을 수 없어 사본을 둘 수밖에 없다.
-    정본을 고쳤으면 이 사본도 함께 갱신한다:
-        cp docs/legal/publish_candidate/PIGOS_GLOBAL_PRIVACY_NOTICE.md \\
-           api/content/legal/public_privacy.ko.md
-    """
-    runtime, canonical = _PAIRS[lang]
-    assert runtime.exists(), f"{runtime} 없음 — 라우트가 500 을 낸다"
-    a = runtime.read_text(encoding="utf-8").replace("\r\n", "\n")
-    b = canonical.read_text(encoding="utf-8").replace("\r\n", "\n")
-    assert a == b, (
-        f"{lang}: 런타임 사본이 정본과 다르다. 웹이 옛 내용을 서빙하게 된다.\n"
-        f"  사본 {len(a):,}자 / 정본 {len(b):,}자")
-
-
-# ── 2) 다시 나타나면 안 되는 값 ──────────────────────────────────────────────
+# ── 1) 다시 나타나면 안 되는 값 ──────────────────────────────────────────────
 
 @pytest.mark.parametrize("lang", ["ko", "en"])
 def test_no_stale_or_private_values_in_render(lang):
@@ -74,7 +52,7 @@ def test_no_stale_or_private_values_in_render(lang):
     assert not found, f"{lang}: 제거된 값이 다시 나타났다 — {found}"
 
 
-# ── 3) PIPA §30 필수기재사항 ─────────────────────────────────────────────────
+# ── 2) PIPA §30 필수기재사항 ─────────────────────────────────────────────────
 
 def test_korean_notice_has_privacy_officer_block():
     """공란으로는 게시할 수 없는 항목 — 없으면 방침 자체가 위반이다."""
@@ -92,7 +70,7 @@ def test_tables_actually_render():
         assert "<th>" in html and "</td>" in html
 
 
-# ── 4) 라우트 ────────────────────────────────────────────────────────────────
+# ── 3) 라우트 ────────────────────────────────────────────────────────────────
 
 async def test_route_serves_both_languages(client: AsyncClient):
     for lang in ("ko", "en"):

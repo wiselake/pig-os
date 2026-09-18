@@ -6,7 +6,6 @@
 
 결정론 공식이라 TDD 의무(verify 스킬 §2). 완결 사이클만 있는 통제 시나리오로 경계 고정.
 """
-import uuid
 from datetime import UTC, date, datetime
 
 import pytest
