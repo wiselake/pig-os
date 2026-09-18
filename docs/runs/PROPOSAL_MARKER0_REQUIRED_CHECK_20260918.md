@@ -28,7 +28,7 @@ enforcer 위치            backend job 안의 pytest 전체(tests/) 에 포함
 
 ```yaml
   legal-markers:
-    # 법무 게시 경계 — 코드 테스트와 분리해 결재 화면에 한 줄로 보이게 한다. DB·Redis 없음.
+    # 법무 게시 경계 — 코드 테스트와 분리해 결재 화면에 한 줄로 보이게 한다.
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: api } }
     services: { postgres: <backend 와 동일>, redis: <backend 와 동일> }   # 통합 conftest PREFLIGHT 가 DB 연결을 요구한다 (실측)
