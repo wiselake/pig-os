@@ -1,24 +1,29 @@
-# 릴리스 판단 패킷 — 2026-09-17 아침 (밤샘 작업 + 오전 정정)
+# 릴리스 판단 패킷 — 2026-09-18 최종판
 
 > **목적**: 사람이 **merge 할지, 배포할지만** 판단할 수 있게. merge·배포·가입 재개는 하지 않았다.
-> **2026-09-17 오전 정정판** — 초판(55b8534 기준)의 네 가지를 고쳤다: ① HEAD/CI 불일치
-> ② 긴급복구를 전체 릴리스에서 분리 ③ "G-3 포함 여부" 표현 ④ 격리 문서 삭제 → 보존.
+> **시간축**: 9/16 밤 초판(55b8534) → 9/17 오전 정정(hotfix 분리·G-3 표현·격리 보존) → 9/18 2차 검토
+> (제9조 원문·D-xx 64건·결재 7·만료 기록·fail-closed 테스트). 이 판이 최종이며 이후는 결재·배포 기록만 덧붙인다.
+> **기준일 2026-09-18** — 격리는 이미 만료됐다.
 
 ---
 
 ## 0. 한눈에 — 두 트랙
 
 ```
-TRACK A  긴급복구 (오늘)          PR #3  hotfix/legal-markers-20260917  8 commits  ← ★ 오늘 절대시한
-TRACK B  정규 릴리스 (그 다음)     PR #2  safety/pigos-20260916          154 commits
+TRACK A  긴급복구 — 최우선         PR #3  hotfix/legal-markers-20260917  d088e73  10 commits  CI GREEN
+         quarantine already expired at 2026-09-17T23:59:59+09:00
+         목표: 추가 연장이 아니라 ACTIVE incident 를 production remediation 으로 종결
+TRACK B  정규 릴리스 (그 다음)     PR #2  safety/pigos-20260916          d9eeda4  159 commits CI GREEN
 
 MAIN CHANGED    NO    origin/main = 8a80ea4
-PROD CHANGED    NO    애플리케이션 쓰기 0 · DB 쓰기 0 · 배포 0
+PROD CHANGED    NO    2e372b1 · 애플리케이션 쓰기 0 · DB 쓰기 0 · 배포 0
 ```
+
+커밋 수는 `git rev-list --count 8a80ea4..<head>` 실측 (2026-09-18). 이전 판의 8 / 154 는 각각 9f6b8fe·d088e73 추가 전, 밤샘 후반 커밋 전 숫자였다.
 
 ### 왜 나눴나
 
-절대시한이 걸린 문제는 하나다 — **공개 방침의 내부 마커 48건, 격리 만료 2026-09-17 23:59:59 KST**.
+문제는 하나다 — **공개 방침의 내부 마커 48건(D-xx 포함 64), 격리는 2026-09-17 23:59:59 KST 에 만료됐다**.
 그것을 없애려고 154커밋(속도제한·잡 의미론·ops 엔드포인트·B-9·G-3·법무 문서)을 오늘 프로덕션에
 넣을 이유가 없다. 마커 제거는 형식 게시(PUBLISHED)가 아니라 **정정 복구(correction remediation)**라
 Path A 로 이미 분리돼 있던 경로다.
@@ -38,6 +43,8 @@ d9b8f88  content  ec99391 cherry-pick             언어별 24 → 1
 1f9df88  ci       ci.yml @55b8534                    required check context 가 나타나야 한다
 66ed080  style    ruff 47건 (b3ea993)                lint 가 required check 다
 0186572  style    테스트 6건
+9f6b8fe  test     마커-0 enforcer + 정본 재동기화 가드   main 에는 둘 다 없었다 — 이전 초록은 "가드 없음"
+d088e73  content  [D-xx] 8건 제거 + detector 확장       격리 집계에 빠져 있던 DECISION_REGISTER 참조. 분리 가능
 ```
 
 ★ **게이트 변화 없음.** G-3 · rate limit · /health/ops · B-9 병합은 **이 PR 에 없다**.
@@ -49,9 +56,9 @@ US 가입 동작은 지금과 같다(201). 마이그레이션 0.
 로컬 (Python 3.14 · 빈 PostgreSQL 17)
   소스 마커        ko 0 · en 0
   alembic          빈 DB 에서 head 완주 · head 1개
-  pytest tests     1307 passed · 1 skipped   ★ main 기준 트리라 개수가 PR #2 와 다르다
+  pytest tests     1313 passed · 1 skipped   (main 1310 collected → 1314)
   ruff             clean · 테스트 후 tree clean
-CI                 run 35183930189 — §1-4 참조
+CI                 run 35293878390 @ d088e73 — backend 3.12 ✓ 3.14 ✓ frontend ✓
 ```
 
 ### 1-3. 배포 순서
@@ -70,7 +77,7 @@ web·mobile  변경 없음. 배포 안 함
 1  HTTP 200          ?lang=ko · ?lang=en
 2  본문 비어있지 않음  두 언어 각각 > 20KB (지금 31,895 bytes)
 3  문서 정체성       "제9조" 와 "Article 9" 가 각각 보인다 — 다른 문서가 아니다
-4  전체 detector      [V — · [OPEN · [COUNSEL] · [ ]   네 종류 모두 0, 두 언어 모두
+4  전체 detector      [V — · [OPEN · [COUNSEL] · [ ] · [D-xx]   다섯 종류 모두 0, 두 언어 모두
                      ★ 격리 manifest 의 마커 종류표와 같은 정규식을 쓴다 (KNOWN_PUBLICATION_EXPOSURE "마커 종류")
 5  배포 SHA          실행 중인 이미지 = PR #3 merge commit
                      (api 컨테이너 안 content/legal/public_privacy.ko.md 의 sha256 = 저장소 값)
@@ -124,7 +131,7 @@ DB                    없음
 
 ### 1-8. 2026-09-18 2차 검토 — A·B·C·D
 
-**A. 제9조 보유기간 표 — 실제 서빙 문장** (PR #3, ko 원문 그대로)
+**A. 제9조 보유기간 표 — 실제 서빙 문장** (PR #3 d088e73, ko 원문 그대로)
 
 ```
 ①  … 본 방침에 임의의 장기 보유 기간을 기재하지 않으며, 아래에 기간을 명시하지 않은 항목은
@@ -221,25 +228,20 @@ Q6  롤백 SHA                            위 1-6
 
 ## 2. TRACK B — PR #2 정규 릴리스
 
-### 2-1. Merge readiness — ★ 초판 불일치 정정
+### 2-1. Merge readiness (2026-09-18 최종)
 
 ```
-초판   HEAD 55b8534 · 152 ahead · CI 35076804473@55b8534   ← 패킷을 쓴 시점
-실제   HEAD 09da4f3 · 154 ahead · CI 35077436431@09da4f3 GREEN
-       PR #2 statusCheckRollup @09da4f3: backend(3.12) ✓ backend(3.14) ✓ frontend ✓
+HEAD                   d9eeda4 · 159 ahead of 8a80ea4
+LATEST HEAD CI GREEN   YES @ d9eeda4   (run 35306785810: backend 3.12 ✓ 3.14 ✓ frontend ✓)
+격리 만료 테스트        만료를 정직하게 기록했는지 + fail-closed 인지 검증하는 테스트로 교체 (d9eeda4).
+                       운영 상태 RED · 테스트 GREEN — 나쁜 상태를 정확히 감지한 것이 성공
+MAIN-MERGE-READY       기술적으로 YES — 단 TRACK A 가 main 에 먼저 들어가면 base 가 바뀌어 재실행 필수
 ```
 
-두 커밋(189bc6a 패킷, 09da4f3 48건 발견)은 문서만이지만, GitHub 은 SHA 로 본다.
-최신 HEAD 에 required check 가 붙어 있는지 확인했고 붙어 있다.
+이력: 초판 55b8534(152) → 09da4f3(154) → d9eeda4(159). 각 HEAD 에 CI 가 붙어 있었음을 확인했다.
 
-```
-CI BASELINE GREEN      YES @ 55b8534
-LATEST HEAD CI GREEN   YES @ 09da4f3   (run 35077436431)
-MAIN-MERGE-READY       YES — 단 TRACK A 가 main 에 먼저 들어가면 PR #2 를 rebase/merge 해서 다시 봐야 한다
-```
-
-★ **순서**: PR #3 가 먼저 merge 되면 PR #2 는 base 가 바뀐다. 8커밋 중 7개가 PR #2 에도 있는
-커밋(cherry-pick)이라 충돌보다는 중복이 생긴다 — `git merge origin/main` 한 번이면 정리되고
+★ **순서**: PR #3 가 먼저 merge 되면 PR #2 는 base 가 바뀐다. 10커밋 중 7개가 PR #2 에도 있는
+커밋(cherry-pick)이고 3개(1f9df88·9f6b8fe·d088e73)는 PR #3 전용이라 충돌보다는 중복이 생긴다 — `git merge origin/main` 한 번이면 정리되고
 CI 를 다시 돈다. `strict=true` 라 어차피 재실행 없이는 merge 못 한다.
 
 ### 2-2. DB
@@ -284,8 +286,8 @@ TRACK A 의 §1-4 전부 + 아래:
 ## 3. 사람이 결정해야 하는 것
 
 ```
-오늘
-  1  PR #3 hotfix — merge · 배포 · §1-4 검증 · 격리 REMEDIATED 기록      ★ 23:59:59 KST
+최우선 (격리 이미 만료 — ACTIVE incident)
+  1  PR #3 hotfix — 결재 3·4·6·7 → merge · 배포 · §1-4 검증 · 격리 REMEDIATED 기록
 그 다음
   2  PR #2 — base 갱신 후 Ready · merge 판단
   3  PR #2 배포 = G-3 배포 (A) 인가, 선별 (B) 인가
@@ -326,19 +328,20 @@ db_migration_count     0
 
 `actual_prod_before != 2e372b1` 이면 **즉시 중단** — 사이에 다른 배포가 있었다는 뜻이다.
 
-### 3-3. 현재 판정 (2026-09-18)
+### 3-3. 최종 판정 (2026-09-18)
 
 ```
-CODE                     READY
-CI                       GREEN @ d088e73
-PR #3                    TECHNICALLY MERGE-READY
-GOVERNANCE APPROVAL      PENDING (결재 3·4·6·7)
-DB                       SAFE / NO MIGRATION
-PRODUCTION               UNCHANGED (2e372b1)
-PUBLIC EXPOSURE          NOT YET REMEDIATED (48, D-xx 포함 64)
-QUARANTINE               EXPIRED 2026-09-17 23:59:59 KST — 연장 안 함
-REMAINING BLOCKER        HUMAN DECISIONS 3 / 4 / 6 / 7
+PR #3                    d088e73 · 10 commits · FINAL HEAD CI GREEN · TECHNICALLY MERGE-READY · GOVERNANCE PENDING
+PR #2                    d9eeda4 · 159 commits · FINAL HEAD CI GREEN · expiry 를 탐지하면서 GREEN
+MAIN                     8a80ea4 unchanged
+PROD                     2e372b1 unchanged
+PUBLIC EXPOSURE          quarantine-class 48 · including D-xx 64
+QUARANTINE               EXPIRED · remediation NOT_DEPLOYED · incident ACTIVE — 연장 안 함
+DB                       NO MIGRATION
+BLOCKER                  결재 3 / 4 / 6 / 7
 ```
+
+★ **여기서 개발은 끝난다.** PR #3 에 이후 다른 개발을 섞지 않는다. 다음 상태 전이는 §3-1 ①~⑪ 뿐이다.
 
 ## 4. 권고 — 오늘 오전의 **한 단계**
 
