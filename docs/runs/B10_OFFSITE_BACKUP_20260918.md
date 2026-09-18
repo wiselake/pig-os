@@ -49,7 +49,7 @@ RECOMMENDED NEXT ACTION
 
 | # | 항목 | 실측 |
 |---|---|---|
-| 1 | `~/pigos/ops/backup_db.sh` | sha256 `da3c6b62…` · mtime **2026-08-25 14:43** · 오프사이트 단계 **0줄** (`grep -c BACKUP_S3_BUCKET\|aws` = 0) |
+| 1 | `~/pigos/ops/backup_db.sh` | sha256 `0857e6f6…` · mtime **2026-08-25 14:43** · 오프사이트 단계 **0줄** (`grep -c BACKUP_S3_BUCKET\|aws` = 0) |
 | 2 | `backup_incremental.sh` | 있음. §4 |
 | 3 | git tracked | 저장소에 `ops/backup_db.sh` 있음 — sha `123e614d…` (8a80ea4). **호스트와 다르다** |
 | 4 | 저장소 8/25 이력 | `b374e0d` 2026-08-25 "백업 오프사이트 사본(S3) 경로" — 저장소에는 그날 들어갔다 |
@@ -155,7 +155,7 @@ f3c6a8d0b2e4` · FK 93. 프로덕션 덤프를 새로 만들지 않았고 프로
 ## 8. 프로덕션 적용 패킷
 
 ```
-CURRENT PROD SCRIPT SHA     da3c6b623323b699…   (~/pigos/ops/backup_db.sh, 2026-08-25 14:43)
+CURRENT PROD SCRIPT SHA     0857e6f67c477861…   (~/pigos/ops/backup_db.sh, 2026-08-25 14:43)
 REPO @ main SHA             123e614d4a8fd313…   (8a80ea4 — 오프사이트 단계 있으나 exit 0)
 PATCHED SCRIPT SHA          b2ef4c3638f8ff81…   (797394e)
 
@@ -182,7 +182,7 @@ freshness checker 스케줄    UNDECIDED
 
 ```
  0  pg_dump 가 DB 에 하는 일이 읽기 전용임을 확인한다 (스크립트 grep: pg_dump 외 psql 호출 없음)
- 1  ssh 후  sha256sum ~/pigos/ops/backup_db.sh  == da3c6b62…  아니면 STOP (사이에 누가 바꿨다)
+ 1  ssh 후  sha256sum ~/pigos/ops/backup_db.sh  == 0857e6f6…  아니면 STOP (사이에 누가 바꿨다)
  2  cp ~/pigos/ops/backup_db.sh ~/pigos/ops/backup_db.sh.pre-b10-$(date +%Y%m%d-%H%M%S)
  3  패치 파일 배치 → sha256 == b2ef4c36…
  4  bash -n ~/pigos/ops/backup_db.sh
