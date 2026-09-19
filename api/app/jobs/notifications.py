@@ -11,6 +11,7 @@ from sqlalchemy import select
 
 from app.db.models.platform import Farm
 from app.db.session import AsyncSessionLocal
+from app.jobs._result import job_result
 from app.services import device_service, notification_service, push_service
 
 log = logging.getLogger(__name__)
@@ -63,6 +64,7 @@ async def generate_notifications_job(ctx: dict) -> str:
     errors = 0
     total_created = 0
     total_pushed = 0
+    total_push_failed = 0
     for farm_id in farm_ids:
         try:
             async with AsyncSessionLocal() as db:
@@ -79,14 +81,22 @@ async def generate_notifications_job(ctx: dict) -> str:
                         data={"farm_id": str(farm_id), "type": "alert_digest"},
                     )
                     total_pushed += res.sent
+                    total_push_failed += res.failed
             processed += 1
         except Exception as e:  # noqa: BLE001 — 한 농장 실패 격리
             log.error("generate_notifications farm=%s error=%s", farm_id, e)
             errors += 1
 
-    result = (
-        f"notification generation done: {processed} farms, "
-        f"{total_created} created, {total_pushed} pushed, {errors} errors"
+    # ★ 푸시 실패는 농장 처리 실패가 아니다(알림 자체는 DB 에 남았다). 그래서 errors 에
+    #   더하지 않는다 — 대신 **결과 문자열에 드러낸다.** 0 이 아닌데 안 보이면 없는 것과 같다.
+    push_detail = f"{total_created} created, {total_pushed} pushed"
+    if total_push_failed:
+        push_detail += f", {total_push_failed} push FAILED"
+        log.error(
+            "generate_notifications_job: 푸시 %d건 실패 (알림 생성은 성공)", total_push_failed,
+        )
+    return job_result(
+        "generate_notifications_job",
+        expected=len(farm_ids), success=processed, errors=errors,
+        detail=push_detail,
     )
-    log.info(result)
-    return result

@@ -11,6 +11,7 @@ from fastapi import APIRouter, Query
 
 from app.core.dependencies import CurrentUser, DbDep
 from app.schemas.consent import (
+    ConsentDiffOut,
     ConsentStatusOut,
     RecordConsentRequest,
     SignupPlan,
@@ -53,6 +54,15 @@ async def get_current_consents(
     farm_id: UUID | None = Query(None),
 ) -> list[ConsentStatusOut]:
     return await consent_service.current_consents(db, user_id=current_user.id, farm_id=farm_id)
+
+
+@router.get("/diff", response_model=ConsentDiffOut)
+async def get_consent_diff(
+    current_user: CurrentUser, db: DbDep,
+    farm_id: UUID | None = Query(None),
+) -> ConsentDiffOut:
+    """목적별 (필요 버전, 기록 버전). ★ 국가 파라미터 없음 — 서버가 farm/org 에서 도출한다."""
+    return await consent_service.consent_diff(db, user_id=current_user.id, farm_id=farm_id)
 
 
 @router.post("/withdraw", response_model=ConsentStatusOut)

@@ -6,15 +6,31 @@
 - 철회 레코드는 이전 근거·법역·버전 승계 + reason 을 evidence 로 보존
 """
 import pytest
+import pytest_asyncio
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.consent import ConsentRecord
-from app.db.models.platform import Farm, User
+from app.db.models.platform import Farm, User, UserFarm
 from app.schemas.consent import ConsentChoice, RecordConsentRequest, WithdrawRequest
 from app.services import consent_service as cs
 
 pytestmark = pytest.mark.anyio
+
+
+# ★ LEGAL-P0-CONSENT-FARM-AUTHORITY 이후 필요.
+#
+#   consent 기록은 이제 farm_id 에 대한 접근 권한을 canonical 규칙
+#   (`can_access_farm`)으로 확인한다. 그런데 공용 픽스처의 test_user 와 test_farm
+#   은 org 만 같을 뿐 user_farms 행이 없어, 실제 서비스에서는 존재할 수 없는
+#   조합이었다 — 실 가입 경로는 auth_service.py:178 에서 UserFarm 을 만든다.
+#
+#   즉 이 픽스처는 프로덕션 현실을 반영하지 못하고 있었다. 검증을 우회하려고
+#   멤버십을 주는 것이 아니라, 픽스처를 실제 상태에 맞추는 것이다.
+@pytest_asyncio.fixture(autouse=True)
+async def _farm_membership(db: AsyncSession, test_user: User, test_farm: Farm):
+    db.add(UserFarm(user_id=test_user.id, farm_id=test_farm.id, role_override="FARM_OWNER"))
+    await db.flush()
 
 
 async def _grant_ai(db, user, farm):

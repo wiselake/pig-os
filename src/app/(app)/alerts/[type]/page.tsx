@@ -49,7 +49,7 @@ export default function AlertDetailPage({ params }: { params: Promise<{ type: st
       {/* Header */}
       <div className="flex items-center gap-3 flex-wrap">
         <button onClick={() => router.back()} className="w-9 h-9 rounded-lg border border-border bg-surface flex items-center justify-center hover:bg-bg2 transition">
-          <ChevronLeft size={18} className="text-text2" />
+          <ChevronLeft size={16} className="text-text2" />
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
@@ -69,7 +69,7 @@ export default function AlertDetailPage({ params }: { params: Promise<{ type: st
             {/* Why this fired */}
             <div className="bg-surface border border-border rounded-2xl p-5" style={{ boxShadow: "var(--shadow-card)" }}>
               <div className="flex items-center gap-2 text-sm font-bold text-text mb-4">
-                <Info size={17} className="text-primary" /> {t("whyTitle")}
+                <Info size={16} className="text-primary" /> {t("whyTitle")}
               </div>
               <div className="grid sm:grid-cols-2 gap-3">
                 <Evidence label={t("detectionRule")} value={tMeta(meta.ruleKey, { n: meta.threshold })} />
@@ -129,7 +129,7 @@ export default function AlertDetailPage({ params }: { params: Promise<{ type: st
                         <td className="px-3 py-2 text-right font-mono font-semibold text-warning">{t("overdueDays", { days: r.overdue_days })}</td>
                         <td className="px-3 py-2 text-right">
                           <Link href={`/record?tab=${meta.action}&sowId=${r.sow_id}`} className="inline-flex items-center gap-1 text-primary text-xs font-semibold hover:underline">
-                            {t(meta.action === "weaning" ? "actionWeaning" : meta.action === "farrowing" ? "actionFarrowing" : "actionMating")} <ArrowRight className="w-3 h-3" />
+                            {t(meta.action === "weaning" ? "actionWeaning" : meta.action === "farrowing" ? "actionFarrowing" : "actionMating")} <ArrowRight size={12} />
                           </Link>
                         </td>
                       </tr>
@@ -144,7 +144,7 @@ export default function AlertDetailPage({ params }: { params: Promise<{ type: st
           <div className="space-y-4">
             <div className="bg-surface border border-border rounded-2xl p-5" style={{ boxShadow: "var(--shadow-card)" }}>
               <div className="flex items-center gap-2 text-sm font-bold text-text mb-3">
-                <ListChecks size={17} className="text-primary" /> {t("recommendedActions")}
+                <ListChecks size={16} className="text-primary" /> {t("recommendedActions")}
               </div>
               <div className="space-y-2.5">
                 {meta.actionKeys.map((k, i) => (
@@ -161,7 +161,7 @@ export default function AlertDetailPage({ params }: { params: Promise<{ type: st
 
             {/* Ask Claude (Addon #1) */}
             <div className="rounded-2xl bg-console p-4 flex items-center gap-3 text-white">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0"><Sparkles size={17} className="text-white" /></div>
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0"><Sparkles size={16} className="text-white" /></div>
               <div className="flex-1 text-[12px] text-white/80 leading-snug">{t("askClaudeBody")}</div>
               <Link href="/chat" className="text-xs font-bold px-3 py-1.5 rounded-lg bg-primary text-white hover:opacity-90 inline-flex items-center gap-1 shrink-0">
                 {t("askClaude")} <ChevronRight size={14} />

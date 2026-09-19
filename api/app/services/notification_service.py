@@ -4,6 +4,7 @@ Notification 서비스 — 인앱 알림 목록/읽음 처리 (P12-6 + 모바일
 수신자(user_id) 스코프. read_at IS NULL = 미읽음.
 IN_APP 채널만 노출 (PUSH/EMAIL/SMS 전송로그는 목록에서 제외).
 """
+import logging
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -12,6 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError
 from app.db.models.ops import Notification
+
+log = logging.getLogger(__name__)
 
 # 목록에 노출하는 채널 (전송 추적 로그 제외)
 _INAPP_TYPES = ("IN_APP",)
@@ -181,7 +184,12 @@ async def create_from_alerts(db: AsyncSession, farm_id: UUID, today=None) -> int
                         "related_entity_id": None,
                     })
         except Exception:  # noqa: BLE001 — KPI 집계 실패 시 과기한/도태 알림은 계속 생성
-            pass
+            # ★ 2026-08-28: 여기는 원래 `pass` 뿐이었다. KPI 알림이 통째로 유실돼도
+            #   로그도 카운터도 없어 **실패 여부 자체를 알 수 없었다.** 잡이 보고하는
+            #   `0 errors` 는 이 블록을 포함하지 않는다.
+            #   근거: docs/runs/RUNTIME_INTEGRITY_AUDIT_20260828.md §A1-4
+            #   격리는 유지한다(과기한·도태 알림은 계속 나가야 한다). 침묵만 없앤다.
+            log.exception("create_from_alerts: KPI alert block failed farm=%s", farm_id)
 
     if not items:
         return 0

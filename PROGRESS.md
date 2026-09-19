@@ -1,5 +1,114 @@
 # PigOS 진행 상황
 
+## [현재상태 2026-09-18] — 429 3-클라이언트 파리티 완료 · TRACK A FROZEN · B-10 대기
+
+```
+429 파리티  Web 8b7077c · Android pigos-android 0e1d450 (fix/rate-limit-429, 446/0 로컬) · iOS pigos-ios 7210e1c (fix/rate-limit-429, CI run 35318843546 green 216/0)
+            THREE_CLIENT_PARITY_VERIFIED = YES — 예외 명시: iOS 재설정 플로우 N/A · iOS en 단일 locale(기존 갭) · iOS UI 테스트 없음
+            정책 소스 = 서버 하나. 클라이언트 한도 상수 0(3 저장소 소스 스캔 테스트) · 자동 재시도 0 · 카운트다운 0 · 게이트/정책 변경 0
+            정본: docs/PLATFORM_PARITY.md §9-9 · §9-9-1 (PigOS cace7f0, safety/pigos-20260916)
+push        mobile 두 브랜치 remote push(비-main) · PigOS 는 safety 브랜치만. main 직접 push 0 · 배포 0 · 프로덕션 쓰기 0
+            Android CI 는 PR 열려야 실행(android.yml push:main/PR 만) → Draft PR 여부는 Brian 결정
+대기        결재 3·4·6·7 → PR #3 merge → 배포 → 검증 → REMEDIATED (TRACK A FROZEN, docs/releases/RELEASE_PACKET_20260918.md)
+            B-10 프로덕션 스크립트 적용 / lifecycle / freshness 스케줄 — 미승인 (docs/runs/B10_OFFSITE_BACKUP_20260918.md)
+```
+
+## [현재상태 2026-09-16] — 원격 백업 완료 · Draft PR #2 · main/프로덕션 미변경
+
+```
+push        safety/pigos-20260916 (3180969, 137 commits) · safety/android-20260916 (b88c571) · safety/ios-20260916 (b33c315)
+            ★ main 직접 push 0 · 배포 0 · 프로덕션 쓰기 0 — Brian 결정(2026-09-16): CI green + 배포 영향 확인 전 main merge 금지
+PR          wiselake/pig-os#2 (draft, base=main) — ★ CI GREEN on main merge (run 35068086502, 3c97fe2)
+            backend 3.12: 1497 passed · 1 skipped · 12 xfailed (2:16) | 3.14: 동일 (2:14) | frontend: tsc·223·build
+            빈 postgres 17 에 alembic upgrade head 완주. mergeable=true · state=clean
+            → CI infrastructure GREEN · codebase MAIN-MERGE-READY (merge 판단만 남음, 자동 merge 하지 않는다)
+
+            경과  run 35049601480  ruff 47건 실패 (로컬도 47 — "F841 3건"은 변경파일 기준)
+                  run 35049978252  b3ea993 GREEN 1481 — 단 base 가 ci-base/* 라 main merge 의 GREEN 은 아니었다
+                  run 35068086502  3c97fe2 GREEN 1497 — base=main. 이것이 기준점
+            ★ CI 가 큐잉조차 안 되던 원인: origin/main 8a80ea4(Lou, 9/10 push, 금지기간)과 3파일 충돌 →
+              GitHub 이 merge ref 를 못 만들면 pull_request 워크플로는 조용히 안 돈다. B-9 로 해소
+격리        KNOWN_PUBLICATION_EXPOSURE 모순 4곳 정정 (3180969) — 종료조건 = 마커 0 · A/B/C/D 분리 · V-11 미완 · last_remediation_at
+만료        2026-09-17 23:59:59 KST — V-11 조건 1·6 EC2 read-only 가 유일한 blocker (B-6·B-7·B-8 같은 세션)
+```
+
+## [현재상태 2026-09-10] — 법무 P0 게시 게이트 + 환경 결정론화 (로컬 커밋만, **push·배포 0**)
+
+★ **개발이 멈춘 것이지 법무 트랙이 끝난 게 아니다.** 아직 첫 단계 앞이다.
+
+### 프로덕션에서 지금 이 순간 참인 것
+
+```
+게시 고지에 미해결 표기 노출     api.pigos.io/legal/privacy — V 11 · OPEN 10 · COUNSEL 1
+                                 격리 중, 2026-09-17 로 1차 연장(b2eb30c)
+동의 원장                        0행. 지금도 계속 그렇다 (557a347 미배포)
+승인 문서                        0건. 마스터·방침·부속조항 8종 전부 DRAFT
+초안 동의 수집                   ★ 계속되고 있다. G-3 는 로컬에만 있다 ((나) 결정, 미배포)
+국가별 문서 분기                 동작 중 (9/11 API 실측) — US·BR·DE·CL 열림, KR·CN 차단
+                                 ★ CL=OTHER 가 부속 없이 열려 있다 — H13 (4) 미배포
+KR·CN 차단 법역 기존 계정        존재 (H12)
+```
+
+### 이번 라운드에 닫힌 것 (코드)
+
+```
+320baea  G-3 게시 게이트 — 미승인 문서에는 동의 자체를 받지 않는다
+         가입 진입점 2곳 첫 write 이전 + record_consents 심층 방어
+         ★ record_consents 만 막으면 계정이 먼저 생겨 고아 계정이 쌓인다(H11)
+587dfed  부분 승인 동작 고정 — US 3종 승인이 OTHER 그룹까지 연다는 사실
+f0934c0  차단 안내 8 로케일 — 원문 코드 대신 사유
+60c9545  ENV-1 Node 고정 + PREFLIGHT — 환경 실패를 테스트 실패와 분리(exit 78)
+8f57d1d  백엔드 로케일 카탈로그 파리티 가드
+44ded3f · 6165306   이모지 → lucide + 아이콘 스케일
+(9/11)   H13 (4) US 허용목록 — 해석 충돌 10건 xfail(strict) 로 고정, 결재 문장 대기
+(9/11)   개발 생태 실측 → docs/DEV_ECOSYSTEM_AUDIT_20260911.md
+         ★ CI 가 2026-06-14 이후 한 번도 안 돌았음(없는 브랜치 트리거) → main 트리거 + 통합테스트
+           + 빈 DB 마이그레이션 (f4d684e) · npm critical/high 6 → 0 (21a2ad7) · venv 복구
+         ★ pigos.io 가 5/30 구본 방침·피그플랜 문안 약관을 공개 서빙 중 → H17
+(9/11)   /consent/diff (f402ed4·437403e) + 웹 두 화면 이전 (e23c29d) · Feed Basic v1 (8c8519c·bb04b57·784fcd2)
+(9/11)   모바일 T3 — pigos-android b88c571 (451 → 지역 차단 문구) DONE,
+         pigos-ios 608b418 (사유코드 뱃지 DEBUG) PENDING_RECHECK(Xcode 없음)
+         ★ PLATFORM_PARITY §9-7-1 의 전제 3개가 틀렸음을 §9-7-2 에 기록.
+           사유코드→문구 테이블은 D-13·Q-B 답 전이라 만들지 않기로 결정
+```
+
+### 사람이 닫아야 하는 것
+
+```
+(2026-09-11 갱신 — 여섯. 순서 = 싼 것부터)
+⑥ G-3 배포 승인    ★ 제일 쌈. 결정은 9/09 (나)로 끝났고 코드(320baea)도 승인됨. 배포만 안 됨
+                   켜지면 초안 동의자(B-6)가 더 안 는다. 지금 프로덕션이 결정과 반대로 도는 유일한 원인
+① 변호사 수신처     격리 9/17 만료. 발송 기록이 있어야 2차 연장 사유("회신 대기")가 성립
+② 약관 14개 값      HUMAN_INPUT_QUEUE §8-A — 보유기간·결제·시행일 등. 값 → DECISION_REGISTER → 본문
+③ H13 한 문장       "미국만" vs "OTHER 만" — xfail 10건이 기다림
+④ iOS Debug 호스트  B-5 — 프로덕션 → 로컬 되돌릴지 ((가) 권고)
+⑤ 대표 서명 결재문  G-1a
++ EC2 SSH 1회 7줄   pgaudit · P-1 · V-11 · R-08/CN-1/TH-5/VN-5 · B-6 ×2 · B-7
+```
+
+★ 약관 승인 = 가입 재개의 조건. 배포 승인 = 게이트 배포의 조건. 둘은 다르다 —
+약관이 미승인이라서 게이트가 더 급한 것이지, 약관 때문에 게이트를 못 내보내는 게 아니다.
+
+### 검증
+
+```
+백엔드   1481 passed · 1 skipped · 12 xfailed(strict)   (9/11 — 빈 DB 리허설 동일)
+프론트   40 파일 · 223 tests · tsc · build 통과   (node 22.23.2, next 15.5.25)
+프론트   40 파일 · 219 tests · tsc 통과   (node 22.23.2)
+ruff     F841 3건만 (선존)
+```
+
+### 진입점
+
+```
+docs/legal/DEPLOY_GATE_20260910.md     법무 배포 기준 — G-1~G-6
+docs/legal/LEGAL_P0_FREEZE_20260910.md 동결 상태 · 재개 조건
+docs/runs/RUN_COMMON_RULES.md          §0 PREFLIGHT · 기준값
+docs/PIGOS_SPEC_INDEX.md §1-2          이번 라운드 신규 문서 8종
+```
+
+---
+
 ## [현재상태 2026-08-25] — 운영 DB 이전(Supabase → EC2 로컬 PG17) + 대시보드 성능 복구
 > 장애 대응 세션. 프로덕션 반영됨(DB 전환·인덱스). 코드는 로컬 커밋만, push·배포 미실시.
 

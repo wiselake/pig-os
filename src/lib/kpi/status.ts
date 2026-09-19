@@ -37,9 +37,18 @@ export const TIER_STYLE: Record<KpiTier, { text: string; dot: string; chip: stri
   insufficient: { text: "text-insufficient", dot: "bg-insufficient", chip: "bg-insufficient-soft text-insufficient border-insufficient-border" },
 };
 
-/** kpi_code → legacy 판정 함수. ADR-KPI-08 Phase 3 폴백 전용(백엔드 kpi_status 부재 시).
- *  ★ 새 임계값을 여기 추가하지 말 것 — 판정은 백엔드 국가정책 소관.
- *  Phase 4(백엔드 status 전면 적용)에서 이 맵과 위 함수들을 함께 제거한다. */
+/** kpi_code → legacy 판정 함수.
+ *
+ *  ★ 2026-08-28 — **렌더 경로에서 분리됨.** 이 맵은 더 이상 화면 판정에 쓰이지 않는다.
+ *    `statusObservation.resolveTier()` 가 백엔드 status 부재 시 `insufficient` 로
+ *    fail-closed 하도록 바뀌었기 때문이다.
+ *
+ *    남겨 두는 이유는 하나뿐 — `findStatusMismatches()` 의 **관측용 비교 기준**이다.
+ *    (백엔드 판정과 구 프론트 판정이 얼마나 다른지를 계측한다)
+ *
+ *  ★ 아래 임계는 **국가 구분이 없다.** KR 기준이며 서버 US 임계(PSY 26/23)와 다르다.
+ *    렌더에 다시 연결하면 미국 농장에 한국 기준이 적용된다 — 절대 금지.
+ *    새 임계값을 여기 추가하지 말 것. 판정은 백엔드 국가정책 소관이다. */
 export const LEGACY_TIER_FN: Record<string, (v: number | null | undefined) => KpiTier> = {
   PSY: psyTier,
   NPD: npdTier,

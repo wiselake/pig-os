@@ -103,20 +103,20 @@ export default function CostReportPage() {
                 <div key={cy.currency} className="bg-surface border border-border rounded-2xl p-5" style={{ boxShadow: "var(--shadow-card)" }}>
                   <div className="flex items-center justify-between mb-3">
                     <span className="font-mono text-sm font-bold text-text3">{cy.currency}</span>
-                    <PiggyBank size={18} className="text-primary" />
+                    <PiggyBank size={16} className="text-primary" />
                   </div>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <div className="flex items-center gap-1 text-[11px] text-text3 mb-0.5"><Wallet size={11} />{t("feedCost")}</div>
+                      <div className="flex items-center gap-1 text-[11px] text-text3 mb-0.5"><Wallet size={12} />{t("feedCost")}</div>
                       <div className="font-mono text-lg font-extrabold text-danger">{money(cy.feed_cost, cy.currency)}</div>
                     </div>
                     <div>
-                      <div className="flex items-center gap-1 text-[11px] text-text3 mb-0.5"><TrendingUp size={11} />{t("revenue")}</div>
+                      <div className="flex items-center gap-1 text-[11px] text-text3 mb-0.5"><TrendingUp size={12} />{t("revenue")}</div>
                       <div className="font-mono text-lg font-extrabold text-success">{money(cy.sale_revenue, cy.currency)}</div>
                     </div>
                     <div>
                       <div className="flex items-center gap-1 text-[11px] text-text3 mb-0.5">
-                        {netPos ? <TrendingUp size={11} /> : <TrendingDown size={11} />}{t("net")}
+                        {netPos ? <TrendingUp size={12} /> : <TrendingDown size={12} />}{t("net")}
                       </div>
                       <div className={`font-mono text-lg font-extrabold ${netPos ? "text-success" : "text-danger"}`}>
                         {money(cy.net, cy.currency)}

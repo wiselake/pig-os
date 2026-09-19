@@ -74,7 +74,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Admin sidebar (dark console) */}
       <aside className="w-56 shrink-0 bg-console text-white flex flex-col">
         <div className="h-14 flex items-center gap-2 px-4 border-b border-white/10">
-          <ShieldCheck size={18} className="text-primary" />
+          <ShieldCheck size={16} className="text-primary" />
           <span className="font-extrabold tracking-tight">PigOS <span className="text-primary">Admin</span></span>
         </div>
         <nav className="flex-1 py-3">
@@ -98,7 +98,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="text-[11px] text-white/60 truncate">{user.name} · {user.role}</div>
           {/* 언어 선택 (관리자 = 한국어 포함 전 로케일) */}
           <label className="flex items-center gap-1.5 text-xs text-white/70">
-            <Languages size={13} className="shrink-0" />
+            <Languages size={12} className="shrink-0" />
             <select
               value={locale}
               onChange={(e) => changeLang(e.target.value)}
@@ -113,7 +113,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </select>
           </label>
           <Link href="/" className="flex items-center gap-1.5 text-xs text-white/70 hover:text-white">
-            <ArrowLeft size={13} /> {t("backToApp")}
+            <ArrowLeft size={12} /> {t("backToApp")}
           </Link>
         </div>
       </aside>

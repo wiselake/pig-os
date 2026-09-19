@@ -35,7 +35,7 @@ export default function DailyReportPage() {
 
   const Card = ({ Icon, color, label, children }: { Icon: React.ElementType; color: string; label: string; children: React.ReactNode }) => (
     <div className="rounded-2xl border border-border bg-bg2/40 p-4">
-      <div className={`flex items-center gap-2 mb-3 text-sm font-bold ${color}`}><Icon size={15} />{label}</div>
+      <div className={`flex items-center gap-2 mb-3 text-sm font-bold ${color}`}><Icon size={14} />{label}</div>
       {children}
     </div>
   );

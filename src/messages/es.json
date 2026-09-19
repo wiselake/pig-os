@@ -57,9 +57,9 @@
     "statNpd": "NPD (días no productivos)",
     "statFarrowingRate": "Tasa de parto",
     "statAiAlerts": "Alertas IA",
-    "met": "✓ Meta lograda",
+    "met": "Meta lograda",
     "belowTarget": "▼ Bajo la meta",
-    "belowOk": "✓ Dentro de meta",
+    "belowOk": "Dentro de meta",
     "aboveTarget": "▲ Sobre la meta",
     "severeWarn": "Crítico {crit} · Aviso {warn}",
     "overdueSows": "Cerdas pendientes {n}",
@@ -72,7 +72,7 @@
     "pWeaning": "Destete",
     "ruleAlerts": "Alertas Rule Engine",
     "alertCount": "{n}",
-    "noAlertsAll": "✓ Sin alertas — todos los KPI en rango",
+    "noAlertsAll": "Sin alertas — todos los KPI en rango",
     "aiBriefing": "Resumen IA",
     "briefPrefix": "Cerdas activas",
     "briefMid": "Días no productivos",
@@ -256,7 +256,7 @@
     "herdWeanedOpen": "Vacía/Destete",
     "herdActiveTotal": "Total activo",
     "ruleAlerts": "Alertas Rule Engine",
-    "noAlerts": "✓ Sin alertas Rule Engine — todos los KPI en rango",
+    "noAlerts": "Sin alertas Rule Engine — todos los KPI en rango",
     "headUnit": "cab.",
     "daysUnit": "d",
     "currentTarget": "Actual {cur} / meta {tgt}",
@@ -330,6 +330,7 @@
     "conflict": "Esto entra en conflicto con datos existentes. Actualice e inténtelo de nuevo.",
     "validation": "Algunos datos no son válidos. Revíselos e inténtelo de nuevo.",
     "rateLimited": "Demasiados intentos. Espere un momento e inténtelo de nuevo.",
+    "rateLimitedRetryIn": "Podrás intentarlo de nuevo en unos {minutes} min.",
     "dbUnavailable": "El servicio no está disponible temporalmente. Inténtelo en unos momentos.",
     "serverError": "Ocurrió un problema de nuestro lado. Contacte con soporte con este código:"
   },
@@ -963,7 +964,7 @@
     "cAvgWeaned": "Destetados/camada",
     "cLactDays": "Días lactancia",
     "cRts": "Tasa RTS",
-    "pwmrNote": "⚠ PWMR-A (muertes/(destetados+muertes)) y PWMR-B ((TN−destetados)/TN) pueden diferir 3–5%p.",
+    "pwmrNote": "PWMR-A (muertes/(destetados+muertes)) y PWMR-B ((TN−destetados)/TN) pueden diferir 3–5%p.",
     "cPwmrA": "PWMR-A",
     "cPwmrB": "PWMR-B",
     "groupByPeriod": "Por periodo",
@@ -1026,7 +1027,7 @@
   },
   "profile": {
     "title": "Editar perfil",
-    "saved": "✓ Cambios guardados",
+    "saved": "Cambios guardados",
     "changePhoto": "Cambiar foto",
     "name": "Nombre",
     "namePh": "Ingrese su nombre",
@@ -1260,7 +1261,7 @@
     "selectFarm": "Seleccione una granja primero.",
     "loading": "Cargando tareas…",
     "loadError": "No se pudieron cargar las tareas.",
-    "allClear": "Todo en orden — sin tareas pendientes 🎉",
+    "allClear": "Todo en orden — sin tareas pendientes",
     "overdueDays": "{n} días de retraso",
     "go": "Ir",
     "done": "Hecho",
@@ -2031,6 +2032,12 @@
       "desc": "Algunos documentos que aceptó han cambiado. Revise la versión actual.",
       "review": "Revisar cambios"
     },
+    "diff": {
+      "required": "Versión actual",
+      "recorded": "Versión que aceptaste",
+      "never": "Sin registro",
+      "changed": "Actualizado desde tu aceptación"
+    },
     "dismiss": "Descartar"
   },
   "forgotPassword": {
@@ -2099,7 +2106,11 @@
     "phSows": "ej. 500",
     "phName": "ej. Juan Pérez",
     "phUsername": "ej. farmowner",
-    "phEmail": "farmer@example.com"
+    "phEmail": "farmer@example.com",
+    "consentPlanUnavailable": "No pudimos cargar los términos aplicables a tu país. No puedes completar el registro sin aceptarlos; vuelve atrás e inténtalo de nuevo.",
+    "publicationNotApprovedTitle": "Aún no disponible en su región",
+    "publicationNotApproved": "PigOS todavía no acepta registros para el país que seleccionó. Nuestros términos y el aviso de privacidad de esta región siguen en revisión legal, y no le pediremos que acepte documentos que no son definitivos. Escríbanos a help@pigos.io y le avisaremos en cuanto se habilite.",
+    "consentRecordFailed": "No pudimos registrar tu consentimiento. Tu registro no está completo. Inténtalo de nuevo."
   },
   "kpiCards": {
     "labelPSY": "PSY",

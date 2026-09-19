@@ -19,14 +19,14 @@ export function ReportExportBar({
           disabled={csvDisabled}
           className="inline-flex items-center gap-1.5 text-sm font-semibold border border-border rounded-xl px-3.5 py-2 hover:border-primary disabled:opacity-50"
         >
-          <Download className="w-4 h-4" /> CSV
+          <Download size={16} /> CSV
         </button>
       )}
       <button
         onClick={() => window.print()}
         className="inline-flex items-center gap-1.5 text-sm font-semibold border border-border rounded-xl px-3.5 py-2 hover:border-primary"
       >
-        <Printer className="w-4 h-4" /> PDF
+        <Printer size={16} /> PDF
       </button>
     </div>
   );

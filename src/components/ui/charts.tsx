@@ -17,7 +17,7 @@ export function Spark({ data, w = 200, h = 34 }: { data: number[]; w?: number; h
   return (
     <svg width={w} height={h} className="block text-current">
       <path d={`${d} L ${w} ${h} L 0 ${h} Z`} fill="currentColor" opacity={0.1} />
-      <path d={d} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <path d={d} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
       <circle cx={last[0]} cy={last[1]} r={3} fill="currentColor" />
     </svg>
   );
@@ -72,7 +72,7 @@ export function LineChart({
         </g>
       ))}
       {bench != null && (
-        <line x1={pL} x2={w - pR} y1={y(bench)} y2={y(bench)} className="text-text3" stroke="currentColor" strokeWidth={1.2} strokeDasharray="5 4" />
+        <line x1={pL} x2={w - pR} y1={y(bench)} y2={y(bench)} className="text-text3" stroke="currentColor" strokeWidth={1.5} strokeDasharray="5 4" />
       )}
       {xLabels?.map((l, i) =>
         i % 2 === 0 ? (
@@ -90,7 +90,7 @@ export function LineChart({
             {s.fill !== false && (
               <path d={`${d} L ${x(len - 1)} ${y(lo)} L ${x(0)} ${y(lo)} Z`} fill="currentColor" opacity={0.08} />
             )}
-            <path d={d} fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+            <path d={d} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
             {last && <circle cx={last[0]} cy={last[1]} r={3.5} fill="currentColor" className="stroke-surface" strokeWidth={1.5} />}
           </g>
         );

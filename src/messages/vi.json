@@ -57,9 +57,9 @@
     "statNpd": "NPD (ngày không sản xuất)",
     "statFarrowingRate": "Tỷ lệ đẻ",
     "statAiAlerts": "Cảnh báo AI",
-    "met": "✓ Đạt mục tiêu",
+    "met": "Đạt mục tiêu",
     "belowTarget": "▼ Dưới mục tiêu",
-    "belowOk": "✓ Trong mục tiêu",
+    "belowOk": "Trong mục tiêu",
     "aboveTarget": "▲ Vượt mục tiêu",
     "severeWarn": "Nghiêm trọng {crit} · Cảnh báo {warn}",
     "overdueSows": "Nái cần xử lý {n}",
@@ -72,7 +72,7 @@
     "pWeaning": "Cai sữa",
     "ruleAlerts": "Cảnh báo Rule Engine",
     "alertCount": "{n}",
-    "noAlertsAll": "✓ Không có cảnh báo — mọi KPI trong ngưỡng",
+    "noAlertsAll": "Không có cảnh báo — mọi KPI trong ngưỡng",
     "aiBriefing": "Tóm tắt AI",
     "briefPrefix": "Nái đang nuôi",
     "briefMid": "Ngày không sản xuất",
@@ -256,7 +256,7 @@
     "herdWeanedOpen": "Trống/Cai sữa",
     "herdActiveTotal": "Tổng đang nuôi",
     "ruleAlerts": "Cảnh báo Rule Engine",
-    "noAlerts": "✓ Không có cảnh báo Rule Engine — mọi KPI trong ngưỡng",
+    "noAlerts": "Không có cảnh báo Rule Engine — mọi KPI trong ngưỡng",
     "headUnit": "con",
     "daysUnit": "ngày",
     "currentTarget": "Hiện {cur} / mục tiêu {tgt}",
@@ -330,6 +330,7 @@
     "conflict": "Dữ liệu bị xung đột. Vui lòng tải lại và thử lại.",
     "validation": "Một số thông tin không hợp lệ. Vui lòng kiểm tra và thử lại.",
     "rateLimited": "Quá nhiều lần thử. Vui lòng đợi một lát rồi thử lại.",
+    "rateLimitedRetryIn": "Bạn có thể thử lại sau khoảng {minutes} phút.",
     "dbUnavailable": "Dịch vụ tạm thời không khả dụng. Vui lòng thử lại sau giây lát.",
     "serverError": "Đã xảy ra sự cố từ phía chúng tôi. Vui lòng liên hệ hỗ trợ kèm mã này:"
   },
@@ -963,7 +964,7 @@
     "cAvgWeaned": "Cai/ổ",
     "cLactDays": "Ngày nuôi con",
     "cRts": "Tỷ lệ RTS",
-    "pwmrNote": "⚠ PWMR-A (chết/(cai+chết)) và PWMR-B ((tổng−cai)/tổng) có thể chênh 3–5%p.",
+    "pwmrNote": "PWMR-A (chết/(cai+chết)) và PWMR-B ((tổng−cai)/tổng) có thể chênh 3–5%p.",
     "cPwmrA": "PWMR-A",
     "cPwmrB": "PWMR-B",
     "groupByPeriod": "Theo kỳ",
@@ -1026,7 +1027,7 @@
   },
   "profile": {
     "title": "Sửa hồ sơ",
-    "saved": "✓ Đã lưu thay đổi",
+    "saved": "Đã lưu thay đổi",
     "changePhoto": "Đổi ảnh",
     "name": "Tên",
     "namePh": "Nhập tên của bạn",
@@ -1260,7 +1261,7 @@
     "selectFarm": "Vui lòng chọn trại trước.",
     "loading": "Đang tải công việc…",
     "loadError": "Không tải được công việc.",
-    "allClear": "Đã xong hết — không có việc tồn đọng 🎉",
+    "allClear": "Đã xong hết — không có việc tồn đọng",
     "overdueDays": "Quá hạn {n} ngày",
     "go": "Đi",
     "done": "Xong",
@@ -2031,6 +2032,12 @@
       "desc": "Một số tài liệu bạn đã đồng ý đã thay đổi. Vui lòng xem lại phiên bản hiện tại.",
       "review": "Xem thay đổi"
     },
+    "diff": {
+      "required": "Phiên bản hiện tại",
+      "recorded": "Phiên bản bạn đã đồng ý",
+      "never": "Chưa có bản ghi",
+      "changed": "Đã cập nhật kể từ khi bạn đồng ý"
+    },
     "dismiss": "Bỏ qua"
   },
   "forgotPassword": {
@@ -2099,7 +2106,11 @@
     "phSows": "vd: 500",
     "phName": "vd: Nguyễn Văn A",
     "phUsername": "vd: farmowner",
-    "phEmail": "farmer@example.com"
+    "phEmail": "farmer@example.com",
+    "consentPlanUnavailable": "Không tải được các điều khoản áp dụng cho quốc gia của bạn. Bạn không thể hoàn tất đăng ký nếu chưa đồng ý — vui lòng quay lại và thử lại.",
+    "publicationNotApprovedTitle": "Chưa mở tại khu vực của bạn",
+    "publicationNotApproved": "PigOS chưa nhận đăng ký cho quốc gia bạn đã chọn. Điều khoản và thông báo quyền riêng tư cho khu vực này vẫn đang được luật sư xem xét, và chúng tôi sẽ không yêu cầu bạn đồng ý với tài liệu chưa hoàn tất. Hãy gửi email tới help@pigos.io, chúng tôi sẽ báo ngay khi mở.",
+    "consentRecordFailed": "Không ghi nhận được sự đồng ý của bạn. Việc đăng ký chưa hoàn tất. Vui lòng thử lại."
   },
   "kpiCards": {
     "labelPSY": "PSY",

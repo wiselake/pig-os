@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslations, useLocale } from "next-intl";
-import { Sparkles } from "lucide-react";
+import { Sparkles, X, Pin } from "lucide-react";
 import { chatApi } from "@/lib/api/endpoints/chat";
 import { useAuthStore } from "@/store/auth.store";
 import type { ChatQuery, ChatResponse } from "@/types/api.types";
@@ -70,23 +70,23 @@ export function AskAiDrawer({ open, onClose, context }: AskAiDrawerProps) {
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white"
               style={{ background: "linear-gradient(135deg,#123A2A,#178A5A)" }}>
-              <Sparkles size={15} />
+              <Sparkles size={14} />
             </div>
             <div>
               <div className="text-sm font-bold text-text">{header}</div>
               <div className="text-[10px] text-muted">{subtitle}</div>
             </div>
           </div>
-          <button onClick={onClose} className="w-7 h-7 rounded-full bg-bg2 flex items-center justify-center text-muted hover:text-text transition text-sm">
-            ✕
+          <button onClick={onClose} className="w-7 h-7 rounded-full bg-bg2 flex items-center justify-center text-muted hover:text-text transition">
+            <X size={14} aria-hidden />
           </button>
         </div>
 
         {/* Context chip */}
         {context && (
           <div className="px-4 pt-3">
-            <span className="inline-flex items-center gap-1 text-[11px] bg-primary-soft text-primary px-2.5 py-1 rounded-full font-medium">
-              📌 {context}
+            <span className="inline-flex items-center gap-1.5 text-[11px] bg-primary-soft text-primary px-2.5 py-1 rounded-full font-medium">
+              <Pin size={12} aria-hidden />{context}
             </span>
           </div>
         )}

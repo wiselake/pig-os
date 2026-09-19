@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MessageSquarePlus, Send, ChevronLeft } from "lucide-react";
+import { MessageSquarePlus, Send, ChevronLeft, MessageCircle, Mail, Phone, type LucideIcon } from "lucide-react";
 import { contentApi } from "@/lib/api/endpoints/content";
 import type { SupportTicketOut } from "@/types/api.types";
 
@@ -18,10 +18,10 @@ export default function SupportPage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [composing, setComposing] = useState(false);
   const faqs = t.raw("faqs") as { q: string; a: string }[];
-  const contacts: [string, string, string][] = [
-    ["💬", t("chat"), t("chatHours")],
-    ["📧", t("email"), "help@pigos.io"],
-    ["📞", t("phone"), "1588-0000"],
+  const contacts: [LucideIcon, string, string][] = [
+    [MessageCircle, t("chat"), t("chatHours")],
+    [Mail, t("email"), "help@pigos.io"],
+    [Phone, t("phone"), "1588-0000"],
   ];
 
   const st = (s: string) => t(s === "OPEN" ? "statusOpen" : s === "ANSWERED" ? "statusAnswered" : "statusClosed");
@@ -31,9 +31,9 @@ export default function SupportPage() {
       <h1 className="text-xl font-extrabold tracking-tight mb-5">{t("title")}</h1>
 
       <div className="grid grid-cols-3 gap-3 mb-7">
-        {contacts.map(([ic, label, s], i) => (
+        {contacts.map(([Icon, label, s], i) => (
           <div key={i} className="bg-surface border border-border rounded-2xl p-5">
-            <div className="text-2xl mb-2">{ic}</div>
+            <div className="mb-2.5 text-primary"><Icon size={20} strokeWidth={1.5} aria-hidden /></div>
             <div className="text-sm font-bold text-text">{label}</div>
             <div className="text-xs text-text3 mt-1">{s}</div>
           </div>

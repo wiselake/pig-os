@@ -11,11 +11,10 @@ Revises: b3d5f7091a2c
 import json
 
 import sqlalchemy as sa
-from alembic import op
 
+from alembic import op
 from app.db.benchmark_seed import (
     KPI_DEFINITIONS,
-    SeedValidationError,
     definition_id_for,
     kpi_definition_index,
     validate_benchmark,

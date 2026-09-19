@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { Sparkles, FileDown, Printer, BarChart3 } from "lucide-react";
+import { Sparkles, FileDown, Printer, BarChart3, Star } from "lucide-react";
 import { kpiApi } from "@/lib/api/endpoints/kpi";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { useAuthStore } from "@/store/auth.store";
@@ -55,7 +55,7 @@ export default function KpiPage() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-green-soft flex items-center justify-center">
-            <BarChart3 size={18} className="text-primary" />
+            <BarChart3 size={16} className="text-primary" />
           </div>
           <div>
             <h1 className="text-[22px] font-extrabold tracking-tight">{t("pageTitle")}</h1>
@@ -169,7 +169,7 @@ function KpiCard({
     <div className="bg-surface border border-border rounded-xl p-4 flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-bold tracking-wide uppercase text-text3">
-          {headline && <span className="mr-1 text-primary" aria-hidden>★</span>}{label}
+          {headline && <Star size={12} className="mr-1 inline-block align-[1px] text-primary" fill="currentColor" strokeWidth={0} aria-hidden />}{label}
         </span>
         <span className={`w-2 h-2 rounded-full ${style.dot}`} />
       </div>
@@ -311,7 +311,7 @@ function AiSummaryCard({
   return (
     <div className="rounded-2xl bg-console p-4 flex flex-col gap-3 text-white">
       <div className="flex items-center gap-2">
-        <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center"><Sparkles size={15} className="text-white" /></div>
+        <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center"><Sparkles size={14} className="text-white" /></div>
         <span className="text-sm font-bold">{t("aiSummary")}</span>
         <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/10 text-white/70">{t("aiTemplateBadge")}</span>
       </div>

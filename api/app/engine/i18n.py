@@ -14,6 +14,12 @@
 from __future__ import annotations
 
 # 앱/웹이 지원하는 표시 언어. 새 언어를 추가하면 카탈로그 전체를 채워야 한다.
+# ★ ru 는 의도적으로 없다 — 누락이 아니다.
+#   CIS 는 리서치·부속조항이 미비해 아직 대상 시장이 아니고(CLAUDE.md 타겟 시장),
+#   백엔드 카탈로그를 러시아어로 채우는 것 자체가 "러시아어 서비스 제공 준비됨"의
+#   코드 상 표명이 된다. 프론트에는 ru UI 가 존재하므로 그 노출을 유지할지는
+#   사람 결정이다 → docs/legal/HUMAN_INPUT_QUEUE.md
+#   tests/unit/test_locale_catalog_parity.py 가 초과·부족 양쪽을 막는다.
 SUPPORTED_LOCALES: tuple[str, ...] = ("en", "ko", "zh", "es", "vi", "th", "pt")
 DEFAULT_LOCALE = "en"
 
@@ -878,16 +884,24 @@ UI_LABELS: dict[str, dict[str, str]] = {
         "vi": "Tất cả các chỉ số KPI đều trong ngưỡng bình thường.",
         "th": "ตัวชี้วัดทั้งหมดอยู่ในเกณฑ์ปกติ",
         "pt": "Todos os KPIs estão dentro da faixa normal."},
+    # 심각도 라벨 — ★ 글리프를 넣지 않는다.
+    # 이 문자열은 챗 응답 본문으로 그대로 나간다. 예전에는 "🔴 Critical" / "⚠ 경고" / "✓" 처럼
+    # 이모지가 섞여 있었는데, 서버가 만든 텍스트라 클라이언트가 색·크기·정렬을 잡을 수
+    # 없고 스크린리더가 글리프를 읽는다. 등급은 StructuredResult.severity 필드로도
+    # 내려가므로, 표시 강조는 그쪽을 보고 클라이언트가 한다.
+    # ★ ok/info 의 현지어는 2026-09-09 신규 — 나머지 6키와 달리 원어민 검수 미이행(검토 대상).
     "severity_ok": {
-        "en": "✓", "ko": "✓", "zh": "✓", "es": "✓", "vi": "✓", "th": "✓", "pt": "✓"},
+        "en": "OK", "ko": "정상", "zh": "正常", "es": "Normal",
+        "vi": "Bình thường", "th": "ปกติ", "pt": "Normal"},
     "severity_info": {
-        "en": "ℹ", "ko": "ℹ", "zh": "ℹ", "es": "ℹ", "vi": "ℹ", "th": "ℹ", "pt": "ℹ"},
+        "en": "Info", "ko": "참고", "zh": "提示", "es": "Info",
+        "vi": "Thông tin", "th": "ข้อมูล", "pt": "Info"},
     "severity_warning": {
-        "en": "⚠ Warning", "ko": "⚠ 경고", "zh": "⚠ 警告", "es": "⚠ Aviso",
-        "vi": "⚠ Cảnh báo", "th": "⚠ คำเตือน", "pt": "⚠ Alerta"},
+        "en": "Warning", "ko": "경고", "zh": "警告", "es": "Aviso",
+        "vi": "Cảnh báo", "th": "คำเตือน", "pt": "Alerta"},
     "severity_critical": {
-        "en": "🔴 Critical", "ko": "🔴 위험", "zh": "🔴 严重", "es": "🔴 Crítico",
-        "vi": "🔴 Nghiêm trọng", "th": "🔴 วิกฤต", "pt": "🔴 Crítico"},
+        "en": "Critical", "ko": "위험", "zh": "严重", "es": "Crítico",
+        "vi": "Nghiêm trọng", "th": "วิกฤต", "pt": "Crítico"},
 }
 
 

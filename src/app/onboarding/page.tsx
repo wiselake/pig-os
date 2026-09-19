@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslations, useLocale } from "next-intl";
+import { rateLimitMessage, resolveApiError } from "@/lib/api/errors";
 
 import { authApi } from "@/lib/api/endpoints/auth";
 import { consentApi } from "@/lib/api/endpoints/consent";
@@ -60,6 +61,8 @@ export default function OnboardingPage() {
   });
   const [confirmPw, setConfirmPw] = useState("");
   const [error, setError] = useState<string | null>(null);
+  /** 게시 문서 미승인으로 해당 지역 가입이 닫힌 상태. 오류가 아니라 안내다. */
+  const [blocked, setBlocked] = useState(false);
 
   // 동의 인프라(TERMS_DISPLAY §4): 확인 스텝에서 법역별 약관·목적 UI 표시 후 기록.
   const [plan, setPlan] = useState<SignupPlan | null>(null);
@@ -92,6 +95,35 @@ export default function OnboardingPage() {
   // 로케일 = next-intl provider(= NEXT_LOCALE 쿠키). UI는 useTranslations, API엔 locale 전달.
   const locale = useLocale();
   const t = useTranslations("onboarding");
+  const tErr = useTranslations("errors");
+
+  /**
+   * 서버가 준 detail 을 화면 상태로 옮긴다.
+   *
+   * ★ `PUBLICATION_NOT_APPROVED` 는 실패가 아니라 **정책 상태**다(G-3).
+   *   해당 지역의 약관·개인정보 고지가 아직 확정되지 않아 가입을 받지 않는 것이고,
+   *   사용자가 고쳐서 다시 시도할 수 있는 성질이 아니다. 빨간 오류 상자에 영문
+   *   코드를 그대로 띄우면 장애로 읽힌다.
+   */
+  const applyDetail = (detail: unknown, fallback: string, err?: unknown) => {
+    if (typeof detail === "string" && detail.includes("PUBLICATION_NOT_APPROVED")) {
+      setBlocked(true);
+      setError(null);
+      return;
+    }
+    setBlocked(false);
+    // ★ 429 는 "요청이 너무 잦다" 이지 가입 실패도 법역 차단도 아니다. detail 원문
+    //   ("RATE_LIMITED:signup")을 그대로 띄우면 영문 상수가 화면에 나온다 — 451 에서
+    //   겪은 것과 같은 모양. 입력값은 form state 에 그대로 남는다.
+    if (err !== undefined) {
+      const e = resolveApiError(err);
+      if (e.kind === "rateLimited") {
+        setError(rateLimitMessage(tErr, e));
+        return;
+      }
+    }
+    setError(typeof detail === "string" ? detail : fallback);
+  };
 
   // 확인 스텝 진입 또는 국가/언어 변경 시 plan 조회(공개 엔드포인트 — pre-auth).
   useEffect(() => {
@@ -116,6 +148,43 @@ export default function OnboardingPage() {
   const mutation = useMutation({
     mutationFn: () => authApi.onboard({ ...form, language: locale }),  // M3: 감지된 로케일 전송
     onSuccess: async (data) => {
+      // ★ fail-closed (LEGAL-P0-WEB-CONSENT-FAIL-CLOSED)
+      //
+      //   이전에는 여기서 곧바로 setAuth·쿠키를 세우고 동의 기록은 try/catch 로
+      //   삼켰다. 그래서 plan 을 못 받았거나 record 가 실패해도 대시보드로 들어갔고,
+      //   DB 에는 org·user·farm 만 남고 consent_ledger 는 비었다.
+      //   실제 프로덕션 원장이 0행인 유력한 경로가 이것이다.
+      //
+      //   이제 **필수 동의 기록이 성공해야** 로그인 상태를 확정한다.
+      //   토큰은 그 전까지 이 호출에만 임시로 쓴다(store 에 저장하지 않는다).
+      if (planStatus !== "ready" || !consentState) {
+        setError(t("consentPlanUnavailable"));
+        return;
+      }
+      try {
+        await consentApi.record(
+          {
+            farm_id: data.farm_id,
+            selected_country: form.country,
+            farm_country: form.country,
+            lang: locale,
+            terms_ack: consentState.termsAck,
+            privacy_ack: consentState.privacyAck,
+            // 선택 목적을 전부 끈 것은 실패가 아니다 — 정상값 그대로 보낸다.
+            choices: consentState.choices,
+            collection_context: "UI_SIGNUP",
+          },
+          data.access_token,   // auth store 에 아직 없으므로 명시 주입
+        );
+      } catch (err: unknown) {
+        // 절대 삼키지 않는다. 서버가 준 사유가 있으면 그대로 보여준다
+        // (451 SIGNUP_BLOCKED:{reason} 계약 보존).
+        const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+        applyDetail(detail, t("consentRecordFailed"), err);
+        return;   // ★ 여기서 멈춘다 — setAuth·쿠키·navigation 없음
+      }
+
+      // 여기부터가 "가입 완료" 다. 동의가 원장에 남은 뒤에만 도달한다.
       setAuth(
         { id: data.user_id, username: form.username, email: form.email, name: form.name, role: "FARM_OWNER", farm_ids: [data.farm_id] },
         data.access_token,
@@ -123,38 +192,27 @@ export default function OnboardingPage() {
         data.farm_id,
       );
       document.cookie = `pigos_session=1; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-      // 동의 기록(가입 직후, 인증됨). best-effort — 실패해도 진입, 설정에서 재수집 가능.
-      if (consentState && planStatus === "ready") {
-        try {
-          await consentApi.record({
-            farm_id: data.farm_id,
-            selected_country: form.country,
-            farm_country: form.country,
-            lang: locale,
-            terms_ack: consentState.termsAck,
-            privacy_ack: consentState.privacyAck,
-            choices: consentState.choices,
-            collection_context: "UI_SIGNUP",
-          });
-        } catch { /* 설정 > 데이터·프라이버시에서 재수집 */ }
-      }
       identifyUser(data.user_id, { country: form.country });
       track("signup", { country: form.country });
       router.replace("/");
     },
     onError: (err: unknown) => {
       const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setError(typeof detail === "string" ? detail : "Something went wrong. Please try again.");
+      applyDetail(detail, "Something went wrong. Please try again.", err);
     },
   });
 
   const canProceed = () => {
     if (step === 0) return form.org_name.trim() && form.farm_name.trim() && form.country;
     if (step === 1) return form.name.trim() && /^[a-zA-Z0-9_.-]{3,50}$/.test(form.username) && form.email.trim() && form.password.length >= 8 && form.password === confirmPw;
-    // step 2: 동의 게이트. CN 등 차단 시 진행 불가. plan 조회 실패(인프라 에러)는 가입을 막지 않음(설정에서 재수집).
+    // step 2: 동의 게이트 — fail-closed.
+    //
+    //   이전에는 plan 조회 실패 시 `return true` 로 통과시켰다. 그러면 서버에는
+    //   org·user·farm 이 만들어지는데 동의 원장은 비는 고아 계정이 생긴다.
+    //   동의를 받을 수 없으면 애초에 제출을 막는 것이 옳다.
     if (plan?.gate.signup_blocked) return false;
-    if (planStatus === "ready") return !!consentState?.canSubmit;
-    return true;
+    if (planStatus !== "ready") return false;
+    return !!consentState?.canSubmit;   // 필수 약관·개인정보 미체크 → 제출 불가
   };
 
   const next = () => {
@@ -318,15 +376,23 @@ export default function OnboardingPage() {
                   <p className="text-sm text-slate-400 text-center py-4">…</p>
                 )}
                 {planStatus === "error" && (
-                  <p className="text-xs text-slate-400 text-center py-2">
-                    {locale === "es" ? "No se pudo cargar el consentimiento; podrá configurarlo en Ajustes."
-                      : "Consent could not load; you can set it later in Settings."}
+                  // ★ "나중에 설정에서" 가 아니다 — 동의 없이는 가입 자체가 안 된다.
+                  //   인라인 로케일 분기도 제거(CLAUDE.md §4: messages 파일만 사용).
+                  <p className="text-sm text-danger text-center py-2" data-testid="onb-consent-plan-error">
+                    {t("consentPlanUnavailable")}
                   </p>
                 )}
                 {planStatus === "ready" && plan && (
                   <ConsentForm plan={plan} embedded mode="signup" onChange={setConsentState} />
                 )}
               </div>
+            </div>
+          )}
+
+          {blocked && (
+            <div className="bg-bg2 border border-border rounded-lg px-4 py-3.5 mt-4">
+              <p className="text-sm font-bold text-text mb-1.5">{t("publicationNotApprovedTitle")}</p>
+              <p className="text-sm text-text2 leading-relaxed">{t("publicationNotApproved")}</p>
             </div>
           )}
 

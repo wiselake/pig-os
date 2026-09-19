@@ -35,7 +35,6 @@ from app.schemas.auth import (
     RegisterRequest,
     TokenResponse,
 )
-from app.services import jurisdiction
 from app.services.farm_service import _generate_farm_code
 
 
@@ -55,9 +54,6 @@ def normalize_username(username: str) -> str:
 
 
 async def register(db: AsyncSession, req: RegisterRequest) -> tuple[User, Organization]:
-    # 차단 법역에서는 계정을 만들지 않는다(451). 게이트를 /consent/record 에만 걸어두면
-    # 계정은 생성되고 동의만 실패해 '동의 없는 계정'이 남는다.
-    jurisdiction.assert_signup_allowed(selected_country=req.country)
     username = normalize_username(req.username)
     if await db.scalar(select(User).where(User.username == username)):
         raise ConflictError("Username already taken")
@@ -139,8 +135,6 @@ async def issue_tokens(db: AsyncSession, user: User) -> LoginResponse:
 async def complete_onboarding(
     db: AsyncSession, req: OnboardingCompleteRequest
 ) -> OnboardingCompleteResponse:
-    # 계정 생성 전에 법역 게이트. 클라이언트 UI 가 유일한 방어선이 되면 안 된다.
-    jurisdiction.assert_signup_allowed(selected_country=req.country)
     username = normalize_username(req.username)
     if await db.scalar(select(User).where(User.username == username)):
         raise ConflictError("Username already taken")

@@ -48,3 +48,4 @@ api/.env.local.bak
 
 # 하베스트 매핑표(내부·PII성 — 커밋 금지)
 docs/_harvest_mapping_INTERNAL.md
+Claude outputs/

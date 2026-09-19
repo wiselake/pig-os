@@ -1336,6 +1336,19 @@ export interface ConsentStatus {
   notice_version: string; accepted_at: string | null; withdrawn_at: string | null;
   effective_from: string | null; collection_context: string;
 }
+// GET /consent/diff — 목적별 (필요 버전, 기록 버전). 판정 필드 없음 (PLATFORM_PARITY §9-8).
+// ★ 국가 파라미터 없음 — 서버가 farm/org 에서 도출한다. 버전 동일성만 답하고 충분성은 답하지 않는다.
+export interface ConsentDiffItem {
+  purpose_code: string; lawful_basis: string; ui_kind: string;
+  required_version: string; recorded_version: string | null;
+  recorded_status: string | null; recorded_at: string | null;
+}
+export interface ConsentDiff {
+  jurisdiction: string; group: string;
+  selected_country: string; farm_country: string | null; counsel_review: boolean;
+  farm_id: string | null; required_version: string; any_draft: boolean;
+  items: ConsentDiffItem[];
+}
 export interface WithdrawRequest {
   purpose_code: string; farm_id?: string | null; action: string; reason?: string | null;
 }

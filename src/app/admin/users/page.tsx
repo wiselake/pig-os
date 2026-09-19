@@ -77,7 +77,7 @@ function MembersTab({ t }: { t: (k: string, v?: Record<string, string | number>)
     <>
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         <div className="relative w-64">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text3" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text3" />
           <input
             value={q}
             onChange={(e) => { setQ(e.target.value); setPage(1); }}
@@ -229,7 +229,7 @@ function PilotsTab({ t }: { t: (k: string, v?: Record<string, string | number>) 
                       {t("actApproveAccount")}
                     </button>
                   ) : (
-                    <span className="text-[11px] text-success font-semibold">✓ {t("psOnboarded")}</span>
+                    <span className="inline-flex items-center gap-1 text-[11px] text-success font-semibold"><Check size={12} strokeWidth={2.5} aria-hidden />{t("psOnboarded")}</span>
                   )}
                 </td>
               </tr>

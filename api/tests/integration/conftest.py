@@ -47,6 +47,48 @@ _sync_engine = create_engine(_SYNC_TEST_URL, echo=False)
 _async_engine = create_async_engine(_ASYNC_TEST_URL, echo=False, future=True, poolclass=NullPool)
 
 
+@pytest.fixture(autouse=True)
+def _disable_rate_limit(request, monkeypatch):
+    """가입 rate limit 을 끈다 — 제한기 자체를 검증하는 파일만 예외.
+
+    ★ 왜 필요한가: 통합 테스트는 한 파일에서 계정을 여럿 만든다. 운영 기본값(5/시간)이
+      그대로 걸리면 **다른 기능의 테스트가 429 로 깨진다** — 실제로 2026-09-16 에
+      21건이 그렇게 깨졌다. 제한기는 옳게 동작한 것이고, 테스트가 자기가 검증하지 않는
+      운영 정책에 묶여 있던 것이 문제다.
+
+    `_approved_publication_set` 과 같은 방식이다: 기본은 비활성, 검증하는 쪽이 켠다.
+    """
+    if request.node.get_closest_marker("real_rate_limit"):
+        return
+    from app.core.config import settings
+    monkeypatch.setattr(settings, "rate_limit_signup_per_hour", 0)
+    monkeypatch.setattr(settings, "rate_limit_auth_per_minute", 0)
+
+
+@pytest.fixture(autouse=True)
+def _approved_publication_set(request, monkeypatch):
+    """게시 문서를 승인본으로 두고 테스트한다 — G-3 게이트의 기본 우회.
+
+    `assert_publication_approved` 가 미승인(DRAFT) 상태에서 가입을 451 로 막는다.
+    실제 manifest 는 현재 8건 전부 DRAFT 이므로, 이 픽스처가 없으면 계정을 만드는
+    통합 테스트가 전부 막힌다(2026-09-09 실측 40건).
+
+    ★ 게이트를 약화시키는 것이 아니다. 게이트는 문서가 승인되면 사라지는 **일시
+      상태**이고, 다른 기능의 테스트를 그 상태에 묶어두면 승인 시점에 40건이 다시
+      흔들린다. 각 테스트는 자기가 검증하는 것만 전제로 삼는다.
+
+    게이트 자체를 검증하는 파일은 `@pytest.mark.real_publication_set` 로 빠진다.
+    (기존 `_allow_kr_signup` autouse 픽스처와 같은 방식이다.)
+    """
+    if request.node.get_closest_marker("real_publication_set"):
+        return
+    from app.services import terms_renderer
+    from tests.publication_manifest import approved
+
+    raw = terms_renderer._manifest()
+    monkeypatch.setattr(terms_renderer, "_manifest", lambda: approved(raw))
+
+
 @pytest.fixture(scope="session", autouse=True)
 def create_tables():
     """세션 시작 시 한 번만 테이블 생성 (sync 엔진 사용)."""

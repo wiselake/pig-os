@@ -128,3 +128,74 @@ describe("메시지 키 계약", () => {
     }
   });
 });
+
+// ── 429 — rate limit (PLATFORM_PARITY §9-9) ───────────────────────────────────
+//
+// 서버 계약(실측 2026-09-18, api/app/core/rate_limit.py):
+//   status 429 · body {"detail": "RATE_LIMITED:<bucket>"} (code 없음) · Retry-After: <초>
+// 클라이언트는 서버가 준 것만 쓴다. 5회/시간 같은 정책 숫자를 여기서 재현하지 않는다.
+import { parseRetryAfter, rateLimitMessage } from "@/lib/api/errors";
+
+const rl = (retryAfter?: string, detail = "RATE_LIMITED:signup") => ({
+  response: { status: 429, data: { detail }, headers: retryAfter === undefined ? {} : { "retry-after": retryAfter } },
+});
+
+describe("resolveApiError — 429", () => {
+  it("429 는 rateLimited 이고 재시도 가능하다 — code 가 없어도", () => {
+    const r = resolveApiError(rl("1993"));
+    expect(r.kind).toBe("rateLimited");
+    expect(r.retryable).toBe(true);
+    expect(r.code).toBeUndefined();
+  });
+
+  it("Retry-After 초를 싣는다", () => {
+    expect(resolveApiError(rl("1993")).retryAfterSeconds).toBe(1993);
+    expect(resolveApiError(rl("13")).retryAfterSeconds).toBe(13);
+  });
+
+  it("헤더 키 대소문자에 안 흔들린다", () => {
+    const e = { response: { status: 429, data: { detail: "RATE_LIMITED:auth" }, headers: { "Retry-After": "7" } } };
+    expect(resolveApiError(e).retryAfterSeconds).toBe(7);
+  });
+
+  it.each([
+    [undefined, "없음"],
+    ["", "빈 문자열"],
+    ["abc", "숫자 아님"],
+    ["-5", "음수"],
+    ["0", "0"],
+    ["99999999", "하루 초과"],
+  ])("Retry-After %s (%s) → undefined 로 폴백, 여전히 rateLimited", (raw) => {
+    const r = resolveApiError(rl(raw));
+    expect(r.kind).toBe("rateLimited");
+    expect(r.retryAfterSeconds).toBeUndefined();
+  });
+
+  it("HTTP-date 형식도 초로 환산한다 (프록시가 바꿔 보내는 경우)", () => {
+    const now = Date.UTC(2026, 8, 18, 12, 0, 0);
+    const date = new Date(now + 90_000).toUTCString();
+    expect(parseRetryAfter(date, now)).toBe(90);
+  });
+
+  it("detail 토큰만으로도 429 를 식별한다 — 프록시가 status 를 바꿔도", () => {
+    const e = { response: { status: 503, data: { detail: "RATE_LIMITED:signup" } } };
+    expect(resolveApiError(e).kind).toBe("rateLimited");
+  });
+
+  it("★ 429 ≠ 451 — 법역·게시 차단은 rateLimited 가 아니다", () => {
+    const r = resolveApiError({ response: { status: 451, data: { detail: "SIGNUP_BLOCKED:KR_REFERENCE_ONLY" } } });
+    expect(r.kind).not.toBe("rateLimited");
+    expect(r.retryable).toBe(false);
+  });
+
+  it("★ 429 ≠ 401 — 비밀번호 오류로 오인되지 않는다", () => {
+    expect(resolveApiError(rl("13", "RATE_LIMITED:auth")).kind).not.toBe("unauthorized");
+  });
+
+  it("문구: Retry-After 있으면 분 단위 안내를 덧붙이고, 없으면 기본 문장만", () => {
+    const tErr = (k: string, v?: Record<string, string | number>) => (v ? `${k}:${v.minutes}` : k);
+    expect(rateLimitMessage(tErr, { retryAfterSeconds: undefined })).toBe("rateLimited");
+    expect(rateLimitMessage(tErr, { retryAfterSeconds: 13 })).toBe("rateLimited rateLimitedRetryIn:1");
+    expect(rateLimitMessage(tErr, { retryAfterSeconds: 1993 })).toBe("rateLimited rateLimitedRetryIn:34");
+  });
+});

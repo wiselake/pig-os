@@ -5,7 +5,6 @@ default_metric_values 검증 게이트 메타 — 회귀 가드(위조 0).
 - 검증된 수치를 주입하기 전엔 'verified' 상태가 코드/시드에서 자동 부여되지 않는다(위조 0).
 """
 import pytest
-from sqlalchemy import select
 
 from app.db.models.config import DefaultMetricValue
 

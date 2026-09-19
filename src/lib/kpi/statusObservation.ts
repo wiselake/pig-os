@@ -41,20 +41,32 @@ export function findStatusMismatches(
 }
 
 /**
- * ADR-KPI-08 Phase 3 — 렌더용 tier 결정.
- * 백엔드 canonical status가 있으면 그것을 쓴다(국가별 정책 반영). 프론트는 판정하지 않는다.
- * 백엔드가 status를 주지 않을 때(구버전 API·미배포)만 legacy tier로 폴백한다 — Phase 4에서 제거.
- * 미지의 status 값은 임계 계산으로 되돌아가지 않고 중립(insufficient)으로 렌더한다.
+ * ADR-KPI-08 Phase 4 — 렌더용 tier 결정. **판정은 전적으로 백엔드 소관이다.**
+ *
+ * ★ 2026-08-28 변경: 백엔드 status가 없을 때 legacy 임계로 폴백하던 것을 제거했다.
+ *
+ *   폴백 임계(`status.ts` psyTier>=28 / npdTier<=35 / farrowingRateTier>=90)는
+ *   **국가 구분이 없다.** KR 기준값인데 서버 DMV는 US PSY 임계를 26/23으로 둔다.
+ *   폴백이 발동하는 순간 미국 농장에 한국 기준이 적용된다
+ *   (`CROSS_COUNTRY_DECISION_RISK`, D-19 v1.4 N-7 / PLATFORM_PARITY §3-3).
+ *
+ *   backend status 부재 = "판정을 받지 못했다"이지 "정상"도 "위험"도 아니다.
+ *   canonical no-judgment 상태인 `insufficient`로 렌더한다.
+ *   신규 enum(neutral/unknown/no_alert)을 만들지 않는다 — 서버 계약에 이미 있다.
+ *
+ * `legacy` 인자는 시그니처 호환을 위해 남아 있으나 **렌더 판정에 쓰이지 않는다.**
+ * 관측(`findStatusMismatches`)에는 계속 쓰인다.
  */
 const _CANONICAL: readonly KpiTier[] = ["normal", "warning", "critical", "insufficient"];
 
 export function resolveTier(
   backend: Record<string, KpiStatusDto> | undefined,
   metric: string,
-  legacy: KpiTier,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _legacy?: KpiTier,
 ): KpiTier {
   const be = backend?.[metric];
-  if (!be) return legacy;                                   // 폴백(Phase 4에서 제거)
+  if (!be) return "insufficient";                           // fail-closed. 자체 판정 금지
   const s = normalize(be.status) as KpiTier;
   return _CANONICAL.includes(s) ? s : "insufficient";       // unknown → 중립, 재판정 금지
 }

@@ -180,7 +180,7 @@ export default function BoarsPage() {
               onClick={openCreate}
               className="flex items-center gap-1.5 bg-primary text-white text-sm font-semibold px-3.5 py-1.5 rounded-lg hover:bg-success transition"
             >
-              <Plus size={15} />
+              <Plus size={14} />
               {t("addBoar")}
             </button>
           )}
@@ -243,7 +243,7 @@ export default function BoarsPage() {
                         title={t("editTooltip")}
                         className="p-1.5 rounded-md text-text3 hover:text-text hover:bg-bg2 transition"
                       >
-                        <Pencil size={13} />
+                        <Pencil size={12} />
                       </button>
                       )}
                       {canWrite && boar.status === "ACTIVE" && (
@@ -289,7 +289,7 @@ export default function BoarsPage() {
                         onClick={() => openEdit(boar)}
                         className="flex items-center gap-1 text-xs px-2 py-1 rounded-md text-text2 hover:text-text hover:bg-bg2 transition"
                       >
-                        <Pencil size={13} /> {t("editTooltip")}
+                        <Pencil size={12} /> {t("editTooltip")}
                       </button>
                       {boar.status === "ACTIVE" && (
                         <select

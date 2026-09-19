@@ -10,9 +10,20 @@ export const apiClient = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+// ── 클라이언트 신원 헤더 ──────────────────────────────────────────────────────
+// 서버가 어느 플랫폼·어느 버전이 붙어 있는지 관측할 수 있게 한다.
+// ★ 지금은 송출·관측 단계다. 서버는 이 값으로 차단하지 않는다.
+//   min_supported_version 게이트는 Web·Android·iOS 세 곳이 전부 송출하고
+//   서버가 실제 수신을 확인한 뒤에 별도로 켠다 — 역순으로 켜면 정상 클라이언트가 막힌다.
+//   docs/product/PIGOS_PRODUCT_IMPLEMENTATION_HANDOFF.md §12-1
+export const CLIENT_PLATFORM = "web";
+export const CLIENT_APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "0.0.0-dev";
+
 // ── Request: inject Authorization header ─────────────────────────────────────
 // Lazy import to avoid circular dependency (store imports client, client imports store)
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  config.headers["X-PigOS-Platform"] = CLIENT_PLATFORM;
+  config.headers["X-PigOS-App-Version"] = CLIENT_APP_VERSION;
   if (typeof window !== "undefined") {
     try {
       const raw = localStorage.getItem("pigos-auth");

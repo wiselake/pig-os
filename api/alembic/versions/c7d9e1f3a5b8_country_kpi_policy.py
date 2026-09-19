@@ -10,14 +10,14 @@ Revision ID: c7d9e1f3a5b8
 Revises: d4a1b2c3e5f7
 """
 from collections.abc import Sequence
-from typing import Union
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.dialects import postgresql
 
+from alembic import op
+
 revision: str = "c7d9e1f3a5b8"
-down_revision: Union[str, Sequence[str], None] = "d4a1b2c3e5f7"
+down_revision: str | Sequence[str] | None = "d4a1b2c3e5f7"
 branch_labels = None
 depends_on = None
 
