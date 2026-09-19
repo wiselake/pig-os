@@ -101,3 +101,16 @@ push: PigOS safety/pigos-20260916 은 `7d13e26` 까지 push 됨 (이후 `698bda3
 | pigos-android #5 | fail (인프라) | `0e1d450` run 35321591116 (변동 없음) |
 
 이 CP 의 push 는 00:5x UTC(창 밖) 에 실행된다 — 코드 변경 없이 초록이면 CP-6 진단(시간대 경계)이 실측으로 확정된다. 다음 CP 에서 기록.
+
+## CP-8 · 2026-09-19 13:53 KST — 시간대 경계 진단 실측 확정
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| G1 PR #3 | **DONE (유지)** | head `d088e73` · base `origin/main@8a80ea4` 미변동 · MERGEABLE/CLEAN · 3 checks SUCCESS. 코드 변경 0 |
+| PR #2 | **green** | head `85c6994` run **35410963895 success** (00:55 UTC = 09:55 KST, 창 밖). MERGEABLE/CLEAN |
+| pigos-ios #4 | green | `e750daa` run 35321586461 (변동 없음) |
+| pigos-android #5 | fail (인프라) | `0e1d450` run 35321591116 (변동 없음) |
+
+**확정**: fe6e455 → a06aa9d → 85c6994 는 docs 커밋만 다르고 api/ 는 동일한데,
+16:54 UTC red · 20:57 UTC red · 00:55 UTC green. `test_future_presentation_row_ignored` 의
+UTC/KST 경계 의존(CP-6) 이 코드 변경 없이 실측으로 확인됐다. D9 근거로 충분. 수정 안 함.
