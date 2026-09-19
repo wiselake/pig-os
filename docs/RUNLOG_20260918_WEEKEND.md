@@ -90,3 +90,14 @@ push: PigOS safety/pigos-20260916 은 `7d13e26` 까지 push 됨 (이후 `698bda3
 - docs-only 커밋이 트리거했을 뿐 코드 원인 아님. 임의 수정 금지 지시 → **재실행도 하지 않는다**(KST 낮에 재실행하면 초록이 되겠지만 그것은 문제를 가리는 것). 결정 큐 D9 로 올린다.
 
 **G1 영향**: PR #3 head 는 green 그대로이고 base 도 안 움직였다 → merge-ready 유지. 단 **base 가 움직여 CI 재실행이 필요해지면 KST 09:00–24:00 에 돌려야 한다**(그 외 시간엔 이 테스트로 빨강). 인계 패킷에 명시.
+
+## CP-7 · 2026-09-19 09:53 KST
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| G1 PR #3 | **DONE (유지)** | head `d088e73` · base `origin/main@8a80ea4` 미변동 · MERGEABLE/CLEAN · 3 checks SUCCESS. 코드 변경 0 |
+| PR #2 | **red (같은 원인)** | head `a06aa9d` run **35394188042 failure** — 20:57 UTC(05:57 KST) 실행, 같은 테스트 `assert 10 == 30` ×2(3.12/3.14). CP-6 진단 그대로(창 안) |
+| pigos-ios #4 | green | `e750daa` run 35321586461 (변동 없음) |
+| pigos-android #5 | fail (인프라) | `0e1d450` run 35321591116 (변동 없음) |
+
+이 CP 의 push 는 00:5x UTC(창 밖) 에 실행된다 — 코드 변경 없이 초록이면 CP-6 진단(시간대 경계)이 실측으로 확정된다. 다음 CP 에서 기록.
