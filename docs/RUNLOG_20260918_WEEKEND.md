@@ -129,3 +129,14 @@ UTC/KST 경계 의존(CP-6) 이 코드 변경 없이 실측으로 확인됐다. 
 | G4 branch | 유지 | `origin/test/trend-psy-frozen-as-of` = `c17c5df` |
 
 로컬 워킹트리 clean · 로컬 main = `d5fd28d` = origin/safety/pigos-20260916. 09:00 이전이므로 최종 확정은 다음 fire(09:23) 에서.
+
+## CP-10 · 2026-09-21 08:07 KST
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| G1 PR #3 | **DONE (유지)** | head `d088e73` · base `origin/main@8a80ea4` 미변동 · MERGEABLE/CLEAN · draft · 3 checks SUCCESS. 코드 변경 0 |
+| PR #2 | **red (창 안, 같은 원인)** | head `e30e64a`(CP-9 docs 커밋) run **35541576981 failure** — 22:24 UTC(07:24 KST) 실행, `test_future_presentation_row_ignored` `assert 10 == 30` ×2. CP-6/CP-8 진단 그대로(00:00–09:00 KST 창). 수정·재실행 안 함 |
+| pigos-ios #4 | green | `e750daa` run 35321586461 (변동 없음) |
+| pigos-android #5 | fail (인프라) | `0e1d450` run 35321591116 (변동 없음) |
+
+이 CP 커밋의 push 도 08:1x KST(창 안)라 또 빨강일 것이다 — 09:00 이후 fire 에서 기록. **PR #2 의 이 빨강은 D9 로 결정 대기 중인 알려진 원인**이고, PR #3(G1) 은 영향 없음.
