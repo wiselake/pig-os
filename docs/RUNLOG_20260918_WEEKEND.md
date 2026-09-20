@@ -114,3 +114,18 @@ push: PigOS safety/pigos-20260916 은 `7d13e26` 까지 push 됨 (이후 `698bda3
 **확정**: fe6e455 → a06aa9d → 85c6994 는 docs 커밋만 다르고 api/ 는 동일한데,
 16:54 UTC red · 20:57 UTC red · 00:55 UTC green. `test_future_presentation_row_ignored` 의
 UTC/KST 경계 의존(CP-6) 이 코드 변경 없이 실측으로 확인됐다. D9 근거로 충분. 수정 안 함.
+
+## CP-9 · 2026-09-21 07:23 KST — 체크포인트 공백 기록
+
+★ **CP-8(09-19 13:53) 이후 이 시점까지 체크포인트가 실행되지 않았다** (예정: 09-19 17:23·21:23 · 09-20 01:23~21:23 · 09-21 01:23·05:23 = 9회 누락).
+세션 cron 은 REPL 이 살아 있을 때만 fire 한다 — 그 사이 세션/머신이 깨어 있지 않았던 것으로 보인다(원인 실측 불가, 추정하지 않음). 공백 구간의 상태는 지금 시점의 실측으로만 말한다.
+
+| 항목 | 상태 (07:23 실측) | 근거 |
+|---|---|---|
+| G1 PR #3 | **DONE (유지)** | head `d088e73` · base `origin/main@8a80ea4` 미변동 · MERGEABLE/CLEAN · draft · 3 checks SUCCESS. 코드 변경 0. 공백 구간에 base 이동 없음(origin/main 동일) |
+| PR #2 | green | head `d5fd28d` run **35422553240 success** (09-19 04:54 UTC = 13:54 KST). 이후 push 없음 |
+| pigos-ios #4 | green | `e750daa` run 35321586461 (변동 없음) |
+| pigos-android #5 | fail (인프라) | `0e1d450` run 35321591116 (변동 없음) |
+| G4 branch | 유지 | `origin/test/trend-psy-frozen-as-of` = `c17c5df` |
+
+로컬 워킹트리 clean · 로컬 main = `d5fd28d` = origin/safety/pigos-20260916. 09:00 이전이므로 최종 확정은 다음 fire(09:23) 에서.
