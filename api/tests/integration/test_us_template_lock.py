@@ -223,13 +223,16 @@ async def test_l6_future_and_expired_rows_are_ignored(db: AsyncSession):
 
     국가 정책은 시행일을 갖는 결정이다. 넣자마자 켜지면 사전 고지가 불가능하다."""
     await _seed(db)
-    today = date.today()
+    # D9: 기준일은 테스트가 정한다. `date.today()`(호스트) 로 만들고 기준일 없이 부르면
+    # 리졸버 기본값 governance_today()(Asia/Seoul) 와 호스트 날짜가 다른 시간대에서
+    # `effective_to = 어제` 행이 아직 유효해져 깨진다 — test_kpi_presentation_resolver 와 같은 결함.
+    ref = date(2026, 9, 21)
     db.add(_policy(scope_level="COUNTRY", country_code=US, kpi_code="ADG",
-                   display_role="PRIMARY", effective_from=today + timedelta(days=30)))
+                   display_role="PRIMARY", effective_from=ref + timedelta(days=30)))
     db.add(_policy(scope_level="COUNTRY", country_code=US, kpi_code="FCR",
-                   display_role="PRIMARY", effective_from=today - timedelta(days=60),
-                   effective_to=today - timedelta(days=1)))
+                   display_role="PRIMARY", effective_from=ref - timedelta(days=60),
+                   effective_to=ref - timedelta(days=1)))
     await db.flush()
-    got = {r.kpi_code for r in await resolve_display_kpis(db, country=US)}
+    got = {r.kpi_code for r in await resolve_display_kpis(db, country=US, ref=ref)}
     assert "ADG" not in got, "발효 전 행이 이미 반영됐다"
     assert "FCR" not in got, "만료된 행이 아직 반영된다"
