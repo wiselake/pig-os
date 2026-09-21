@@ -1523,7 +1523,7 @@ POST /api/v1/auth/login · password-reset/{request,confirm}   → "RATE_LIMITED:
 |---|---|---|
 | Core | `DONE` | `app/core/rate_limit.py` · 라우터 5곳 · 테스트 11건 (`test_rate_limit.py`) |
 | Web | `DONE` | PigOS `8b7077c` (safety/pigos-20260916) — `src/lib/api/errors.ts` `rateLimited` + `parseRetryAfter` · onboarding/login/forgot-password 3화면 · 8 locale `errors.rateLimitedRetryIn` · vitest +21 (`apiErrors.test.ts` +9, `pages/rate-limit-429.test.tsx` 12) |
-| Android | `DONE` | pigos-android `0e1d450` (fix/rate-limit-429) — `data/remote/RateLimited.kt` · Login/Onboarding VM + 화면 · 8 locale `rate_limited(_retry_in)` · unit 446/0 (JDK 21, `testDebugUnitTest`; Robolectric 화면 테스트 포함) |
+| Android | `DONE` | pigos-android `0e1d450` (fix/rate-limit-429) — `data/remote/RateLimited.kt` · Login/Onboarding VM + 화면 · 8 locale `rate_limited(_retry_in)` · unit 446/0 로컬 · **CI run 35555598654 green** (`746d0af` = 0e1d450 + setup-android v4 수정, Draft PR #6; 446 tests·0 failures 실측) — `docs/runs/ANDROID_CI_429_PARITY_20260921.md` |
 | iOS | `DONE` | pigos-ios `7210e1c` (fix/rate-limit-429) — `APIError.rateLimited` · `APIClient` Retry-After 전달 · LoginScreen 꼬리말 제거 · `RateLimitTests.swift` 11건. Windows 에서 작성 → macOS CI run 35318843546(workflow_dispatch) **green**: SwiftLint 통과 · 216/0 (RateLimitTests 11/0) |
 
 ### 9-9-1. 3-클라이언트 파리티 매트릭스 (2026-09-18)
@@ -1548,7 +1548,7 @@ POST /api/v1/auth/login · password-reset/{request,confirm}   → "RATE_LIMITED:
 
 ```
 WEB_IMPLEMENTED = YES   WEB_TESTED = YES   (8b7077c · vitest)
-ANDROID_IMPLEMENTED = YES   ANDROID_TESTED = YES   (0e1d450 · 446/0 로컬. CI 는 PR 열려야 실행 — android.yml 이 push:main/PR 만)
+ANDROID_IMPLEMENTED = YES   ANDROID_TESTED = YES   ANDROID_CI_GREEN = YES   (0e1d450 · 로컬 446/0 · CI run 35555598654 @ 746d0af 446/0 — 09-18 의 CI 실패는 setup-android@v3 기본 `tools` 패키지 제거 때문, D3 에서 해소)
 IOS_IMPLEMENTED = YES   IOS_COMPILED = YES   IOS_TESTED = YES   (7210e1c · CI run 35318843546 green · 216/0)
 THREE_CLIENT_PARITY_VERIFIED = YES   — 예외 2종 명시: 재설정 2행 iOS N/A(플로우 부재) · locale 행 iOS en 단일(429 이전부터의 앱 갭, 별도 항목)
                                        화면 도달 검증은 Web·Android 만(iOS UI 테스트 부재) — 클라이언트 스텁까지로 판정
