@@ -151,6 +151,14 @@ class TestCore:
         assert sum(Fraction(v) for v in s.evidence["exact_shares"].values()) == 1
         assert s.evidence["shares"] == {"a": 0.3333, "b": 0.3333, "c": 0.3333}   # 표시 합 0.9999 — 보정하지 않는다
         assert s.evidence["kg_by_feed_type"] == {"a": 1.0, "b": 1.0, "c": 1.0}
+        # 스칼라 value = 최대 구성비(ratio). 동률이면 키 사전순 뒤가 dominant — 결정론
+        assert (s.value, s.unit, s.evidence["dominant_type"], s.evidence["feed_type_count"]) == (0.3333, "ratio", "c", 3)
+
+    def test_mix_share_scalar_is_the_dominant_share_not_a_count(self):   # Codex 2026-09-22 MAJOR
+        s = m.feed_mix_share(inp([raw(qty="50", ft="a"), raw(qty="50", ft="b")]))
+        assert s.value == 0.5 and 0.0 <= s.value <= 1.0
+        s2 = m.feed_mix_share(inp([raw(qty="90", ft="a"), raw(qty="10", ft="b")]))
+        assert (s2.value, s2.evidence["dominant_type"]) == (0.9, "a")
 
     def test_unknown_feed_type_is_kept_as_unspecified_not_dropped(self):   # §9
         i = inp([raw(ft=None, qty="40"), raw(ft="Grower", qty="60")])
@@ -202,6 +210,10 @@ class TestCohort:
         assert m.feed_cost_per_kg_gain(i).value == 0.9                  # 7200/8000
         assert m.feed_qty_per_head(i).value == 240.0 and m.feed_qty_per_head(i).evidence["denominator"] == "head_count_out"
         assert m.fcr(i).evidence["time_basis"] == "GROUP_LIFECYCLE"
+        assert (m.adg(i).value, m.adg(i).unit) == (round(8000 / 12000 * 1000, 1), "g/day")     # 666.7
+        assert m.adg(inp([raw()], cohort=None)).reason == "no_cohort"
+        assert m.adg(inp([raw()], cohort=cohort(gain="0"))).reason == "no_gain"
+        assert set(m.compute_all(i)) >= {"ADG", "FCR", "FEED_COST_PER_PIG", "FEED_COST_PER_KG_GAIN", "FEED_QTY_PER_HEAD"}
 
     def test_no_cohort_is_not_no_data(self):                           # T-F1
         assert m.fcr(inp([raw()], cohort=cohort(groups=0, feed="0", gain="0", head_out=0))).reason == "no_cohort"

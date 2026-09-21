@@ -79,34 +79,43 @@ async def create_feed_record(
 
 
 async def load_feed_cohort(
-    db: AsyncSession, farm_id: UUID, start: date, end: date
+    db: AsyncSession, farm_id: UUID, start: date, end: date, *, farm_currency: str | None = None,
 ) -> FeedCohort:
-    """Feed Basic 코호트 — kpi_service 의 FCR 과 같은 CLOSED 그룹 집합 (F-0011).
+    """Feed Basic 코호트 — CLOSED **적격** finisher_groups 집합 (F-0011).
 
-    gain·head_out 은 end_date 가 [start, end] 인 CLOSED finisher_groups 에서, 사료는 그 그룹에
-    group_id 로 귀속된 행의 전생애 합에서 온다. 두 SQL 의 그룹 조건은 kpi_service:428-449 와
-    문자 그대로 같아야 한다 — 어긋나면 FCR 이 두 값이 된다.
+    적격 = end_date ∈ [start, end] AND head_count_out·avg_entry·avg_exit 전부 있음. 분모(gain·head_out)와
+    분자(그룹 귀속 사료 전생애 합)가 **같은 그룹 집합**에서 나온다.
+
+    ★ 2026-09-22 정정 (Codex 리뷰 MAJOR): 이전 판은 분자 조인이 `end_date` 만 보고 체중·head_out 조건을
+      빼놓아, 체중 없는 CLOSED 그룹의 사료가 분자에만 들어가 FCR 을 부풀렸다. kpi_service:443-449 는
+      아직 같은 결함을 갖고 있다 — 거기서는 고치지 않고 test_feed_engine_service 가 차이를 고정한다.
+    ★ farm_currency 를 주면 통화 NULL 행을 그 통화로 귀속한다(엔진 계약 SPEC §4). 주지 않으면 이전처럼
+      NULL 을 집합에서 뺀다(PR #2 호환).
 
     원가는 unit_cost 있는 행만 합산하고 없는 행은 **센다**. 채우지 않는다.
     ★ 어느 라우터에도 연결돼 있지 않다 (F-0011 범위 결정 (나)).
     """
     p = {"fid": farm_id, "s": start, "e": end}
+    eligible = (
+        "g.farm_id=:fid AND g.deleted_at IS NULL AND g.end_date IS NOT NULL "
+        "AND g.head_count_out IS NOT NULL AND g.avg_exit_weight_kg IS NOT NULL "
+        "AND g.avg_entry_weight_kg IS NOT NULL AND g.end_date BETWEEN :s AND :e"
+    )
     gf = (await db.execute(text(
-        "SELECT coalesce(sum(head_count_out),0) hout, "
-        "coalesce(sum((avg_exit_weight_kg - avg_entry_weight_kg) * head_count_out),0) gain "
-        "FROM finisher_groups WHERE farm_id=:fid AND deleted_at IS NULL "
-        "AND end_date IS NOT NULL AND head_count_out IS NOT NULL "
-        "AND avg_exit_weight_kg IS NOT NULL AND avg_entry_weight_kg IS NOT NULL "
-        "AND end_date BETWEEN :s AND :e"), p)).one()
+        "SELECT coalesce(sum(g.head_count_out),0) hout, "
+        "coalesce(sum((g.avg_exit_weight_kg - g.avg_entry_weight_kg) * g.head_count_out),0) gain "
+        f"FROM finisher_groups g WHERE {eligible}"), p)).one()
+    ccy_expr = "coalesce(fr.currency, :ccy)" if farm_currency else "fr.currency"
+    if farm_currency:
+        p = {**p, "ccy": farm_currency.upper()}
     fr = (await db.execute(text(
         "SELECT coalesce(sum(fr.quantity_kg),0) feed_kg, "
         "sum(fr.quantity_kg * fr.unit_cost) FILTER (WHERE fr.unit_cost IS NOT NULL) feed_cost, "
         "count(*) FILTER (WHERE fr.unit_cost IS NOT NULL) costed, "
         "count(*) FILTER (WHERE fr.unit_cost IS NULL) uncosted, "
-        "array_remove(array_agg(DISTINCT fr.currency), NULL) currencies "
+        f"array_remove(array_agg(DISTINCT {ccy_expr}) FILTER (WHERE fr.unit_cost IS NOT NULL), NULL) currencies "
         "FROM feed_records fr JOIN finisher_groups g ON g.id = fr.group_id "
-        "WHERE fr.farm_id=:fid AND fr.deleted_at IS NULL AND g.deleted_at IS NULL "
-        "AND g.end_date IS NOT NULL AND g.end_date BETWEEN :s AND :e"), p)).one()
+        f"WHERE fr.farm_id=:fid AND fr.deleted_at IS NULL AND {eligible}"), p)).one()
     return FeedCohort(
         feed_kg=Decimal(str(fr.feed_kg)),
         gain_kg=Decimal(str(gf.gain)),

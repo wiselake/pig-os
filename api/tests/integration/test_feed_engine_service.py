@@ -104,3 +104,47 @@ async def test_characterization_legacy_report_uses_head_in_for_open_groups_engin
     inp = await svc.load_feed_input(db, test_farm, START, END)
     assert m.compute_all(inp)["FCR"].reason == "no_cohort"       # 엔진: CLOSED 가 아니면 값을 만들지 않는다
     assert (await build_herd_kpis(db, test_farm))["FCR"] is None  # kpi_service 도 엔진과 같은 쪽
+
+
+# ── Codex 리뷰 2026-09-22 — 코호트 분자/분모 집합 불일치 · NULL 통화 · ADG ────────────────────
+
+async def test_cohort_feed_numerator_uses_the_same_eligible_groups_as_the_denominator(db: AsyncSession, test_farm: Farm):
+    """MAJOR: 분모(gain)는 양 체중+head_out 있는 CLOSED 그룹만 세는데 분자(사료)는 모든 CLOSED 그룹을 세면,
+    체중 없는 그룹의 사료가 FCR 을 부풀린다. 엔진은 같은 집합을 써야 한다."""
+    good = await _closed_group(db, test_farm)                               # gain 8550
+    bad = await _closed_group(db, test_farm, avg_exit_weight_kg=None)       # CLOSED 지만 부적격
+    db.add(_feed(test_farm, date(2026, 2, 1), 8550, group=good.id))         # FCR 정확히 1.0
+    db.add(_feed(test_farm, date(2026, 2, 2), 100000, group=bad.id))        # 부적격 그룹의 사료 — 분자에 들어오면 안 된다
+    await db.flush()
+
+    inp = await svc.load_feed_input(db, test_farm, START, END)
+    res = m.compute_all(inp)
+    assert inp.cohort.groups == 1
+    assert Decimal(res["FCR"].evidence["cohort"]["feed_kg"]) == 8550
+    assert res["FCR"].value == 1.0
+
+    # legacy kpi_service 는 같은 결함을 갖고 있다 — 여기서 고치지 않고 차이를 고정한다 (LEGACY BUG, F4 보고)
+    legacy_fcr = (await build_herd_kpis(db, test_farm))["FCR"]
+    assert legacy_fcr == pytest.approx((8550 + 100000) / 8550, abs=0.001)
+    assert legacy_fcr != res["FCR"].value
+
+
+async def test_cohort_null_currency_falls_back_to_farm_currency(db: AsyncSession, test_farm: Farm):
+    """MAJOR: 코호트 통화 집합에서 NULL 을 지우면 costed 행이 통화 없이 완료로 취급된다. 농장 통화로 귀속한다."""
+    g = await _closed_group(db, test_farm)
+    db.add(_feed(test_farm, date(2026, 2, 1), 1000, c="0.5", group=g.id, ccy=None))   # 전 행 NULL 통화
+    db.add(_feed(test_farm, date(2026, 2, 2), 1000, c="0.5", group=g.id, ccy=None))
+    await db.flush()
+    inp = await svc.load_feed_input(db, test_farm, START, END)
+    assert inp.cohort.currencies == frozenset({(test_farm.currency or "USD").upper()})
+    res = m.compute_all(inp)
+    assert res["FEED_COST_PER_PIG"].provenance == DERIVED and res["FEED_COST_PER_PIG"].evidence["currency"] == (test_farm.currency or "USD").upper()
+
+
+async def test_engine_adg_equals_kpi_service_adg(db: AsyncSession, test_farm: Farm):
+    g = await _closed_group(db, test_farm)                                   # gain 8550 · pigdays 69*95
+    db.add(_feed(test_farm, date(2026, 2, 1), 100, group=g.id))
+    await db.flush()
+    res = m.compute_all(await svc.load_feed_input(db, test_farm, START, END))
+    assert res["ADG"].value == (await build_herd_kpis(db, test_farm))["ADG"] == pytest.approx(8550 / (69 * 95) * 1000, abs=0.1)
+    assert res["ADG"].unit == "g/day"

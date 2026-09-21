@@ -43,13 +43,14 @@ FEED_QTY_PER_HEAD = "FEED_QTY_PER_HEAD"
 FEED_COST_PER_PIG = "FEED_COST_PER_PIG"
 FCR = "FCR"
 FEED_COST_PER_KG_GAIN = "FEED_COST_PER_KG_GAIN"
+ADG = "ADG"
 
 CORE_METRICS = (FEED_QTY, FEED_COST, FEED_UNIT_PRICE, FEED_MIX_SHARE)
 CHANGE_METRICS = (FEED_QTY_CHANGE, FEED_COST_CHANGE)
-COHORT_METRICS = (FEED_QTY_PER_HEAD, FEED_COST_PER_PIG, FCR, FEED_COST_PER_KG_GAIN)
+COHORT_METRICS = (FEED_QTY_PER_HEAD, FEED_COST_PER_PIG, FCR, FEED_COST_PER_KG_GAIN, ADG)
 
 _PLACES = {"kg": 1, "currency": 2, "currency/kg": 4, "ratio": 4, "kg/kg": 3,
-           "kg/head": 2, "currency/head": 2}
+           "kg/head": 2, "currency/head": 2, "g/day": 1}
 
 
 def _r(v: Decimal, unit: str) -> float:
@@ -129,7 +130,8 @@ def feed_unit_price(inp: FeedInput) -> FeedMetricResult:
 
 
 def feed_mix_share(inp: FeedInput) -> FeedMetricResult:
-    """feed_type key 별 수량 구성비. value = 항목 수(표시용 스칼라가 아니라 evidence.shares 가 본체).
+    """feed_type key 별 수량 구성비 (evidence.shares 가 본체). 스칼라 value = **최대 구성비**(dominant share, ratio)
+    — evidence.dominant_type 이 그 항목. (2026-09-22 정정: 이전 판은 항목 수를 ratio 단위로 돌려줬다.)
     반올림 전 Σshare == 1 (불변식) — 표시가 100% 가 안 되는 것은 계산층이 보정하지 않는다."""
     ev = _base_evidence(inp)
     if not inp.rows:
@@ -142,7 +144,10 @@ def feed_mix_share(inp: FeedInput) -> FeedMetricResult:
     ev["kg_by_feed_type"] = {k: _r(v, "kg") for k, v in sorted(qty_by.items())}
     # 불변식 검증용 — Decimal 나눗셈은 1/3 을 정확히 못 적으므로 유리수 문자열("1/3")로 남긴다
     ev["exact_shares"] = {k: str(Fraction(v) / Fraction(total)) for k, v in sorted(qty_by.items())}
-    return FeedMetricResult(FEED_MIX_SHARE, float(len(qty_by)), "ratio", DERIVED, evidence=ev)
+    dominant = max(sorted(qty_by), key=lambda k: (qty_by[k], k))   # 동률이면 키 사전순 뒤 — 결정론
+    ev["dominant_type"] = dominant
+    ev["feed_type_count"] = len(qty_by)
+    return FeedMetricResult(FEED_MIX_SHARE, _r(qty_by[dominant] / total, "ratio"), "ratio", DERIVED, evidence=ev)
 
 
 # ── CHANGE (period-over-period) ────────────────────────────────────────────
@@ -267,6 +272,21 @@ def feed_qty_per_head(inp: FeedInput) -> FeedMetricResult:
                             "kg/head", DERIVED, evidence=ev)
 
 
+def adg(inp: FeedInput) -> FeedMetricResult:
+    """일당증체 = Σgain / Σ((end−start)×head_out) × 1000 (g/day) — kpi_service:534 와 같은 적격 코호트."""
+    ev = _base_evidence(inp)
+    if inp.cohort is None or inp.cohort.groups == 0:
+        return insufficient(ADG, "g/day", R_NO_COHORT, **ev)
+    c = inp.cohort
+    ev = _cohort_evidence(inp)
+    ev["cohort"]["pig_days"] = str(c.pig_days)
+    if c.pig_days <= 0:
+        return insufficient(ADG, "g/day", R_CONTEXT_MISSING, **ev)
+    if c.gain_kg <= 0:
+        return insufficient(ADG, "g/day", R_NO_GAIN, **ev)
+    return FeedMetricResult(ADG, _r(c.gain_kg / c.pig_days * 1000, "g/day"), "g/day", DERIVED, evidence=ev)
+
+
 def compute_all(inp: FeedInput, prev: FeedInput | None = None) -> dict[str, FeedMetricResult]:
     """한 번에 전부. 순서·키는 고정 — 결정론 테스트가 dict 동등성을 본다."""
     out = {FEED_QTY: feed_qty(inp), FEED_COST: feed_cost(inp),
@@ -279,6 +299,7 @@ def compute_all(inp: FeedInput, prev: FeedInput | None = None) -> dict[str, Feed
         out[FEED_COST_PER_PIG] = feed_cost_per_pig(inp)
         out[FCR] = fcr(inp)
         out[FEED_COST_PER_KG_GAIN] = feed_cost_per_kg_gain(inp)
+        out[ADG] = adg(inp)
     return out
 
 

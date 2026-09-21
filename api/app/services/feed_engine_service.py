@@ -51,8 +51,8 @@ async def _raw_rows(db: AsyncSession, farm_id: UUID, period: Period) -> list[Raw
     ]
 
 
-async def _cohort(db: AsyncSession, farm_id: UUID, period: Period) -> Cohort:
-    c = await feed_service.load_feed_cohort(db, farm_id, period.start, period.end)
+async def _cohort(db: AsyncSession, farm_id: UUID, period: Period, farm_currency: str) -> Cohort:
+    c = await feed_service.load_feed_cohort(db, farm_id, period.start, period.end, farm_currency=farm_currency)
     g = (await db.execute(text(
         "SELECT count(*) n, coalesce(sum((end_date - start_date) * head_count_out),0) pigdays "
         "FROM finisher_groups WHERE farm_id=:fid AND deleted_at IS NULL "
@@ -67,9 +67,10 @@ async def _cohort(db: AsyncSession, farm_id: UUID, period: Period) -> Cohort:
 async def load_feed_input(db: AsyncSession, farm, start: date, end: date, *, with_cohort: bool = True) -> FeedInput:
     """farm 은 `farms` 행(currency 필요). period 는 농장 현지 날짜."""
     period = Period(start, end)
+    ccy = (farm.currency or "USD").upper()
     raw = await _raw_rows(db, farm.id, period)
-    cohort = await _cohort(db, farm.id, period) if with_cohort else None
-    return normalize(raw, period=period, farm_currency=farm.currency or "USD", cohort=cohort)
+    cohort = await _cohort(db, farm.id, period, ccy) if with_cohort else None
+    return normalize(raw, period=period, farm_currency=ccy, cohort=cohort)
 
 
 async def compute_feed_metrics(

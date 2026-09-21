@@ -68,6 +68,8 @@ BLOCKER_FOUND             0 (P0 correctness). CONFLICT 1건 기록(FCR 두 정�
 | data quality | `PARTIAL` | cost-summary `feed_cost_coverage` · feed_metrics `withheld` · PHASE0 audit 하네스(실데이터 미실행) |
 | AI/LLM | `NOT_FOUND` (feed) | `llm_renderer` 는 룰 결과 문장화 전용. feed finding 0 · `fcr.high` 룰 1건(`rules/grow_finish.py:16-36`) |
 
+**CONFLICT-2 (2026-09-22 Codex 리뷰, 엔진 쪽만 수정)**: `kpi_service:443-449` 의 FCR 분자 조인은 `end_date` 만 보고 체중·head_out 조건이 없어, 체중 없는 CLOSED 그룹의 사료가 분자에만 들어가 FCR 을 부풀린다(분모 집합 ≠ 분자 집합). 엔진 로더(`feed_service.load_feed_cohort`)는 두 집합을 같게 고쳤다. kpi_service 는 **LEGACY BUG** 로 기록만(F4 보고), `test_cohort_feed_numerator_uses_the_same_eligible_groups_as_the_denominator` 가 차이를 고정.
+
 **CONFLICT-1 (기록만, 수정 안 함)**: FCR 정의가 둘이다 — ① `kpi_service`/`feed_metrics`: CLOSED + head_out + 양 체중 필수, gain=(exit−entry)×head_out ② `report_service` 그룹행: end_date 없어도 계산, head_out 없으면 head_in 으로 대체. 같은 농장에서 대시보드 FCR 과 grow-finish 리포트 FCR 이 다를 수 있다. **canonical = ①** (§5). ②의 정렬은 F2 범위 밖 별도 항목(IMPLEMENTATION_MAP §4).
 
 ---
@@ -124,14 +126,14 @@ AI EXPLANATION      llm_renderer 가 StructuredResult 를 문장화. 숫자 계�
 | `FEED_QTY` | 사료 급여량 | FARM (+scope 필터) | Σ quantity_kg / — | kg | CALENDAR_PERIOD | quantity_kg, record_date | 행 0 → INSUFFICIENT(no_data). 행 있으면 값(0 불가) | zero_qty·orphan 플래그 동반 | 없음 | cost-summary `feed_qty_kg` 로 존재(EXISTS) | **CORE** |
 | `FEED_COST` | 사료비 | FARM | Σ(quantity_kg×unit_cost) / — | currency | CALENDAR_PERIOD | + unit_cost, currency(단일) | uncosted_rows>0 → INSUFFICIENT(cost_incomplete) — 부분합은 evidence 에만(`partial_cost`, `coverage`). costed 0 → no_cost. 통화≥2 → currency_mixed | coverage==100% | 없음 | cost-summary 는 부분합+coverage 노출 / feed_metrics 는 유보 → **canonical = 유보 + evidence** (E3 "채우지 않는다") | **CORE** |
 | `FEED_UNIT_PRICE` | 평균 단가 | FARM (feed_type 별 가능) | Σ(qty×cost) / Σqty (costed 행만) | currency/kg | CALENDAR_PERIOD | unit_cost 행 ≥1 | costed 0 → no_cost · currency_mixed | — | 없음 | NOT_FOUND | **CORE** |
-| `FEED_MIX_SHARE` | 사료 구성비 | FARM | Σqty(feed_type key) / Σqty | ratio_0_1 | CALENDAR_PERIOD | feed_type | UNSPECIFIED 도 한 항목으로 노출(숨기지 않음) | 어휘 흔들림 → normalized key 기준 | 없음 | NOT_FOUND | **CORE** (어휘는 UNRESOLVED-2, 산식은 확정) |
+| `FEED_MIX_SHARE` | 사료 구성비 | FARM | Σqty(feed_type key) / Σqty — 결과 본체는 evidence.shares(항목별), **스칼라 value = 최대 구성비(dominant share)**, evidence.dominant_type | ratio_0_1 | CALENDAR_PERIOD | feed_type | UNSPECIFIED 도 한 항목으로 노출(숨기지 않음) | 어휘 흔들림 → normalized key 기준 | 없음 | NOT_FOUND | **CORE** (어휘는 UNRESOLVED-2, 산식은 확정) |
 | `FEED_QTY_CHANGE` | 급여량 변화 | FARM | QTY(p1) − QTY(p0) (+ ratio) | kg, ratio | CALENDAR_PERIOD ×2 (같은 길이) | 두 기간 모두 FEED_QTY 값 | 어느 한 기간 INSUFFICIENT → INSUFFICIENT(prior_insufficient) | 기간 길이 동일 | 없음 | NOT_FOUND | **CORE** |
 | `FEED_COST_CHANGE` | 사료비 변화 | FARM | COST(p1) − COST(p0) | currency | CALENDAR_PERIOD ×2 | 두 기간 FEED_COST 값(둘 다 complete, 같은 통화) | 同上 + currency_mixed | — | 없음 | NOT_FOUND | **CORE** |
 | `FEED_QTY_PER_HEAD` | 두당 급여량 | GROUP_COHORT | Σqty(그룹 귀속) / Σhead_count_out | kg/head | GROUP_LIFECYCLE | group_id 귀속 사료, CLOSED 코호트 | head_out 0 → no_head_out · 코호트 0 → no_cohort | 귀속률 | 없음 | NOT_FOUND | **CONDITIONAL** (귀속·코호트 존재) |
 | `FEED_COST_PER_PIG` | 두당 사료비 | GROUP_COHORT | Σ(qty×cost) / Σhead_out | currency/head | GROUP_LIFECYCLE | + cost complete | cost_incomplete·currency_mixed·no_head_out | coverage 100% | 없음 | PR #2 feed_metrics EXISTS(미연결) | **CONDITIONAL** |
 | `FCR` | 사료요구율 | GROUP_COHORT | Σqty(귀속) / Σ((exit−entry)×head_out) | kg/kg | GROUP_LIFECYCLE | 코호트(양 체중·head_out) + 귀속 사료 | gain≤0 → no_gain · feed≤0 → no_feed | 귀속률 · 체중 기준(live, 입력 라벨) | benchmark fcr(value_scale UNRESOLVED-3) · `fcr.high` 룰 | kpi_service EXISTS(대시보드 metrics, GLOBAL_HIDDEN) · feed_metrics EXISTS | **CONDITIONAL** |
 | `FEED_COST_PER_KG_GAIN` | 증체 kg 당 사료비 | GROUP_COHORT | Σ(qty×cost) / Σgain | currency/kg | GROUP_LIFECYCLE | FCR 입력 + cost complete | no_gain·cost_incomplete·currency_mixed | 同 FCR | 없음 | feed_metrics EXISTS(미연결) | **CONDITIONAL** |
-| `ADG` | 일당증체 | GROUP_COHORT | Σgain / Σ((end−start)×head_out) ×1000 | g/day | GROUP_LIFECYCLE | 코호트 | pigdays 0 → INSUFFICIENT | — | GLOBAL_HIDDEN | kpi_service:534 EXISTS | **CONDITIONAL** (feed 엔진은 재계산하지 않고 kpi_service 값을 참조만) |
+| `ADG` | 일당증체 | GROUP_COHORT | Σgain / Σ((end−start)×head_out) ×1000 | g/day | GROUP_LIFECYCLE | 코호트(pig_days) | pigdays 0 → context_missing · gain≤0 → no_gain · 코호트 0 → no_cohort | — | GLOBAL_HIDDEN | kpi_service:534 EXISTS | **CONDITIONAL** — 엔진이 같은 적격 코호트로 계산하고 kpi_service 값과 동치 테스트 (2026-09-22 정정: "참조만" → 계산) |
 | `FEED_COST_PER_HEAD_FARM` | 농장 두당 사료비 | FARM | FEED_COST / 평균 상시모돈 등 | currency/head | CALENDAR_PERIOD | 분모 정의 | — | — | — | NOT_FOUND | **DEFERRED** — 사료가 모돈/비육 어느 쪽인지 귀속 없이 농장 두당은 의미 없음(UNRESOLVED-1) |
 | `MARKET_WEIGHT_EFFICIENCY` | 출하체중 연동 효율 | GROUP_COHORT | — | — | — | 출하체중 live/carcass 기준 | — | — | — | NOT_FOUND(D1 구조적 0) | **DEFERRED** (E12 D1 · E2 Feed-2) |
 | `IOFC` | 사료비 차감 수익 | FARM | 판매수익 − 사료비 | currency | CALENDAR_PERIOD | removals.sale_price(모돈만) · 비육 판매가 없음 | — | — | — | cost-summary 에 sale_revenue 부분 존재 | **DEFERRED** (E2 Feed-2: 판매가·판매두수 prerequisite) |
