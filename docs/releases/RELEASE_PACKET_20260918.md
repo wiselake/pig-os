@@ -401,3 +401,20 @@ PR #2       head 194a86d · MERGEABLE/CLEAN · draft. merge 판단은 Brian (§3
 ★ 회귀 방지   worker 재배포 전 PR #2 merge 필요 — api 컨테이너는 이미 main(2e372b1 부재) 로 돌고 있고 worker 만 08-31 이미지
 ```
 
+## 3-7. worker-only ARQ hotfix — PR #6 merge·배포 (2026-09-21 16:0x KST)
+
+```
+배경        08-31 프로덕션 worker 는 hotfix 이미지 2e372b1(ARQ false-success 수정, B-12)였으나 main 에 merge 된 적 없음.
+            PR #3 배포로 api 는 main 코드(2e372b1 부재)가 됐고 worker 는 08-31 이미지 그대로 → worker 재배포 시 회귀 위험
+분리        PR #2 통째가 아니라 worker-only: hotfix/worker-arq-result-20260921 = main 6675b3f + 2e372b1 + 92e30bf(법무 테스트 hunk 제외) + ruff 1줄
+            9파일 전부 jobs/services/tests · public_privacy/consent/G-3/rate limit/frontend/D9/migration 0
+            API 영향: notification_service `pass`→log.exception · PushResult.failed 추가(additive) → api 재배포 불필요
+CI          run @ 480ca81 GREEN — backend 3.12/3.14 1349 passed · frontend 201 (06:53–06:56Z)
+merge       PR #6 → main fc96efc (Brian 결정 16:00 KST). 런타임 파일 = 2e372b1/safety 판과 동일(push_service 는 92e30bf 후속 포함)
+배포        worker 만 — 사전 실측 worker 이미지 bee00d55(08-31) 파일 sha == 2e372b1 · api/ 업로드(fc96efc, 사본 api.bak-predeploy-20260921-160114)
+            ./ops/deploy.sh worker → DB 스냅샷 · rollback-20260921-160132 · build · up · health 200
+            사후 실측 worker 이미지 2026-09-21T07:02:13Z · 컨테이너 sha == git fc96efc (_result 585810ce · kpi 18133b89 · push 25f38c29) · [ARQ] Worker started, 13 functions
+미변경      api(6675b3f 이미지) · web(3주 전 이미지) · .env · cron · DB
+PR #2       MERGE NOW = NO 유지 (G-3·rate limit·consent 릴리스 범위 결정 선행). 다음: PR #2 를 main fc96efc 로 재갱신
+```
+
