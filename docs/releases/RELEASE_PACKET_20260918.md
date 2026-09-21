@@ -384,3 +384,20 @@ PR #2 는 그 뒤다. 초판이 "PR #2 Ready" 를 첫 행동으로 잡은 것은
 변경 없음   D9·G4·B-10·429 미반입. 결재 3·4·6·7 문안 그대로. main·프로덕션 변경 0.
 ```
 
+## 3-6. TRACK B — base 갱신 (2026-09-21 15:1x KST)
+
+```
+merge       origin/main 6675b3f → safety/pigos-20260916 (3befc90). rebase/force-push 없음. behind 0
+충돌        test_public_legal_no_internal_markers.py add/add → main 판(strict superset) 채택, 손실 0
+            public_privacy.{ko,en} · ci.yml 자동 병합 = main 과 바이트 동일
+반입        D9 test-only 3커밋 (bafb962·61880c0·6f6df1b = PR #5 의 4faec70·85ccd99·16bd4cb, patch-id 동일) → PR #5 CLOSED
+            G4 미반입
+enforcer    test_publication_gate ↔ 재동기화 가드 조정 (194a86d) · manifest source_sha256 = 배포본 6675b3f 값
+2e372b1     ARQ 수정 ancestor ✓ — jobs/_result.py·kpi.py 동일, notifications.py 는 이후 의도 수정(92e30bf)만
+검증        로컬 backend 1549/0 · frontend tsc/249/build · alembic 단일 head · 신규 마이그레이션 0
+CI          run 35567084113 @ 194a86d — backend 3.12 ✓ 3.14 ✓ (1549 passed) · frontend ✓ (249) · 15:07–15:10 KST
+            ★ D9 반입으로 이 브랜치의 CI 는 실행 시각과 무관 (UTC/KST 경계 17케이스 포함)
+PR #2       head 194a86d · MERGEABLE/CLEAN · draft. merge 판단은 Brian (§3 항목 2·3)
+★ 회귀 방지   worker 재배포 전 PR #2 merge 필요 — api 컨테이너는 이미 main(2e372b1 부재) 로 돌고 있고 worker 만 08-31 이미지
+```
+
