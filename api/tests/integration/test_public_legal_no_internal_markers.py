@@ -46,6 +46,10 @@ FORBIDDEN: dict[str, re.Pattern[str]] = {
     "COUNSEL": re.compile(r"\[COUNSEL\b[^\]]*\]"),
     "OPEN": re.compile(r"\[OPEN\b[^\]]*\]"),
     "V_MARKER": re.compile(r"\[V\s*[—―–-][^\]]*\]"),
+    # 2026-09-18 추가 — DECISION_REGISTER 참조 번호. 격리의 마커 종류표(V·OPEN·COUNSEL·[ ])에
+    # 없어서 48건 집계에 빠져 있었지만, 정보주체에게는 똑같이 의미 없는 사내 식별자다.
+    # 프로덕션·정본·정정본 세 곳에 언어별 8건씩 있었다.
+    "DECISION_REF": re.compile(r"\[D-\d{2}\]"),
     "V_PROCESS": re.compile(r"V\s*프로세스|\bV[- ]process\b", re.I),
     "OPERATIONAL_CAVEAT": re.compile(r"\[(?:운영|operational)\b[^\]]*\]"),
     "EMPTY_BRACKET": re.compile(r"\[ \]"),
@@ -141,4 +145,42 @@ def test_draft_documents_are_still_marked_draft_in_manifest() -> None:
     assert any(str(m.get("status", "")).startswith("DRAFT") for m in docs.values()), (
         "모든 문서가 DRAFT 를 벗었다면 test_approved_documents_... 가 전부 검사해야 한다. "
         "이 테스트를 지우고 그쪽이 도는지 확인하라."
+    )
+
+
+# ── 재오염 방지 — 정본 초안에서 다시 복사해 오는 경로 ────────────────────────────
+#
+# `docs/legal/publish_candidate/` 는 **승인 절차의 정본**이다: 승인 → 그 본문 교체 → PUBLISHED.
+# 그런데 승인 전인 지금 그 정본에는 검토 마커 24건이 그대로 있다. 옛 테스트와
+# `public_notice.py` 의 docstring 은 "정본을 고쳤으면 cp 로 사본을 갱신하라" 고 적어두었다 —
+# 그 지시를 따르는 순간 공개본이 48건으로 되돌아간다. 2026-09-17 하루 전에도 그 경로가
+# 열려 있었다.
+#
+# 이 테스트는 정본을 고치지 않는다(승인 전 본문 편집 금지). 대신 **정본에 마커가 남아 있는
+# 동안 서빙본이 정본과 같아지는 것**을 실패로 만든다. 정본이 승인·정정되어 마커 0 이 되면
+# 이 조건은 자연히 해제된다.
+
+_CANDIDATE = {
+    "public_privacy.ko.md": _API.parent / "docs" / "legal" / "publish_candidate" / "PIGOS_GLOBAL_PRIVACY_NOTICE.md",
+    "public_privacy.en.md": _API.parent / "docs" / "legal" / "publish_candidate" / "en" / "PIGOS_GLOBAL_PRIVACY_NOTICE_EN.md",
+}
+
+
+@pytest.mark.parametrize("name", PUBLIC_SERVED)
+def test_served_copy_is_not_resynced_from_a_marked_candidate(name: str) -> None:
+    """정본에 마커가 있는 한, 서빙본을 정본으로 덮어쓰면 실패한다."""
+    served = (_LEGAL / name).read_text(encoding="utf-8").replace("\r\n", "\n")
+    cand_path = _CANDIDATE[name]
+    if not cand_path.exists():
+        pytest.skip(f"{cand_path} 없음 — 이 체크아웃에는 정본 초안이 없다")
+    candidate = cand_path.read_text(encoding="utf-8").replace("\r\n", "\n")
+
+    cand_markers = sum(len(v) for v in _hits(candidate).values())
+    if cand_markers == 0:
+        return  # 정본이 깨끗하다 — 같아져도 문제없다
+
+    assert served != candidate, (
+        f"{name} 이 publish_candidate 와 바이트 동일하다 — 정본에는 검토 마커가 {cand_markers}건 "
+        f"남아 있다. 'cp publish_candidate → public_privacy' 로 되돌린 것이다. "
+        f"공개본은 정정본이어야 한다 (KNOWN_PUBLICATION_EXPOSURE)."
     )
