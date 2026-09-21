@@ -128,30 +128,43 @@ async def test_local_label_resolves_by_country(db: AsyncSession):
 
 
 # ── 유효기간·승인 게이트 (P0-2) ───────────────────────────────────────────────
+#
+# ★ D9 (2026-09-21): 이 두 테스트는 원래 `date.today()`(실행 호스트 로컬 날짜)로 "어제/내일" 을
+#   만들고, 기준일 없이 리졸버를 불렀다. 리졸버 기본 기준일은 `governance_today()`(GOVERNANCE_TZ,
+#   기본 Asia/Seoul) 이므로 **호스트 날짜 ≠ 거버넌스 날짜** 인 시간대(UTC 러너의 15:00–24:00 UTC =
+#   00:00–09:00 KST)에는 "내일" 이 이미 오늘이 돼 `assert 10 == 30` 으로 깨졌다
+#   (PR #2 run 35371186151 · 35394188042 · 35541576981, 같은 코드가 00:55 UTC 엔 초록).
+#   기준일은 실행 시각이 아니라 테스트가 정한다 — 모든 호출에 `ref` 를 명시한다.
+
+_REF = date(2026, 9, 21)   # 임의 고정 기준일. 실행 시각과 무관.
+
 
 async def test_expired_presentation_row_ignored(db: AsyncSession):
-    """effective_to 가 지난 표현 행은 무시된다(두 리졸버 모두 동일 게이트)."""
-    y = date.today() - timedelta(days=1)
+    """effective_to 가 기준일보다 앞이면 무시된다(두 리졸버 모두 동일 게이트)."""
+    y = _REF - timedelta(days=1)
     db.add(_pres("EXP", display_order=30, display_order_override=True))
     db.add(_pres("EXP", scope="COUNTRY", country_code="BR", display_order=10,
                  display_order_override=True, effective_to=y))
     await db.flush()
-    r = await resolve_kpi_presentation(db, kpi_code="EXP", country="BR")
+    r = await resolve_kpi_presentation(db, kpi_code="EXP", country="BR", ref=_REF)
     assert r.display_order == 30, "만료 행 무시 → 상위 유지"
+    # 경계: effective_to == 기준일 은 아직 유효(닫힌 구간)
+    on_last_day = await resolve_kpi_presentation(db, kpi_code="EXP", country="BR", ref=y)
+    assert on_last_day.display_order == 10, "effective_to 당일까지는 적용"
 
 
 async def test_future_presentation_row_ignored(db: AsyncSession):
-    """effective_from 이 미래인 행은 아직 적용되지 않는다."""
-    tomorrow = date.today() + timedelta(days=1)
+    """effective_from 이 기준일보다 뒤면 아직 적용되지 않는다."""
+    tomorrow = _REF + timedelta(days=1)
     db.add(_pres("FUT", display_order=30, display_order_override=True))
     db.add(_pres("FUT", scope="COUNTRY", country_code="BR", display_order=10,
                  display_order_override=True, effective_from=tomorrow))
     await db.flush()
-    r = await resolve_kpi_presentation(db, kpi_code="FUT", country="BR")
+    r = await resolve_kpi_presentation(db, kpi_code="FUT", country="BR", ref=_REF)
     assert r.display_order == 30
     future = await resolve_kpi_presentation(db, kpi_code="FUT", country="BR",
                                            ref=tomorrow)
-    assert future.display_order == 10, "as_of 를 미래로 주면 적용"
+    assert future.display_order == 10, "기준일이 발효일에 닿으면 적용(닫힌 구간)"
 
 
 async def test_proposed_presentation_row_ignored(db: AsyncSession):
