@@ -18,7 +18,6 @@ from app.jobs import notifications as notif_job
 from app.jobs import tasks as tasks_job
 from app.jobs._result import JobTotalFailure, job_result
 
-
 # ── job_result 규약 ───────────────────────────────────────────────────────────
 
 def test_total_failure_raises_not_returns():
