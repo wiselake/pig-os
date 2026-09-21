@@ -7,8 +7,9 @@ Create Date: 2026-06-23
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+
+from alembic import op
 
 revision: str = "c3d5e7f9a1b3"
 down_revision: str | None = "b2c4e6a8d0f1"

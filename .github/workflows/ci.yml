@@ -1,24 +1,98 @@
 name: CI
 
+# ★ 2026-09-11 이전에는 `pull_request: branches: [development]` 였다. `development`
+#   브랜치는 존재한 적이 없다 — 2026-06-14 생성 이후 이 워크플로는 **한 번도 실행되지
+#   않았다** (`gh run list --workflow=ci.yml` → 0건). 테스트가 있고 스텝이 있어도
+#   트리거가 없으면 없는 것과 같다. 작업 브랜치는 main 이다.
 on:
+  push:
+    branches: [main]
   pull_request:
-    branches: [development]
+    # ci-base/* — main 이 갈라져 PR 의 merge ref 를 만들 수 없을 때, merge-base 에 세운
+    # 임시 base. 2026-09-16 첫 실행이 그 경우였다 (origin/main 8a80ea4 vs safety 브랜치 충돌
+    # → GitHub 이 merge commit 을 못 만들어 pull_request 워크플로가 아예 큐잉되지 않았다).
+    # 리허설용이며 merge 대상이 아니다.
+    branches: [main, "ci-base/**"]
+
+# 같은 브랜치에 연달아 push 하면 앞선 실행을 취소한다. 2026-09-16 에 문서 커밋 하나로
+# 런이 둘 겹쳤다 — 러너 시간을 쓰고, 어느 것이 최신 결과인지도 헷갈린다.
+# ★ main 은 취소하지 않는다. main 의 각 커밋은 그 자체로 기록이어야 한다.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   backend:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.12 = 프로덕션 이미지(api/Dockerfile FROM python:3.12-slim)
+        # 3.14 = 개발 머신(RUN_COMMON_RULES §0-5 · 1479 passed 의 기준)
+        # 둘이 갈리면 어느 쪽이 거짓인지 여기서 먼저 드러난다.
+        python: ["3.12", "3.14"]
     defaults:
       run:
         working-directory: api
+    services:
+      postgres:
+        # 프로덕션은 EC2 로컬 PG 17.11 (INFRA_DB_STRATEGY §1). 로컬 compose 는 16 —
+        # CI 는 프로덕션 쪽에 맞춘다. 16 에서만 되는 것은 여기서 잡힌다.
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: pigos
+          POSTGRES_PASSWORD: pigos
+          POSTGRES_DB: pigos
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U pigos"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+asyncpg://pigos:pigos@localhost:5432/pigos
+      TEST_DATABASE_URL: postgresql+asyncpg://pigos:pigos@localhost:5432/pigos_test
+      REDIS_URL: redis://localhost:6379/0
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
-      - run: uv python install 3.12
-      - run: uv sync
+      - run: uv python install ${{ matrix.python }}
+      - run: uv sync --python ${{ matrix.python }}
       - name: Lint (ruff)
         run: uv run ruff check .
-      - name: Unit tests
-        run: uv run pytest tests/unit -q
+      - name: Create test database
+        run: |
+          sudo apt-get install -y -qq postgresql-client >/dev/null
+          PGPASSWORD=pigos psql -h localhost -U pigos -d pigos -c "CREATE DATABASE pigos_test;"
+      # ★ 빈 DB 에 마이그레이션만으로 스키마를 세운다 — 재해복구·새 환경 구축이 하는
+      #   바로 그 일이다. 로컬 DB 는 손으로 만든 객체가 섞여 있어 이걸 증명하지 못한다.
+      - name: Migrations from empty (alembic upgrade head)
+        run: uv run alembic upgrade head
+      # ★ test_migration_parity 는 2026-08-25 부터 저장소에 있었지만 CI 가 integration
+      #   디렉터리를 돌지 않아 한 번도 CI 에서 실행되지 않았다. 여기서 켠다.
+      # alembic head 가 둘 이상이면 `upgrade head` 가 어느 쪽인지 모호해진다. 위 upgrade 는
+      # 우연히 통과할 수 있어(현재 head 하나를 따라감) 따로 본다. 병합 리비전 53개짜리
+      # 이력에서 실제로 생겼던 실패 모양이다.
+      - name: Single migration head
+        run: |
+          heads=$(uv run alembic heads | grep -c '(head)' || true)
+          echo "heads=$heads"
+          test "$heads" -eq 1 || { uv run alembic heads; echo "::error::alembic head 가 $heads 개다 — 병합 리비전이 필요하다"; exit 1; }
+      - name: Tests (unit + integration, PREFLIGHT exit 78 = environment, not failure)
+        run: uv run pytest tests -q -p no:cacheprovider
+      # 생성물이 커밋과 어긋나면 로컬에서만 맞는 상태가 된다. 테스트가 파일을 쓰는 경우도
+      # 여기서 드러난다.
+      - name: Working tree is clean after tests
+        run: |
+          git diff --exit-code || { echo "::error::테스트 후 작업 트리가 더럽다 — 생성물이 커밋과 다르거나 테스트가 파일을 쓴다"; exit 1; }
 
   frontend:
     runs-on: ubuntu-latest
@@ -29,13 +103,19 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          # ★ 정확히 핀한다. "22" 로 두면 로컬(.nvmrc 고정)과 CI(부동)가 갈라진다 —
+          #   실제로 그 드리프트 때문에 로컬에서 npm ci 가 notsup 으로 죽었다.
+          node-version: "22.23.2"
           cache: npm
           cache-dependency-path: src/package-lock.json
       - run: npm ci
       - name: Type check
         run: npx tsc --noEmit
+      # ★ 2026-08-28 신설. 그 전까지 프론트 테스트는 **어디서도 실행되지 않았다** —
+      #   CI 에는 스텝이 없었고, 개발 머신은 Node 20.11 이라 vitest 가 뜨지 않았다
+      #   (rolldown 이 node:util.styleText 를 import. 20.12+ 필요).
+      #   테스트는 있는데 아무도 돌리지 않는 상태였다.
+      - name: Unit tests
+        run: npm run test:run
       - name: Build
         run: npm run build
-
-# Production deploy is manual only (no auto-deploy on merge).

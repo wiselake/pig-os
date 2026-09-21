@@ -10,8 +10,9 @@ Revision ID: c3e5f7a9b1d4
 Revises: b2d4f6a8c0e3
 Create Date: 2026-07-02
 """
-from alembic import op
 from sqlalchemy import text as sa_text
+
+from alembic import op
 
 revision = "c3e5f7a9b1d4"
 down_revision = "b2d4f6a8c0e3"

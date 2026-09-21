@@ -5,7 +5,6 @@
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models.events import PregnancyCheck

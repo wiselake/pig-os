@@ -8,8 +8,8 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.operational_defaults_seed import OPERATIONAL_DEFAULTS, to_bounds
 from app.db.models.operational_default import OperationalDefault
+from app.db.operational_defaults_seed import OPERATIONAL_DEFAULTS, to_bounds
 from app.engine.benchmark_thresholds import CRITICAL, OK, WARNING, severity_for
 from app.engine.rules._common import sev_above, sev_below
 

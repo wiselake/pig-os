@@ -24,11 +24,10 @@ from datetime import date, datetime
 from pathlib import Path
 from uuid import UUID, uuid4
 
-from sqlalchemy import delete, select, text
+from sqlalchemy import text
 
 from app.core.security import hash_password
-from app.db.models.platform import Organization, User, UserFarm
-from app.db.models.platform import Farm
+from app.db.models.platform import Farm, Organization, User, UserFarm
 from app.db.models.sow import Boar, Sow
 from app.db.session import AsyncSessionLocal
 from app.schemas.events import (
