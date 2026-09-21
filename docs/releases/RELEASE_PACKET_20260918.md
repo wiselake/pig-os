@@ -10,7 +10,7 @@
 ## 0. 한눈에 — 두 트랙
 
 ```
-TRACK A  긴급복구 — 최우선         PR #3  hotfix/legal-markers-20260917  d088e73  10 commits  CI GREEN
+TRACK A  긴급복구 — 최우선         PR #3  hotfix/legal-markers-20260917  4d008a7  CI GREEN   (= d088e73 + main ae61369 merge, §3-5)
          quarantine already expired at 2026-09-17T23:59:59+09:00
          목표: 추가 연장이 아니라 ACTIVE incident 를 production remediation 으로 종결
 TRACK B  정규 릴리스 (그 다음)     PR #2  safety/pigos-20260916          d9eeda4  159 commits CI GREEN
@@ -59,6 +59,7 @@ US 가입 동작은 지금과 같다(201). 마이그레이션 0.
   pytest tests     1313 passed · 1 skipped   (main 1310 collected → 1314)
   ruff             clean · 테스트 후 tree clean
 CI                 run 35293878390 @ d088e73 — backend 3.12 ✓ 3.14 ✓ frontend ✓
+                   run 35553756807 @ 4d008a7 (base 갱신 후) — backend 3.12 ✓ 3.14 ✓ frontend ✓ · 1313 passed · 02:18–02:21Z(11:18 KST)
 ```
 
 ### 1-3. 배포 순서
@@ -309,7 +310,7 @@ TRACK A 의 §1-4 전부 + 아래:
 ①  결재 3·4·6·7 실제 결정 확보          (위 양식 7필드)
 ②  결정 원장 기록                        DECISION_REGISTER · APPROVAL_RECORD
 ③  PR #3 Ready for review
-④  required checks 가 d088e73 에 GREEN 인지 마지막 확인
+④  required checks 가 현재 head(4d008a7) 에 GREEN 인지 마지막 확인 — ★ 재실행은 09:00–24:00 KST 에서만 (D9, 아직 main 미반영)
 ⑤  merge                                ★ merge 는 remediation 이 아니다
 ⑥  배포 직전 PROD SHA 실측              아래 3-2
 ⑦  롤백 지점/태그 확인
@@ -366,3 +367,18 @@ INCIDENT  EXPIRED · ACTIVE · NOT_DEPLOYED
 ```
 
 PR #2 는 그 뒤다. 초판이 "PR #2 Ready" 를 첫 행동으로 잡은 것은 48건 발견 전의 판단이었다.
+
+## 3-5. TRACK A — base 갱신 (2026-09-21, 개발 추가 아님)
+
+```
+계기        #4 (Anthropic 수탁자 정정) 가 main 에 merge 되어 base 8a80ea4 → ae61369. PR #3 CONFLICTING/DIRTY.
+충돌        api/content/legal/public_privacy.{ko,en}.md 각 1 hunk (제3조 ① 표)
+해소        문장 단위 — 행 ②~⑤ = PR #3 (D-01/D-02 토큰 제거; main 은 base 와 동일) · 행 ⑥ = main (#4 목적 ⑥ 정정; PR #3 는 base 와 동일)
+            제8조 ② Anthropic PBC 행(#4) 자동 병합. ours/theirs 일괄 선택 없음. 양쪽 문안 변경 0.
+검증        merged == PR #3 본문 + #4 의 교체 2줄 (바이트 동일, 프로그램 확인) · 마커 V/OPEN/COUNSEL/[ ]/D-xx = 0/0/0/0/0
+            manifest 변경 0 (8 문서 DRAFT_LAWYER_PENDING 그대로) · guard 테스트 14 passed
+            verify_public_notice.sh 로컬 빌드 PASS (ko 31024B · en 34287B · 제9조/Article 9 · 마커 0)
+새 head     4d008a7 (merge commit) · CI run 35553756807 GREEN · MERGEABLE/CLEAN · draft
+변경 없음   D9·G4·B-10·429 미반입. 결재 3·4·6·7 문안 그대로. main·프로덕션 변경 0.
+```
+
