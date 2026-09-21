@@ -48,12 +48,31 @@ DB               마이그레이션 0
 |---|---|---|
 | ① 결재 확보 | 13:5x | 위 표 |
 | ② 원장 기록 | — | 이 문서 |
-| ③ PR #3 Ready | | |
-| ④ head·base·checks 재확인 | | |
-| ⑤ merge | | |
-| ⑥ PROD SHA 실측 (기대 2e372b1) | | |
-| ⑦ 롤백 지점 | | |
-| ⑧ api 배포 | | |
+| ③ PR #3 Ready | 13:59 | `gh pr ready 3` — draft=false |
+| ④ head·base·checks 재확인 | 13:59 | head 4d008a7 · base ae61369 불변 · backend(3.12)/backend(3.14)/frontend SUCCESS · MERGEABLE/CLEAN |
+| ⑤ merge | 14:00 (05:00:56Z) | **main 6675b3f** (merge commit). PR #3 MERGED |
+| ⑥ PROD SHA 실측 (기대 2e372b1) | 14:03 | **actual_prod_before = 2e372b1 ✓** — public_privacy.en 637a7d50 · .ko badf088d · public_notice.py c4b960a7: 디스크 == 컨테이너 == `git show 2e372b1`. api 이미지 2026-08-31T00:52Z. alembic 컨테이너 f3c6a8d0b2e4 = repo head → db_migration_count 0 |
+| ⑦ 롤백 지점 | 14:03 | rollback_commit 2e372b1 · rollback_ref = `ops/deploy.sh` 가 배포 시 찍는 `pigos-api:rollback-<ts>` (현재 api 롤백 태그 없음, web/worker 만 존재) + 배포 전 DB 스냅샷(deploy.sh 1/5) |
+| ⑧ api 배포 | — | **이 세션에서 차단됨** — auto mode 분류기 "Remote Shell Writes / Production Deploy" 거부. 산출물 준비: `git archive 6675b3f api` → `C:	mp\pigos-api-6675b3f.tgz` (721,929 B; `.env` 미포함, `.env.example` 만). 실행은 Brian (아래 §4 명령) |
 | ⑨ verify_public_notice.sh | | |
 | ⑩ 마커 0 · Anthropic 존재 (5항목) | | |
 | ⑪ KNOWN_PUBLICATION_EXPOSURE → REMEDIATED | | |
+
+## 4. ⑧ 배포 — Brian 이 실행할 명령 (이 세션 차단분)
+
+```bash
+# 로컬 PC (이미 만들어 둔 아카이브: C:	mp\pigos-api-6675b3f.tgz — main 6675b3f 의 api/ 만, .env 없음)
+scp -i C:\dev_env\keyfile\wiselake-app-key.pem C:	mp\pigos-api-6675b3f.tgz ubuntu@52.78.65.6:/tmp/
+
+# 서버
+ssh -i C:\dev_env\keyfile\wiselake-app-key.pem ubuntu@52.78.65.6
+cd ~/pigos
+cp -a api api.bak-predeploy-$(date +%Y%m%d-%H%M%S)          # 되돌릴 사본
+tar xzf /tmp/pigos-api-6675b3f.tgz && rm /tmp/pigos-api-6675b3f.tgz
+ls api/.env && grep -c Anthropic api/content/legal/public_privacy.en.md   # .env 그대로 · 1 이어야 함
+sha256sum api/content/legal/public_privacy.en.md | cut -c1-16              # 8de3d36cb54ae62c 이어야 함
+./ops/deploy.sh api                                                        # 1/5 DB 스냅샷 → 2/5 rollback 태그 → build → up → health
+```
+
+deploy.sh 가 `✅ 배포 완료. 롤백 태그: rollback-<ts>` 를 찍으면 이 세션이 ⑨⑩⑪ (읽기 검증 + 문서) 을 이어서 한다.
+
