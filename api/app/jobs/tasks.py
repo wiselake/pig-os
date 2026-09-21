@@ -12,6 +12,7 @@ from sqlalchemy import select
 
 from app.db.models.platform import Farm
 from app.db.session import AsyncSessionLocal
+from app.jobs._result import job_result
 from app.services import task_service
 
 log = logging.getLogger(__name__)
@@ -37,6 +38,8 @@ async def generate_tasks_job(ctx: dict) -> str:
             log.error("generate_tasks farm=%s error=%s", farm_id, e)
             errors += 1
 
-    result = f"task generation done: {processed} farms, {total_created} created, {errors} errors"
-    log.info(result)
-    return result
+    return job_result(
+        "generate_tasks_job",
+        expected=len(farm_ids), success=processed, errors=errors,
+        detail=f"{total_created} created",
+    )
