@@ -4,7 +4,8 @@
 
 ```
 429 파리티  Web 8b7077c · Android pigos-android 0e1d450 (fix/rate-limit-429, 446/0 로컬) · iOS pigos-ios 7210e1c (fix/rate-limit-429, CI run 35318843546 green 216/0)
-            THREE_CLIENT_PARITY_VERIFIED = YES — 예외 명시: iOS 재설정 플로우 N/A · iOS en 단일 locale(기존 갭) · iOS UI 테스트 없음
+            (09-21 정정) FUNCTIONAL_429_PARITY = YES · THREE_CLIENT_PARITY_VERIFIED = NO — iOS locale en 1/8 이 남은 갭. Android CI run 35555598654 green(D3)
+            iOS 재설정/onboarding 은 플로우 부재로 N/A(갭 아님) · iOS UI 테스트 없음
             정책 소스 = 서버 하나. 클라이언트 한도 상수 0(3 저장소 소스 스캔 테스트) · 자동 재시도 0 · 카운트다운 0 · 게이트/정책 변경 0
             정본: docs/PLATFORM_PARITY.md §9-9 · §9-9-1 (PigOS cace7f0, safety/pigos-20260916)
 push        mobile 두 브랜치 remote push(비-main) · PigOS 는 safety 브랜치만. main 직접 push 0 · 배포 0 · 프로덕션 쓰기 0

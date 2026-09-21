@@ -24,7 +24,7 @@
 | 타겟 시장 5개 × 8언어 (CLAUDE.md, LANDING_SYNC §2·§3 "5 global markets · 8 languages") | iOS 사용자는 UI 를 영어로만 본다 | LANDING_SYNC §1 실측: "iOS = 개발 중(미출시). coming soon 으로만" · §2 8언어 근거 = `src/messages`(웹). **iOS 출시 시점에 §1·§2 를 함께 고쳐야 한다** — 지금은 iOS 가 노출 대상이 아니라 위조 아님 |
 | 법무 고지·동의 화면 | 동의 문안은 서버가 국가/언어별로 내려주는 구조(`/consent/*`) 라 iOS 도 서버 언어를 받는다. **UI 라벨(버튼·안내)만 영어** | 서버 문안 언어 ≠ 앱 UI 언어 혼재 가능 |
 | 429 트랙 | `rate_limited` 2문장은 `String(localized:)` 로 넣어 카탈로그에 잡히지만 en 만 존재 | 파리티 매트릭스 locale 행 "iOS en 단일" |
-| 파리티 판정 | `THREE_CLIENT_PARITY_VERIFIED=YES` 는 이 갭을 **별도 항목으로 분리**한 조건부 판정 | PLATFORM_PARITY §9-9-1 |
+| 파리티 판정 | (09-21 정정) 이 갭 때문에 `THREE_CLIENT_PARITY_VERIFIED=NO` · `FUNCTIONAL_429_PARITY=YES` · G3 PARTIAL. 이 문서의 갭이 닫히면 YES 로 전이 | PLATFORM_PARITY §9-9-1 |
 | App Store 심사 | 1.0 은 en 단독 선언과 실제가 일치 — 심사 리스크 없음 | 선언과 실제가 어긋나는 쪽이 리스크 |
 
 ## 3. 갭을 메우는 데 필요한 것 (착수 아님 — 견적만)

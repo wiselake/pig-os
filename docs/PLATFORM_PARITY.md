@@ -1550,8 +1550,11 @@ POST /api/v1/auth/login · password-reset/{request,confirm}   → "RATE_LIMITED:
 WEB_IMPLEMENTED = YES   WEB_TESTED = YES   (8b7077c · vitest)
 ANDROID_IMPLEMENTED = YES   ANDROID_TESTED = YES   ANDROID_CI_GREEN = YES   (0e1d450 · 로컬 446/0 · CI run 35555598654 @ 746d0af 446/0 — 09-18 의 CI 실패는 setup-android@v3 기본 `tools` 패키지 제거 때문, D3 에서 해소)
 IOS_IMPLEMENTED = YES   IOS_COMPILED = YES   IOS_TESTED = YES   (7210e1c · CI run 35318843546 green · 216/0)
-THREE_CLIENT_PARITY_VERIFIED = YES   — 예외 2종 명시: 재설정 2행 iOS N/A(플로우 부재) · locale 행 iOS en 단일(429 이전부터의 앱 갭, 별도 항목)
-                                       화면 도달 검증은 Web·Android 만(iOS UI 테스트 부재) — 클라이언트 스텁까지로 판정
+FUNCTIONAL_429_PARITY = YES          — 세 클라이언트 모두: 429 사용자 의미 · Retry-After 해석 · missing/invalid fallback · no-auto-retry · 정책 미복제 · CI 검증
+THREE_CLIENT_PARITY_VERIFIED = NO    — 성공 조건에 locale coverage 가 있고 iOS 는 en 1/8. PigOS 는 8언어 제품이고 iOS 1.1 다국어가 예정돼 있으므로(RELEASE_APPSTORE §4-1)
+                                       "en 단일 = 공식 지원범위" 로 재정의하지 않는다 (판정 B). 남은 갭 = iOS locale coverage 만 (`docs/runs/IOS_LOCALE_GAP_20260918.md`)
+G3 429 PARITY = PARTIAL              — Web·Android DONE · iOS 기능 DONE · iOS locale 미완. D3(Android CI) 는 DONE
+                                       N/A 2건(iOS onboarding·reset = 플로우 부재)은 갭이 아니라 적용 대상 없음. 화면 도달 검증은 Web·Android 만(iOS UI 테스트 부재)
 ```
 
 ★ 이 트랙은 **정책·게이트를 바꾸지 않았다.** 서버 한도값·버킷·451 처리·가입 게이트 전부 그대로다.
@@ -1577,7 +1580,8 @@ STEP 5   CI + Release Gate + App Version Gate
 
 | 날짜 | 내용 |
 |---|---|
-| 2026-09-18 | §9-9 `SIGNUP_RATE_LIMIT_429` 3-클라이언트 반영 — Web `DONE`(8b7077c) · Android `DONE`(0e1d450, 446/0) · iOS `DONE`(7210e1c, CI 216/0). §9-9-1 파리티 매트릭스 신설, `THREE_CLIENT_PARITY_VERIFIED=YES`(iOS 재설정 N/A · iOS en 단일 locale 갭 별도 등재) |
+| 2026-09-18 | §9-9 `SIGNUP_RATE_LIMIT_429` 3-클라이언트 반영 — Web `DONE`(8b7077c) · Android `DONE`(0e1d450, 446/0) · iOS `DONE`(7210e1c, CI 216/0). §9-9-1 파리티 매트릭스 신설 |
+| 2026-09-21 | §9-9-1 판정 정정 — `THREE_CLIENT_PARITY_VERIFIED=YES` → **`FUNCTIONAL_429_PARITY=YES` / `THREE_CLIENT_PARITY_VERIFIED=NO` / G3 PARTIAL**. 근거: 성공 조건의 locale coverage 에서 iOS 가 en 1/8 이고 iOS 다국어(1.1) 가 예정된 제품이라 GAP 을 안고 YES 라 쓸 수 없다. Android 는 CI run 35555598654 로 `ANDROID_CI_GREEN=YES` |
 | 2026-08-27 | `MOBILE_PARITY.md` 신설 |
 | 2026-08-28 | `PLATFORM_PARITY.md` 로 `git mv`. STEP 0 — 기존 6행 evidence 재판정(DONE 2 → IN_PROGRESS, `done_with_sha=0`) · Track B 실측 고정 · `BACKEND_NO_JUDGMENT_STATE=PRESENT` 확인 · blocker 9건 등록 |
 | 2026-09-01 | 자연 실행 acceptance 결과 기록(§9-4-7) — ARQ 73/73 OK · `j_complete` 3→6 · `j_failed=0` · snapshot 219행/73농장, `psy`·`farrowing_rate` 유입 0. `ARQ_HOTFIX = PASS_ON_SUCCESS_PATH / FAILURE_PATH_LOCALLY_VERIFIED` (CLOSED 아님) · `SNAPSHOT_WRITER = OPERATIONAL` |

@@ -79,15 +79,16 @@ action         android-actions/setup-android@v3   (workflow 는 with: 없음 →
 | tests | PASS vitest +21 | PASS 446/0 (RateLimited 9 · VM 11 · 화면 2) | PASS RateLimitTests 11 + 소스 가드 1 |
 | CI/build | PASS PR #2 run 35422553240 (8b7077c 포함) | **PASS run 35555598654** | PASS run 35321586461 (e750daa) |
 
-UNKNOWN 0. N/A 2건과 GAP 1건은 사유 명시.
+UNKNOWN 0. N/A 2건(적용 대상 없음)과 GAP 1건(iOS locale — 판정을 NO 로 잡는 원인) 은 사유 명시.
 
 ```
 ANDROID_CODE_IMPLEMENTED       YES  (0e1d450)
 ANDROID_LOCAL_TESTED           YES  (446/0)
 ANDROID_CI_GREEN               YES  (run 35555598654 @ 746d0af)
-THREE_CLIENT_PARITY_VERIFIED   YES  — 의미 동일: 429 사용자 의미 · Retry-After 해석 · fallback · no-auto-retry · 정책 미복제.
-                                     예외(코드 구조가 아니라 플로우 부재/앱 갭): iOS onboarding·reset N/A · iOS locale GAP
-G3 429 PARITY                  DONE
+FUNCTIONAL_429_PARITY          YES  — 의미 동일: 429 사용자 의미 · Retry-After 해석 · fallback · no-auto-retry · 정책 미복제 · 세 클라이언트 CI 검증
+THREE_CLIENT_PARITY_VERIFIED   NO   — 성공 조건에 locale coverage 포함. iOS 는 en 1/8 (판정 B: iOS 1.1 다국어 예정, en 단일을 공식 범위로 재정의하지 않음)
+                                     N/A 2건(iOS onboarding·reset)은 플로우 부재 = 적용 대상 없음, 갭 아님
+G3 429 PARITY                  PARTIAL — 남은 갭 = iOS locale coverage 하나. D3 (Android CI) 는 DONE
 ```
 
 ## 6. 남은 것
