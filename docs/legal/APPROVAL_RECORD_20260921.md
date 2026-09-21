@@ -53,7 +53,7 @@ DB               마이그레이션 0
 | ⑤ merge | 14:00 (05:00:56Z) | **main 6675b3f** (merge commit). PR #3 MERGED |
 | ⑥ PROD SHA 실측 (기대 2e372b1) | 14:03 | **actual_prod_before = 2e372b1 ✓** — public_privacy.en 637a7d50 · .ko badf088d · public_notice.py c4b960a7: 디스크 == 컨테이너 == `git show 2e372b1`. api 이미지 2026-08-31T00:52Z. alembic 컨테이너 f3c6a8d0b2e4 = repo head → db_migration_count 0 |
 | ⑦ 롤백 지점 | 14:03 | rollback_commit 2e372b1 · rollback_ref = `ops/deploy.sh` 가 배포 시 찍는 `pigos-api:rollback-<ts>` (현재 api 롤백 태그 없음, web/worker 만 존재) + 배포 전 DB 스냅샷(deploy.sh 1/5) |
-| ⑧ api 배포 | — | **이 세션에서 차단됨** — auto mode 분류기 "Remote Shell Writes / Production Deploy" 거부. 산출물 준비: `git archive 6675b3f api` → `C:	mp\pigos-api-6675b3f.tgz` (721,929 B; `.env` 미포함, `.env.example` 만). 실행은 Brian (아래 §4 명령) |
+| ⑧ api 배포 | — | **이 세션에서 차단됨** — auto mode 분류기 "Remote Shell Writes / Production Deploy" 거부. 산출물 준비: `git archive 6675b3f api` → `C:\tmp\pigos-api-6675b3f.tgz` (721,929 B; `.env` 미포함, `.env.example` 만). 실행은 Brian (아래 §4 명령) |
 | ⑨ verify_public_notice.sh | | |
 | ⑩ 마커 0 · Anthropic 존재 (5항목) | | |
 | ⑪ KNOWN_PUBLICATION_EXPOSURE → REMEDIATED | | |
@@ -61,8 +61,8 @@ DB               마이그레이션 0
 ## 4. ⑧ 배포 — Brian 이 실행할 명령 (이 세션 차단분)
 
 ```bash
-# 로컬 PC (이미 만들어 둔 아카이브: C:	mp\pigos-api-6675b3f.tgz — main 6675b3f 의 api/ 만, .env 없음)
-scp -i C:\dev_env\keyfile\wiselake-app-key.pem C:	mp\pigos-api-6675b3f.tgz ubuntu@52.78.65.6:/tmp/
+# 로컬 PC (이미 만들어 둔 아카이브: C:\tmp\pigos-api-6675b3f.tgz — main 6675b3f 의 api/ 만, .env 없음)
+scp -i C:\dev_env\keyfile\wiselake-app-key.pem C:\tmp\pigos-api-6675b3f.tgz ubuntu@52.78.65.6:/tmp/
 
 # 서버
 ssh -i C:\dev_env\keyfile\wiselake-app-key.pem ubuntu@52.78.65.6
