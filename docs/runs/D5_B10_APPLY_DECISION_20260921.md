@@ -35,6 +35,15 @@
 
 권고: **(a)**. 09-18 패킷 §8·§9 그대로. 적용 담당은 SSH 권한자(Brian), 실행 순서는 §9 ①~⑪ — 이 세션은 승인 전 실행하지 않는다.
 
+**종결 판정 (스크립트 교체 ≠ B-10 종결)** — 아래 다섯 줄이 전부 참일 때만 `OFFSITE_CURRENT = YES`:
+```
+LOCAL_BACKUP     SUCCESS   (.part → gzip -t → sha256 → 최종 이름)
+S3_UPLOAD        SUCCESS   (backup.log BACKUP_S3_OK type=full)
+REMOTE_VERIFY    SUCCESS   (head-object ContentLength == 로컬 bytes · .sha256 sidecar)
+FRESHNESS        CURRENT   (ops/check_backup_freshness.sh, 36h)
+OFFSITE_CURRENT  YES       (다음날 03:41 이후 실측 뒤에만 문서 변경)
+```
+
 ## 2. 적용 전 확인 (§9 ①) — 바뀌었을 수 있는 것
 
 | 항목 | 09-18 값 | 적용 시 재확인 |
