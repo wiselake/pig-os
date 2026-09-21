@@ -77,7 +77,7 @@ action         android-actions/setup-android@v3   (workflow 는 with: 없음 →
 | auto retry 없음 | PASS | PASS (OkHttp/Authenticator/Sync 감사) | PASS (401 refresh 만) |
 | locale coverage | PASS 8/8 (`i18n.test.ts`) | PASS 8/8 (`%1$d` 동일) | GAP — 앱 자체 en 단일 (`IOS_LOCALE_GAP_20260918.md`) |
 | tests | PASS vitest +21 | PASS 446/0 (RateLimited 9 · VM 11 · 화면 2) | PASS RateLimitTests 11 + 소스 가드 1 |
-| CI/build | PASS PR #2 run 35422553240 (8b7077c 포함) | **PASS run 35555598654** | PASS run 35321586461 (e750daa) |
+| CI/build | PASS PR #2 run 35422553240 (8b7077c 포함) | **PASS run 35555598654** | PASS run 35321586461 (e750daa) · **main 에 merge 됨** 61b7e54, main CI run 35555473540 |
 
 UNKNOWN 0. N/A 2건(적용 대상 없음)과 GAP 1건(iOS locale — 판정을 NO 로 잡는 원인) 은 사유 명시.
 
@@ -93,7 +93,7 @@ G3 429 PARITY                  PARTIAL — 남은 갭 = iOS locale coverage 하�
 
 ## 6. 남은 것
 
-- Draft PR #6 (Android CI+429) · #5 (429 만) merge 여부 — Brian (D4). #6 이 #5 를 포함하므로 #5 는 닫아도 된다.
-- iOS Draft PR #4 merge 여부 (D4).
+- (D4 정리 2026-09-21) Android #5 **CLOSED** — #6 이 완전 포함함을 조상관계·커밋 목록·바이트 diff 로 증명. #6 = canonical Draft (MERGEABLE/CLEAN, green). iOS #4 는 이미 **MERGED**(61b7e54, main CI green).
+- 남은 결정: Android #6 merge.
 - Android lint 기존 오류 4건 정리 후 CI 에 lint 추가 — 별도 항목(D3 범위 밖).
-- iOS 다국어 1.1 (D8).
+- iOS 다국어 1.1 (D8 = DEFER_TO_IOS_1_1_MULTILINGUAL; 기존 `feature/1.1-localization` 브랜치가 출발점).

@@ -1524,7 +1524,7 @@ POST /api/v1/auth/login · password-reset/{request,confirm}   → "RATE_LIMITED:
 | Core | `DONE` | `app/core/rate_limit.py` · 라우터 5곳 · 테스트 11건 (`test_rate_limit.py`) |
 | Web | `DONE` | PigOS `8b7077c` (safety/pigos-20260916) — `src/lib/api/errors.ts` `rateLimited` + `parseRetryAfter` · onboarding/login/forgot-password 3화면 · 8 locale `errors.rateLimitedRetryIn` · vitest +21 (`apiErrors.test.ts` +9, `pages/rate-limit-429.test.tsx` 12) |
 | Android | `DONE` | pigos-android `0e1d450` (fix/rate-limit-429) — `data/remote/RateLimited.kt` · Login/Onboarding VM + 화면 · 8 locale `rate_limited(_retry_in)` · unit 446/0 로컬 · **CI run 35555598654 green** (`746d0af` = 0e1d450 + setup-android v4 수정, Draft PR #6; 446 tests·0 failures 실측) — `docs/runs/ANDROID_CI_429_PARITY_20260921.md` |
-| iOS | `DONE` | pigos-ios `7210e1c` (fix/rate-limit-429) — `APIError.rateLimited` · `APIClient` Retry-After 전달 · LoginScreen 꼬리말 제거 · `RateLimitTests.swift` 11건. Windows 에서 작성 → macOS CI run 35318843546(workflow_dispatch) **green**: SwiftLint 통과 · 216/0 (RateLimitTests 11/0) |
+| iOS | `DONE` | pigos-ios `7210e1c` (fix/rate-limit-429) — `APIError.rateLimited` · `APIClient` Retry-After 전달 · LoginScreen 꼬리말 제거 · `RateLimitTests.swift` 11건. Windows 에서 작성 → macOS CI run 35318843546(workflow_dispatch) **green**: SwiftLint 통과 · 216/0 (RateLimitTests 11/0) · **main 반영: PR #4 merge 61b7e54 (2026-09-21 01:45Z, foes88) · main c134c59 CI run 35555473540 green** |
 
 ### 9-9-1. 3-클라이언트 파리티 매트릭스 (2026-09-18)
 
