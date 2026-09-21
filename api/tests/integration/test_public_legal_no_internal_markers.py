@@ -160,6 +160,8 @@ def test_draft_documents_are_still_marked_draft_in_manifest() -> None:
 # 동안 서빙본이 정본과 같아지는 것**을 실패로 만든다. 정본이 승인·정정되어 마커 0 이 되면
 # 이 조건은 자연히 해제된다.
 
+# PUBLISH_CANDIDATE_READ_ONLY_TO_ASSERT_DIVERGENCE — 정본을 읽는 유일한 이유는 "서빙본이 정본과
+# 같아지면 실패" 다 (test_publication_gate::test_tests_do_not_pin_runtime_to_publish_candidate 가 이 선언을 본다).
 _CANDIDATE = {
     "public_privacy.ko.md": _API.parent / "docs" / "legal" / "publish_candidate" / "PIGOS_GLOBAL_PRIVACY_NOTICE.md",
     "public_privacy.en.md": _API.parent / "docs" / "legal" / "publish_candidate" / "en" / "PIGOS_GLOBAL_PRIVACY_NOTICE_EN.md",

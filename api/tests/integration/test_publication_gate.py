@@ -92,6 +92,11 @@ def _nondoc_string_literals(path: Path) -> list[str]:
             if isinstance(n, ast.Constant) and isinstance(n.value, str) and id(n) not in docstrings]
 
 
+# 정본을 읽는 테스트가 "같아지면 실패" 라는 목적을 스스로 선언하는 토큰. 문자열 리터럴이
+# 아니라 주석에 두므로 _reads_publish_candidate 의 리터럴 검사에 걸리지 않는다.
+_PUBLISH_CANDIDATE_DIVERGENCE_GUARD = "PUBLISH_CANDIDATE_READ_ONLY_TO_ASSERT_DIVERGENCE"
+
+
 def _reads_publish_candidate(path: Path) -> bool:
     return any("publish_candidate" in lit for lit in _nondoc_string_literals(path))
 
@@ -286,8 +291,19 @@ def test_tests_do_not_pin_runtime_to_publish_candidate():
         if "__pycache__" in p.parts or p.name == Path(__file__).name:
             continue
         # 산문의 언급은 허용한다 — 왜 그 계약을 제거했는지 기록해야 하기 때문이다.
-        if _reads_publish_candidate(p):
-            offenders.append(p.relative_to(_API).as_posix())
+        if not _reads_publish_candidate(p):
+            continue
+        # 2026-09-21 (PR #2 base 갱신): 정본을 읽되 **같아지면 실패** 시키는 가드
+        # (test_public_legal_no_internal_markers::test_served_copy_is_not_resynced_from_a_marked_candidate)
+        # 는 이 규칙이 막으려는 것의 정반대다. 그런 파일은 아래 토큰으로 스스로 선언한다 —
+        # 토큰 없이 publish_candidate 를 읽는 테스트는 여전히 여기서 잡힌다.
+        text = p.read_text(encoding="utf-8")
+        if _PUBLISH_CANDIDATE_DIVERGENCE_GUARD in text:
+            assert "assert served != candidate" in text, (
+                f"{p.name}: 발산 가드를 선언했는데 served != candidate 단언이 없다"
+            )
+            continue
+        offenders.append(p.relative_to(_API).as_posix())
     assert not offenders, (
         f"테스트가 publish_candidate 를 런타임 정본으로 취급한다: {offenders}\n"
         f"  올바른 계약은 'runtime == 승인된 PUBLISHED artifact' 다."
