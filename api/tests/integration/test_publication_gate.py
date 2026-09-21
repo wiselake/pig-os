@@ -183,12 +183,29 @@ def test_quarantine_status_is_not_claimed_resolved():
 
     2026-09-10: 언어별 24건 → 1건으로 줄이면서 PARTIALLY_REMEDIATED 를 추가했다.
     부분 해소를 해소로 적지 않기 위한 상태이지, 격리를 푸는 상태가 아니다.
-    마커가 0 이 되면 이 문서를 삭제하고 test_public_legal_no_internal_markers 로 넘긴다.
+
+    2026-09-21: 프로덕션 배포(6675b3f) + verify 5항목 PASS 뒤 REMEDIATED 로 종결됐다.
+    문서는 삭제하지 않는다(불변 사건 기록). 그래서 종결은 "삭제" 가 아니라
+    **종결 증거 필드가 전부 있고 production_marker_count == 0** 인 REMEDIATED 만 인정한다 —
+    필드 없이 status 만 바꾸는 종결은 여전히 여기서 막힌다.
     """
-    status = _manifest()["status"]
+    mf = _manifest()
+    status = mf["status"]
+    if status == "REMEDIATED":
+        for k in ("remediated_at", "deployed_commit", "production_marker_count", "verification"):
+            # 존재 여부다 — production_marker_count 는 0 이어야 하므로 truthiness 로 보면 안 된다
+            assert k in mf and mf[k] is not None and mf[k] != "", (
+                f"REMEDIATED 인데 {k} 가 없다 — 검증 없는 종결은 종결이 아니다")
+        assert mf["production_marker_count"] == 0
+        assert mf.get("remediation_status") == "DEPLOYED"
+        assert mf.get("incident_status") == "CLOSED"
+        assert "Quarantine expired before production remediation completed" in mf.get("audit_note", ""), (
+            "종결하면서 만료 사실을 지웠다 — 감사 문장은 남긴다"
+        )
+        return
     assert status in _UNRESOLVED_STATES, (
-        f"격리 status 가 {status!r} 다. 해소를 주장하려면 마커를 0 으로 만들고 "
-        f"KNOWN_PUBLICATION_EXPOSURE.md 를 삭제해야 한다."
+        f"격리 status 가 {status!r} 다. 해소를 주장하려면 프로덕션 마커 0 을 실측하고 "
+        f"종결 양식(remediated_at·deployed_commit·production_marker_count·verification)을 채워야 한다."
     )
 
 

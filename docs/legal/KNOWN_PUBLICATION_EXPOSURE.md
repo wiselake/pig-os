@@ -148,15 +148,23 @@ PR #2              만료 테스트 FAIL — 의도된 빨강
 <!-- QUARANTINE_MANIFEST_BEGIN -->
 ```json
 {
-  "status": "PARTIALLY_REMEDIATED",
+  "status": "REMEDIATED",
   "quarantine_expired": true,
   "quarantine_expired_at": "2026-09-17T23:59:59+09:00",
-  "remediation_status": "NOT_DEPLOYED",
-  "incident_status": "ACTIVE",
-  "audit_note": "Quarantine expired before production remediation completed. 소스는 2026-09-16 에 마커 0 이 됐으나 프로덕션은 2e372b1(2026-08-28)을 그대로 서빙 중이다 — 2026-09-10 정정도 배포된 적 없다. 만료일은 밀지 않았다.",
-  "production_marker_total": 48,
+  "remediation_status": "DEPLOYED",
+  "incident_status": "CLOSED",
+  "audit_note": "Quarantine expired before production remediation completed. 소스는 2026-09-16 에 마커 0 이 됐으나 프로덕션은 2e372b1(2026-08-28)을 2026-09-21 14:26 KST 까지 그대로 서빙했다 — 2026-09-10 정정도 그때까지 배포된 적 없다. 만료일은 밀지 않았다. 종결: 2026-09-21 결재 3·4·6·7(APPROVAL_RECORD_20260921) → PR #3 merge 6675b3f → api 배포(rollback-20260921-142649) → 프로덕션 마커 0 실측.",
+  "initial_production_markers": 48,
+  "initial_production_markers_incl_decision_refs": 64,
+  "source_markers_after_2026_09_10": 2,
+  "source_markers_after_2026_09_16": 0,
+  "remediated_at": "2026-09-21T14:29:00+09:00",
+  "deployed_commit": "6675b3f",
+  "production_marker_count": 0,
+  "verification": "verify_public_notice.sh @ https://api.pigos.io 2026-09-21 14:28 KST: ko 200·31024B·'제9조'·markers 0 / en 200·34287B·'Article 9'·markers 0 (5종: [V —·[OPEN·[COUNSEL]·[ ]·[D-xx]). 컨테이너 sha256(=git 6675b3f): en 8de3d36cb54ae62cc1b400f7c34eb59763e4b08af1cca1fb89220036ec9d6ebb · ko 4ab47032d3f58a9c6f1fe1651e4f13ca826e7a27aa76cd15f30ca13bc8c0288d · public_notice.py c5c7a5339ee31371. Anthropic PBC 행 ko/en 각 1 (#4 포함). 배포 전 실측 프로덕션 == 2e372b1 (3파일 디스크==컨테이너==git). 마이그레이션 0. api 이미지 2026-09-21T05:27:45Z.",
+  "production_marker_total": 0,
   "source_marker_total": 0,
-  "remediation_pr": "wiselake/pig-os#3 hotfix/legal-markers-20260917 @ d088e73 — CI green, merge 대기 (결재 3·4·6·7)",
+  "remediation_pr": "wiselake/pig-os#3 hotfix/legal-markers-20260917 @ 4d008a7 (= d088e73 + main ae61369 base 갱신) — MERGED 2026-09-21T05:00:56Z → main 6675b3f",
   "observed_at": "2026-09-10T00:00:00+09:00",
   "expires_at": "2026-09-17T23:59:59+09:00",
   "extension_no": 1,
@@ -184,8 +192,9 @@ PR #2              만료 테스트 FAIL — 의도된 빨강
   ],
   "last_remediation_at": "2026-09-16T17:30:00+09:00",
   "remediation_note": "★ 키 이름: last_remediation_at 은 가장 최근 부분 정정일이다. 종료(마커 0) 시에만 remediated_at 을 새로 만든다. 2026-09-16: V-11 조건 1·6 을 프로덕션 read-only 로 실측해 종결하고 [확인 중] 행을 [수집하지 않음] 으로 병합했다 — 조건 1: farms 80행 중 gps_lat·gps_lng non-null 0건(둘 중 하나만 있는 행도 0건, 좌표값 미출력) / 조건 6: 2026-09-16 03:40 전체 백업을 격리된 PostgreSQL 17 에 복원해 farms 79행 lat 0 lng 0 확인, audit_log 390행 중 farms 관련 0건·gps 언급 0건, public 스키마에 다른 좌표 컬럼 없음. 결재 4 (a) '사용하지 않는다' 의 확정조건 5개가 이로써 전부 충족됐다. ★ 그럼에도 status 는 PARTIALLY_REMEDIATED 다 — SOURCE 마커 0 ≠ PRODUCTION 마커 0. api.pigos.io/legal/privacy 는 배포 전까지 정정 전 본문을 서빙하며, 격리 종료는 프로덕션 엔드포인트에서 마커 0 이 확인된 뒤에만 가능하다. 이전 정정(2026-09-10): 언어별 24건 → 1건. 실행 결정 Brian(대표 구두 포괄 승인 하의 위임): [V] 11건 문안 정정 · [OPEN] 10건은 임의 기간을 만들지 않고 마커만 제거 (보유기간 정책 자체는 RETENTION_POLICY=OPEN 으로 별도 유지) · [COUNSEL] 1건은 제7조를 '법률 검토 중' 공개 조항으로 전환 · [ ] 2건은 부칙을 확정본 게시 시 기재로 변경.",
-  "production_marker_total_incl_decision_refs": 64,
-  "production_marker_detail": "격리 종류표 기준 48 = (V 11 · OPEN 10 · COUNSEL 1 · [ ] 2) × ko/en. 종류표에 없던 [D-xx] 8×2 를 더하면 64. 2026-09-16 17:4x KST 최초 HTTP 실측, 2026-09-18 재확인. 프로덕션 파일은 6f16e41(2026-08-27) 내용 — 2026-09-10 정정(ec99391)은 배포된 적 없다. 공개 노출은 2026-09-03 최초 실측 이래 줄어든 적이 없다."
+  "production_marker_total_incl_decision_refs": 0,
+  "production_marker_detail": "(종결 전) 격리 종류표 기준 48 = (V 11 · OPEN 10 · COUNSEL 1 · [ ] 2) × ko/en. 종류표에 없던 [D-xx] 8×2 를 더하면 64. 2026-09-16 17:4x KST 최초 HTTP 실측, 2026-09-18 재확인. 프로덕션 파일은 6f16e41(2026-08-27) 내용 — 2026-09-10 정정(ec99391)은 배포된 적 없다. 공개 노출은 2026-09-03 최초 실측 이래 2026-09-21 14:26 KST 배포 전까지 줄어든 적이 없다. (종결) 2026-09-21 14:28 KST 실측 0/0.",
+  "closure_note": "entries[].source_sha256 은 이 브랜치(safety/pigos-20260916)의 소스 파일 값이다. 배포된 6675b3f 의 파일은 #4 의 Anthropic 행을 더 갖고 있어 값이 다르다(verification 필드) — PR #2 base 갱신(main merge) 시 두 값이 같아진다. 문서는 삭제하지 않는다 — 불변 사건 기록."
 }
 ```
 <!-- QUARANTINE_MANIFEST_END -->

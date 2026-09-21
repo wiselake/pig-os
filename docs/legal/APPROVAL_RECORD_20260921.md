@@ -53,10 +53,10 @@ DB               마이그레이션 0
 | ⑤ merge | 14:00 (05:00:56Z) | **main 6675b3f** (merge commit). PR #3 MERGED |
 | ⑥ PROD SHA 실측 (기대 2e372b1) | 14:03 | **actual_prod_before = 2e372b1 ✓** — public_privacy.en 637a7d50 · .ko badf088d · public_notice.py c4b960a7: 디스크 == 컨테이너 == `git show 2e372b1`. api 이미지 2026-08-31T00:52Z. alembic 컨테이너 f3c6a8d0b2e4 = repo head → db_migration_count 0 |
 | ⑦ 롤백 지점 | 14:03 | rollback_commit 2e372b1 · rollback_ref = `ops/deploy.sh` 가 배포 시 찍는 `pigos-api:rollback-<ts>` (현재 api 롤백 태그 없음, web/worker 만 존재) + 배포 전 DB 스냅샷(deploy.sh 1/5) |
-| ⑧ api 배포 | — | **이 세션에서 차단됨** — auto mode 분류기 "Remote Shell Writes / Production Deploy" 거부. 산출물 준비: `git archive 6675b3f api` → `C:\tmp\pigos-api-6675b3f.tgz` (721,929 B; `.env` 미포함, `.env.example` 만). 실행은 Brian (아래 §4 명령) |
-| ⑨ verify_public_notice.sh | | |
-| ⑩ 마커 0 · Anthropic 존재 (5항목) | | |
-| ⑪ KNOWN_PUBLICATION_EXPOSURE → REMEDIATED | | |
+| ⑧ api 배포 | 14:26 | ✅ auto mode 해제 후 이 세션이 실행 — `api.bak-predeploy-20260921-142630` 사본 · main 6675b3f 의 api/ 추출(.env 는 ~/pigos/.env, 미변경) · `./ops/deploy.sh api`: DB 스냅샷 → **rollback-20260921-142649** → build → up → health 200. (당초 분류기 차단 기록: **이 세션에서 차단됨** — auto mode 분류기 "Remote Shell Writes / Production Deploy" 거부. 산출물 준비: `git archive 6675b3f api` → `C:\tmp\pigos-api-6675b3f.tgz` (721,929 B; `.env` 미포함, `.env.example` 만). 실행은 Brian (아래 §4 명령) |
+| ⑨ verify_public_notice.sh | 14:28 | **PASS** — ko 200·31024B·제9조·markers 0 / en 200·34287B·Article 9·markers 0 |
+| ⑩ 마커 0 · Anthropic 존재 (5항목) | 14:28 | ✅ 5항목: 컨테이너 sha == git 6675b3f (en 8de3d36c · ko 4ab47032 · public_notice.py c5c7a533) · Anthropic PBC ko/en 1/1 · api 이미지 2026-09-21T05:27:45Z |
+| ⑪ KNOWN_PUBLICATION_EXPOSURE → REMEDIATED | 14:3x | ✅ status REMEDIATED · remediation_status DEPLOYED · incident_status CLOSED · remediated_at 2026-09-21T14:29+09 · deployed_commit 6675b3f · production_marker_count 0 (문서 보존, 삭제 안 함). `test_publication_gate.py` 가 종결 증거 필드 없는 REMEDIATED 를 계속 거부 |
 
 ## 4. ⑧ 배포 — Brian 이 실행할 명령 (이 세션 차단분)
 
@@ -75,4 +75,18 @@ sha256sum api/content/legal/public_privacy.en.md | cut -c1-16              # 8de
 ```
 
 deploy.sh 가 `✅ 배포 완료. 롤백 태그: rollback-<ts>` 를 찍으면 이 세션이 ⑨⑩⑪ (읽기 검증 + 문서) 을 이어서 한다.
+
+## 5. 배포로 함께 올라간 것 · 발견 (정직하게)
+
+```
+런타임 변경 (2e372b1 → 6675b3f, api 컨테이너)
+  약관 본문 2파일 (목적) · public_notice.py docstring (동작 0)
+  ★ 8a80ea4 (Lou 08-25): 가입 게이트를 /auth/register·/onboarding/complete 서버 경로에도 적용 — 차단 법역 계정 생성 451. 기능 변경. main 에 있던 것이 처음 프로덕션에 올라감
+
+★ 발견: 2e372b1 (08-31 ARQ false-success 수정, B-12) 이 main 에 없다
+  프로덕션 08-31 배포는 hotfix 브랜치 이미지였고 main 에 merge 된 적이 없음 → api 컨테이너 코드에는 그 수정이 빠짐
+  잡은 worker 컨테이너가 실행 — worker 는 재배포하지 않았고 08-31 이미지(bee00d55, /app/app/jobs/_result.py 존재) 그대로 → 현재 동작 영향 0
+  ★ worker 를 main 으로 재배포하면 B-12 회귀. 그 전에 2e372b1 을 main 에 넣어야 한다 — PR #2(safety) 가 2e372b1 을 포함하므로 PR #2 base 갱신·merge 가 경로
+  web 컨테이너도 미변경 (3주 전 이미지)
+```
 
