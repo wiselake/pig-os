@@ -104,3 +104,39 @@ empty success  → SUCCEEDED · notes.empty_source=true · retraction_skipped_fa
 partial batch  → 2번째 statement 에서 DB 예외 → SYNC_FAILED · TARGET_DB · 첫 배치도 남지 않음(0행) · 재시작 40/40 중복 0   ← "partial commit 없음" 쪽 선택
 DB txn failure → 위와 같은 경로(SAVEPOINT rollback) · 원장 행은 남는다
 ```
+
+## L6 PERFORMANCE / VOLUME
+```text
+STATUS PASS  (Oracle: elapsed 만 — L0-B fetch 0.78 s. EXPLAIN PLAN 은 Oracle 에서 실행하지 않음)
+프로파일(수정 전): ingest 6.8 s 중 3.6 s = SQLAlchemy 다중 VALUES 리터럴 컴파일(311k visitor 호출) · retract_missing 이 5.5k ORM 객체 전량 로드
+수정: ① statement 1회 컴파일 + 파라미터 리스트(insertmanyvalues) ② 철회 감지는 키만 SELECT → 사라진 키만 로드
+batch   200: 6.22 s · 878 rows/s · 18 MB     1000: 5.57 s · 980 rows/s · 20 MB     5000: 5.43 s · 1,006 rows/s · 20 MB   (엔진 대사 ~2 s 포함)
+        수정 전 18.6 s / 287 rows/s / 47 MB → 3.4×  ·  재실행(변경 0) 1.84 s · commit 1회/실행(SAVEPOINT 1)
+권고 batch  1000 (5000 과 차이 1 % · 파라미터 상한 32,000//30열 = 1,066 행이라 실질 동일)
+projection  EXPLAIN (ANALYZE, BUFFERS) 로컬: Index Scan idx_fsr_farm_basis_date(partial) · 0.27 ms · buffers 9 · seq scan 0 · sort spill 0 · rows est 93 vs 73
+initial-load 예상  승인 범위(≈5.5k 행) 수 초. 67농장 12m 21.6k 행 ≈ 25 s ESTIMATED(관측 1,000 rows/s × 행수, 선형 가정 · 미실측)
+```
+
+## L7 MIGRATION ROUND TRIP  (일회용 DB pigos_feedload_rt)
+```text
+STATUS PASS
+1 upgrade clean ✓ → 2 load 5,461 (mismatch {}) → 3 snapshot: rows 5,461 · md5(row_key:hash) 9f68332f… · public tables 61 · farms 42
+4 downgrade -1 → 5 두 테이블만 drop (61→59) · farms 42 그대로 (documented destructive · unrelated loss 0)
+6 upgrade → 7 columns/precision/nullable · indexes · constraints md5 전부 SAME (rows 0)
+8-9 reload 5,461 · reconciliation mismatch {} · invariants ✓ → 10 md5 9f68332f… SAME · alembic heads 1
+```
+
+## L8 DOCS
+```text
+STATUS PASS  docs/feed/INITIAL_LOAD_RUNBOOK.md · RECONCILIATION_REPORT_TEMPLATE.md · runs/OVERNIGHT_RESULTS_20260922.md (이 문서)
+```
+
+## L9 READ API CONTRACT DRAFT
+```text
+STATUS PASS (조건 L1~L5 PASS)  docs/feed/FEED_READ_API_CONTRACT_DRAFT.md — E1 summary · E2 months · E3 sources · basis 필수 · null≠0 · raw row 없음 · FCR 없음 · 코드 0
+```
+
+## REGRESSION (L7 뒤 전체)
+```text
+backend full  1462 passed · 1 skipped   (1447 + persistence 6 + snapshot/reconcile 5 + P6 … )   ruff clean   alembic heads 1
+```

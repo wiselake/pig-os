@@ -1,0 +1,17 @@
+                                                                                                  QUERY PLAN                                                                                                   
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Incremental Sort  (cost=3.10..234.05 rows=93 width=86) (actual time=0.155..0.192 rows=73 loops=1)
+   Sort Key: event_date, source_row_key
+   Presorted Key: event_date
+   Full-sort Groups: 3  Sort Method: quicksort  Average Memory: 28kB  Peak Memory: 28kB
+   Buffers: shared hit=18
+   ->  Index Scan using idx_fsr_farm_basis_date on feed_source_rows  (cost=0.28..230.25 rows=93 width=86) (actual time=0.029..0.067 rows=73 loops=1)
+         Index Cond: ((farm_id = '<farm>'::uuid) AND ((quantity_basis)::text = 'DELIVERED'::text) AND (event_date >= '2026-08-01'::date) AND (event_date <= '2026-08-31'::date))
+         Filter: (((quantity_status)::text = 'ACCEPTED'::text) AND ((source_system)::text = 'pigplan'::text))
+         Buffers: shared hit=9
+ Planning:
+   Buffers: shared hit=248
+ Planning Time: 1.268 ms
+ Execution Time: 0.270 ms
+(13 rows)
+

@@ -148,13 +148,14 @@ async def ingest_observations(db: AsyncSession, obs: list[Observation], *, obser
         # 같은 id(= identity+payload) 가 이미 있으면(과거 revision 으로 되돌아온 정정) 새 행을 만들지 않는다 —
         # 그 경우는 이력상 존재하는 revision 이므로 current 로 되살린다.
         # 배치는 같은 트랜잭션 안의 statement 분할일 뿐이다 — 부분 커밋 없음.
-        # asyncpg 는 statement 당 바인드 32,767 개 상한 (L1 실측: 2,000행×30열 = 60k → InterfaceError) → 열 수로 상한을 다시 계산
+        # asyncpg 는 statement 당 바인드 32,767 개 상한 (L1 실측: 2,000행×30열 = 60k → InterfaceError) → 열 수로 상한을 다시 계산.
+        # ★ statement 는 한 번만 컴파일하고 파라미터 리스트를 넘긴다(insertmanyvalues) — L6 프로파일: 다중 VALUES 리터럴 컴파일이 3.6 s/5.5k행
         per_stmt = max(1, min(batch_size, ASYNCPG_MAX_PARAMS // len(values[0])))
+        stmt = pg_insert(FeedSourceRow).on_conflict_do_update(
+            constraint="uq_fsr_identity_payload",
+            set_={"is_current": True, "superseded_at": None, "sync_run_id": sync_run_id, "observed_at": observed_at})
         for i in range(0, len(values), per_stmt):
-            stmt = pg_insert(FeedSourceRow).values(values[i:i + per_stmt]).on_conflict_do_update(
-                constraint="uq_fsr_identity_payload",
-                set_={"is_current": True, "superseded_at": None, "sync_run_id": sync_run_id, "observed_at": observed_at})
-            await db.execute(stmt)
+            await db.execute(stmt, values[i:i + per_stmt])
     await db.flush()
     return res
 
@@ -163,16 +164,16 @@ async def retract_missing(db: AsyncSession, *, source_system: str, source_datase
                           window: Period, present_keys: set[str], observed_at: datetime,
                           sync_run_id: UUID | None = None) -> int:
     """창 안 current·비RETRACTED 행 중 소스가 이번에 주지 않은 identity → RETRACTED revision. 값은 이전 revision 복사."""
-    rows = (await db.execute(
-        select(FeedSourceRow).where(
-            FeedSourceRow.source_system == source_system, FeedSourceRow.source_dataset == source_dataset,
+    base = [FeedSourceRow.source_system == source_system, FeedSourceRow.source_dataset == source_dataset,
             FeedSourceRow.farm_id.in_(farm_ids), FeedSourceRow.is_current.is_(True),
             FeedSourceRow.source_status != "RETRACTED",
-            FeedSourceRow.event_date >= window.start, FeedSourceRow.event_date <= window.end)
-    )).scalars().all()
-    gone = [r for r in rows if r.source_row_key not in present_keys]
-    if not gone:
+            FeedSourceRow.event_date >= window.start, FeedSourceRow.event_date <= window.end]
+    # 키만 먼저 (ORM 객체 5k 개를 비교 때문에 만들지 않는다 — L6) → 사라진 키의 행만 로드
+    keys = [k for (k,) in (await db.execute(select(FeedSourceRow.source_row_key).where(*base))).all()]
+    gone_keys = [k for k in keys if k not in present_keys]
+    if not gone_keys:
         return 0
+    gone = (await db.execute(select(FeedSourceRow).where(*base, FeedSourceRow.source_row_key.in_(gone_keys)))).scalars().all()
     obs = [Observation(
         source_system=r.source_system, source_dataset=r.source_dataset, source_row_key=r.source_row_key,
         source_contract_version=r.source_contract_version, farm_id=r.farm_id, event_date=r.event_date,
