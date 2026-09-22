@@ -65,7 +65,7 @@ def upgrade() -> None:
     sa.Column('quantity_kg', sa.Numeric(precision=12, scale=3), nullable=True),
     sa.Column('quantity_unit', sa.String(length=8), nullable=False),
     sa.Column('quantity_basis', sa.String(length=12), nullable=False),
-    sa.Column('unit_cost', sa.Numeric(precision=14, scale=4), nullable=True),
+    sa.Column('unit_cost', sa.Numeric(precision=18, scale=8), nullable=True),
     sa.Column('total_cost', sa.Numeric(precision=16, scale=2), nullable=True),
     sa.Column('currency', sa.String(length=3), nullable=False),
     sa.Column('feed_stage_raw', sa.String(length=50), nullable=True),

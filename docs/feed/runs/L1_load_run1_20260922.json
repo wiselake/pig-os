@@ -82,8 +82,8 @@
  "mismatch": {},
  "db_size_delta_bytes": 5406720,
  "performance": {
-  "elapsed_s": 19.12,
-  "rows_per_s": 285.7,
+  "elapsed_s": 18.9,
+  "rows_per_s": 289.0,
   "peak_py_mem_mb": 47.4,
   "batch_size": 2000
  }

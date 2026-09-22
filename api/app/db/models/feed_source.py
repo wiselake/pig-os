@@ -112,7 +112,7 @@ class FeedSourceRow(Base):
     quantity_kg: Mapped[float | None] = mapped_column(Numeric(12, 3))
     quantity_unit: Mapped[str] = mapped_column(String(8), nullable=False, default="kg")
     quantity_basis: Mapped[str] = mapped_column(String(12), nullable=False)
-    unit_cost: Mapped[float | None] = mapped_column(Numeric(14, 4))               # currency/kg (소스 직접값 또는 total/kg 파생 — reasons 에 표기)
+    unit_cost: Mapped[float | None] = mapped_column(Numeric(18, 8))               # currency/kg — 파생(total/kg) 단가의 반올림 drift 를 통화 최소단위 아래로 (L4: 4자리는 월 원가 0.1 KRW 차이)
     total_cost: Mapped[float | None] = mapped_column(Numeric(16, 2))
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
     feed_stage_raw: Mapped[str | None] = mapped_column(String(50))

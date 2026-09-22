@@ -244,3 +244,67 @@ async def test_failure_after_ingest_never_leaves_data_behind(db: AsyncSession, t
     assert out.status == "SYNC_FAILED" and await _count(db) == 0
     run = await db.get(FeedSourceSyncRun, out.run_id)
     assert run.status == "SYNC_FAILED" and run.notes["data_changed"] is False
+
+
+# ── L5 failure injection ──────────────────────────────────────────────────────
+class _Boom:
+    def __init__(self, exc):
+        self.exc = exc
+
+    def fetch_rows(self, farm_nos, start, end):
+        raise self.exc
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("exc,klass", [
+    (ConnectionError("ORA-12541: TNS:no listener"), "SOURCE_CONNECTION"),
+    (TimeoutError("socket timeout"), "TIMEOUT"),
+    (PermissionError("ORA-01031: insufficient privileges"), "PERMISSION_DENIED"),
+    (RuntimeError("DPY-4011: the database or network closed the connection"), "SOURCE_CONNECTION"),
+])
+async def test_source_failures_are_classified_and_never_empty(db: AsyncSession, test_farm: Farm, exc, klass):
+    await _run(db, test_farm, [srow(1), srow(2, d="2026-08-20")])
+    before_all, before_active = await _count(db), await _count(db, is_current=True, source_status="ACTIVE")
+    out = await sync.run_pigplan_feed_sync(db, _Boom(exc), {SRC_FARM: test_farm.id}, today=TODAY, lookback_days=400, observed_at=OBS)
+    run = await db.get(FeedSourceSyncRun, out.run_id)
+    assert out.status == run.status == "SOURCE_UNAVAILABLE" and run.notes["error_class"] == klass
+    assert run.notes.get("empty_source") is None                        # 장애 원장에는 '빈 결과' 표기가 없다
+    assert await _count(db) == before_all and await _count(db, is_current=True, source_status="ACTIVE") == before_active   # 철회 0
+
+
+@pytest.mark.asyncio
+async def test_empty_successful_result_is_recorded_as_empty_and_retracts_nothing(db: AsyncSession, test_farm: Farm):
+    await _run(db, test_farm, [srow(1), srow(2, d="2026-08-20")])
+    out = await _run(db, test_farm, [])                                   # 성공했지만 0행
+    run = await db.get(FeedSourceSyncRun, out.run_id)
+    assert (out.status, out.retracted, run.notes["empty_source"], run.notes["retraction_skipped_farms"]) == ("SUCCEEDED", 0, True, 1)
+    assert await _count(db, is_current=True, source_status="ACTIVE") == 2
+
+
+@pytest.mark.asyncio
+async def test_partial_batch_db_failure_has_no_partial_commit(db: AsyncSession, test_farm: Farm, monkeypatch):
+    """두 번째 statement 배치에서 DB 예외 → 첫 배치도 남지 않는다 (SAVEPOINT 전체 rollback)."""
+    from sqlalchemy.exc import OperationalError
+    rows = [srow(i, d=f"2026-08-{(i % 28) + 1:02d}") for i in range(1, 41)]
+    real_execute = db.execute
+    calls = {"n": 0}
+
+    async def flaky(stmt, *a, **k):
+        if "INSERT INTO feed_source_rows" in str(stmt):
+            calls["n"] += 1
+            if calls["n"] == 2:
+                raise OperationalError("INSERT", {}, Exception("simulated disk full on batch 2"))
+        return await real_execute(stmt, *a, **k)
+    monkeypatch.setattr(db, "execute", flaky)
+    out = await sync.run_pigplan_feed_sync(db, sync_fake(rows), {SRC_FARM: test_farm.id}, today=TODAY, lookback_days=400,
+                                           observed_at=OBS, batch_size=10)
+    monkeypatch.setattr(db, "execute", real_execute)
+    run = await db.get(FeedSourceSyncRun, out.run_id)
+    assert out.status == "SYNC_FAILED" and run.notes["error_class"] == "TARGET_DB" and run.notes["data_changed"] is False
+    assert await _count(db) == 0 and calls["n"] == 2
+    ok = await _run(db, test_farm, rows)                                   # 재시작 → 전량, 중복 0
+    assert (ok.status, ok.inserted) == ("SUCCEEDED", 40) and await _count(db) == 40
+
+
+def sync_fake(rows):
+    return FakeSource(rows)

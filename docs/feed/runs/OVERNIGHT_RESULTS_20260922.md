@@ -72,3 +72,35 @@ FIX ATTEMPTS 2  ① SYNC_BUG(진짜): savepoint 밖 예외(watermark tz-mixed ma
                 ② TEST_BUG(드릴 회계): rows_inserted 에 tombstone 미포함 — 원장 의미 명시 후 검사식 수정
 MISMATCH CLASSIFICATION  SYNC_BUG 1(수정) · TEST_BUG 1(수정) · UNEXPLAINED 0
 ```
+
+## L4 CANONICAL PROJECTION FULL VALIDATION
+```text
+STATUS PASS  (scripts/feed_source_projection_validate.py · 일회용 DB 의 persisted 행 → projection → FeedInput → 엔진, 전량)
+projected rows 5,198 (= 수량 ACCEPTED·ACTIVE·current) · farm-months 계산 108(9×12) + 부분월 3
+lineage  5,198 / 5,198 역추적 OK (FeedInput 행 → source_row_id → DB 행: current·ACTIVE·pigplan·row_key·hash·contract·수량·날짜 일치) · failures 0
+계약     모든 결과 quantity_basis=DELIVERED · provenance ∈ {ACTUAL,DERIVED,INSUFFICIENT} · FeedInput 통화 KRW (농장은 USD 로 만들어 뒀는데도)
+① vs Oracle 독립 SQL (엔진 미경유)  89 farm-month · quantity 0 · cost 0 · unit_price 0 · mix 0
+② vs shadow (Oracle 직접→엔진)     108 farm-month · quantity 0 · cost 0 · unit_price 0 · change 0 · variance 0
+CHANGE   값 80 · no_data 380(42 농장 중 33 은 행 없음) · prior_insufficient 2 · context_missing 0 (P6-B)
+VARIANCE 적격 52 · PRICE+VOLUME+MIX=TOTAL 52/52
+FIX ATTEMPTS 1  EXPECTED_DIFFERENCE→제거: 저장 unit_cost NUMERIC(14,4) 가 파생단가(total/kg)를 4자리로 잘라 월 원가 0.1 KRW 차이(1농장 2개월)
+                → NUMERIC(18,8) (미적용 migration 편집, 두 로컬 DB down/up 재검증) + 원가 허용오차 = 통화 최소단위 1 KRW 명시. 재실행 0 불일치
+MISMATCH CLASSIFICATION  EXPECTED_DIFFERENCE 1(해소) · UNEXPLAINED 0
+```
+
+## P6 PERIOD SEMANTICS
+```text
+P6_STATUS ACCEPTED (P6-B @ a65d464) — 재결정 없음. 실데이터: 달 길이 다른 81쌍 전부 계산(context_missing 0). same-length 18쌍 동일 결과.
+unit: Jan31→Feb28 · Aug31→Sep30 · 임의 20d vs 30d(context_missing) · missing prior(prior_insufficient) · prior zero(rate None) — test_feed_engine.py / test_feed_engine_basis.py
+```
+
+## L5 FAILURE INJECTION
+```text
+STATUS PASS  (tests/integration/test_feed_source_persistence.py 18)
+connection drop → SOURCE_UNAVAILABLE · error_class SOURCE_CONNECTION · 데이터 변경 0 · 철회 0
+timeout        → SOURCE_UNAVAILABLE · TIMEOUT
+permission     → SOURCE_UNAVAILABLE · PERMISSION_DENIED
+empty success  → SUCCEEDED · notes.empty_source=true · retraction_skipped_farms · 철회 0   (SOURCE_UNAVAILABLE ≠ EMPTY_SOURCE: 장애 원장에는 empty_source 키 자체가 없다)
+partial batch  → 2번째 statement 에서 DB 예외 → SYNC_FAILED · TARGET_DB · 첫 배치도 남지 않음(0행) · 재시작 40/40 중복 0   ← "partial commit 없음" 쪽 선택
+DB txn failure → 위와 같은 경로(SAVEPOINT rollback) · 원장 행은 남는다
+```
