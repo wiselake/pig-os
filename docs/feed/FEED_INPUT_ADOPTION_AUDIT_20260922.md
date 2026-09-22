@@ -160,7 +160,7 @@ live_customer 농장       38 활성 / 최근 30일 이벤트 있는 농장 4 / 
 | feed cost | NOT_AVAILABLE | `unit_cost` 컬럼만 |
 | feed company integration | NOT_AVAILABLE | `api_keys` 모델 docstring 에 "feed companies" 언급, **라우터 0** |
 | group feeding | NOT_AVAILABLE | group 1개 |
-| PigPlan Oracle 하베스트 | **UNKNOWN** | `harvest_import.py` 는 `TB_MODON_WK·TB_GYOBAE·TB_BUNMAN·TB_EU`(+저장소 내 알려진 8 테이블) 만 읽는다. Oracle 에 사료 테이블이 있는지는 저장소 어디에도 없다. **확인 비용 = 읽기 전용 1쿼리**(`SELECT table_name FROM all_tables WHERE owner='PKSU'` — ORACLE_PW 필요, 이 세션은 실행하지 않았다) |
+| PigPlan Oracle 하베스트 | **PARTIAL → 2026-09-22 preflight: `INTEGRATION_FEASIBLE`** (`reports/PIGPLAN_ORACLE_FEED_PREFLIGHT_20260922.md`) | `harvest_import.py` 는 `TB_MODON_WK·TB_GYOBAE·TB_BUNMAN·TB_EU`(+저장소 내 알려진 8 테이블) 만 읽는다. Oracle 에 사료 테이블이 있는지는 저장소 어디에도 없다. **확인 비용 = 읽기 전용 1쿼리**(`SELECT table_name FROM all_tables WHERE owner='PKSU'` — ORACLE_PW 필요, 이 세션은 실행하지 않았다) |
 | QBridge (같은 호스트 `qbridge-*` 컨테이너) | UNKNOWN | PigOS 저장소 밖. 사료 데이터 보유 여부 미확인 |
 
 → 42 internal_reference 농장(하베스트)에 사료 데이터를 붙일 수 있다면 **파일럿 없이도 CORE 를 실데이터로 돌릴 수 있다.** 이 한 가지 UNKNOWN 이 다음 STEP 의 순서를 바꿀 수 있어 §13 에 별도 표기.
@@ -228,6 +228,8 @@ NEEDS_REAL_USER_INPUT           YES  — 자동 소스 AVAILABLE 0 (PigPlan 사�
 ```
 
 **다음 STEP 하나: `INPUT UX FIX` (P0 범위만)** — 그 다음이 `PILOT DATA ENTRY`.
+
+> ☞ 2026-09-22 (같은 날 저녁) Oracle preflight 결과 `INTEGRATION_FEASIBLE` — 다음 STEP 은 **`EXISTING DATA INTEGRATION`** 으로 바뀌었다. INPUT UX FIX 는 보조 경로.
 단, §9 의 PigPlan 사료 테이블 확인(읽기 1쿼리)이 AVAILABLE 로 나오면 순서는 `EXISTING DATA INTEGRATION` 이 앞선다 — 42 하베스트 농장이 곧 실데이터이기 때문이다. 그 확인은 ORACLE_PW 보유자가 한다.
 
 ---
