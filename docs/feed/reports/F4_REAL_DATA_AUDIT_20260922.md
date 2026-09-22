@@ -128,6 +128,14 @@ findings 0
 테스트 변경 0 (하네스는 스크립트) · 재실행: unit 46 · feed integration 13 · backend full 1418 passed (89530ea)
 ```
 
+CI (PR #7 @ 2f6fd18, run 35668543224)
+  1차 09-21 23:39 UTC(08:39 KST)  red  — `test_kpi_presentation_resolver::test_future_presentation_row_ignored` `assert 10 == 30`
+                                       = D9 알려진 시간경계(docs/runs/D9_TIME_BOUNDARY_20260921.md §9 예측 그대로).
+                                       D9 수정은 PR #2(safety) 에만 있고 main fc96efc 에는 없다 → main 에서 분기한 PR #7 도 15:00–24:00 UTC 창에서 빨강.
+                                       feed 테스트 6 파일 전부 통과(unit 41+2 · feed_metrics 10 · cohort 6 · engine_service 7 · feed_records 12).
+  2차 09-22 00:02 UTC 재실행(같은 SHA, push 없음)  green — backend 3.12 · 3.14 · frontend 모두 success.
+  → 피드 브랜치에 D9 를 cherry-pick 하지 않았다(범위 분리). PR #2 merge 로 해소되는 것이 정상 경로.
+
 ## 10. 정리
 
 사본 `C:\tmp\f4\pigos-full-20260922-034001.sql.gz` 및 컨테이너 `pigos-f4audit` 은 감사 종료 후 삭제(개인정보 포함 덤프를 로컬에 남기지 않는다).
