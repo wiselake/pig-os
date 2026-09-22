@@ -138,5 +138,21 @@ STATUS PASS (조건 L1~L5 PASS)  docs/feed/FEED_READ_API_CONTRACT_DRAFT.md — E
 
 ## REGRESSION (L7 뒤 전체)
 ```text
-backend full  1462 passed · 1 skipped   (1447 + persistence 6 + snapshot/reconcile 5 + P6 … )   ruff clean   alembic heads 1
+backend full  1461 passed · 1 skipped (L7 시점) → 1467 · 1 skipped (최종, +feed summary API 6)   ruff clean   alembic heads 1
+```
+
+## PART B — 고객 화면 (야간 브리프 밖, 사용자 지시 "백엔드 뒤 프론트까지")
+```text
+API    GET /farms/{id}/feed/summary · /months  (routers/base/feed_summary.py · basis 필수 · null≠0 · FCR 없음 · raw row 없음) — 통합테스트 6 · commit 4882427
+WEB    /feed: 단가(kg당)·통화 입력 + 안내 문구 · 월 결과(사료량·사료비/부분·단가·구성·전월 대비) · 6개월 표 · 모바일 더보기 진입점 · 8 로케일
+       vitest 205/205 (feed 7) · tsc clean — commit 89c1e70
+DOCS   LANDING_SYNC [내부] 항목 · PLATFORM_PARITY §9-11 (safety 047f452) · FCR 노출 없음(D-15) · 배포 0
+```
+
+## END — 정리
+```text
+snapshot(원자료)  scratchpad/feed_snapshot/ 삭제 ✓ (feed_snapshot.json · .indep.json) · scratch 스크립트 삭제 ✓
+일회용 DB         pigos_feedload · pigos_feedload_rt DROP ✓  (로컬 pigos 는 migration head 상태로 유지 — 데이터 적재 없음)
+repo 에 남은 것    집계 JSON·마스킹 id·해시만 (docs/feed/runs/) · raw farm id 0 (grep PP-\d 0건)
+CI               e740a54 · 8d18927 · a4b4acd · 89c1e70 전부 green
 ```
