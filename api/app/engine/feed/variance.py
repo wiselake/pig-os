@@ -13,7 +13,7 @@ POPULATION 효과: NOT_SUPPORTED (두당 분모 미확정 — SPEC §11).
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from decimal import Decimal
 from fractions import Fraction
 from typing import Any
@@ -28,6 +28,7 @@ from app.engine.feed.metrics import (
 from app.engine.feed.types import (
     DERIVED,
     INSUFFICIENT,
+    QUANTITY_BASIS,
     R_CONTEXT_MISSING,
     R_CURRENCY_MIXED,
     R_PRIOR_INSUFFICIENT,
@@ -50,6 +51,7 @@ class VarianceResult:
     population: str = POPULATION_EFFECT
     exact: dict[str, str] = field(default_factory=dict)     # 유리수 문자열 — 항등식 테스트용
     evidence: dict[str, Any] = field(default_factory=dict)
+    quantity_basis: str = QUANTITY_BASIS                    # 입고 원가 분해는 "구매 변화" 다 — 소비가 아니다
 
 
 def _ins(reason: str, **ev: Any) -> VarianceResult:
@@ -61,6 +63,12 @@ def _dec(x: Fraction) -> Decimal:
 
 
 def decompose_cost_change(prev: FeedInput, cur: FeedInput) -> VarianceResult:
+    return replace(_decompose(prev, cur), quantity_basis=cur.quantity_basis)
+
+
+def _decompose(prev: FeedInput, cur: FeedInput) -> VarianceResult:
+    if prev.quantity_basis != cur.quantity_basis:
+        return _ins(R_CONTEXT_MISSING, basis_mismatch=[prev.quantity_basis, cur.quantity_basis])
     if prev.period.days != cur.period.days:
         return _ins(R_CONTEXT_MISSING)
     pc, cc = feed_cost(prev), feed_cost(cur)

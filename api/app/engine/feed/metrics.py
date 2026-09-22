@@ -6,7 +6,9 @@ CONDITIONAL(코호트) 4식은 PR #2 의 engine/feed_metrics.py 를 REUSE 한다
 """
 from __future__ import annotations
 
+import functools
 from collections import defaultdict
+from dataclasses import replace
 from decimal import ROUND_HALF_UP, Decimal
 from fractions import Fraction
 from typing import Any
@@ -18,6 +20,7 @@ from app.engine.feed.types import (
     DERIVED,
     QUANTITY_BASIS,
     R_ATTRIBUTION_MISSING,
+    R_BASIS_UNSUPPORTED,
     R_CONTEXT_MISSING,
     R_COST_INCOMPLETE,
     R_CURRENCY_MIXED,
@@ -61,7 +64,16 @@ def _r(v: Decimal, unit: str) -> float:
 def _base_evidence(inp: FeedInput) -> dict[str, Any]:
     return {"period": {"start": inp.period.start.isoformat(), "end": inp.period.end.isoformat(),
                        "days": inp.period.days},
-            "quantity_basis": QUANTITY_BASIS, "quality": quality_summary(inp)}
+            "quantity_basis": inp.quantity_basis, "quality": quality_summary(inp)}
+
+
+def _stamped(fn):
+    """모든 공개 지표 함수의 결과에 입력의 quantity_basis 를 찍는다 — 입고량을 급여량처럼 읽히게 두지 않는다.
+    CHANGE 지표는 (prev, cur) 를 받으므로 마지막 인자(cur)의 basis 가 결과의 basis 다 (불일치는 함수 안에서 INSUFFICIENT)."""
+    @functools.wraps(fn)
+    def w(*args: FeedInput) -> FeedMetricResult:
+        return replace(fn(*args), quantity_basis=args[-1].quantity_basis)
+    return w
 
 
 # ── 내부 집계 (한 번 계산해 재사용) ─────────────────────────────────────────
@@ -77,6 +89,7 @@ def _sums(inp: FeedInput) -> dict[str, Any]:
 
 
 # ── CORE ────────────────────────────────────────────────────────────────────
+@_stamped
 def feed_qty(inp: FeedInput) -> FeedMetricResult:
     """Σ quantity_kg, record_date ∈ period. 행 0 = no_data (0 이 아니다)."""
     ev = _base_evidence(inp)
@@ -88,6 +101,7 @@ def feed_qty(inp: FeedInput) -> FeedMetricResult:
     return FeedMetricResult(FEED_QTY, _r(s["qty"], "kg"), "kg", ACTUAL, evidence=ev)
 
 
+@_stamped
 def feed_cost(inp: FeedInput) -> FeedMetricResult:
     """Σ qty×unit_cost — unit_cost 가 **전 행** 에 있고 통화가 하나일 때만 값. 아니면 INSUFFICIENT + evidence(부분합·coverage)."""
     ev = _base_evidence(inp)
@@ -112,6 +126,7 @@ def feed_cost(inp: FeedInput) -> FeedMetricResult:
     return FeedMetricResult(FEED_COST, _r(s["cost"], "currency"), "currency", ACTUAL, evidence=ev)
 
 
+@_stamped
 def feed_unit_price(inp: FeedInput) -> FeedMetricResult:
     """수량 가중 평균 단가 = Σ(qty×cost)/Σqty — **costed 행만**. 단순 평균 금지. priced_qty 0 → no_cost."""
     ev = _base_evidence(inp)
@@ -129,6 +144,7 @@ def feed_unit_price(inp: FeedInput) -> FeedMetricResult:
                             "currency/kg", DERIVED, evidence=ev)
 
 
+@_stamped
 def feed_mix_share(inp: FeedInput) -> FeedMetricResult:
     """feed_type key 별 수량 구성비 (evidence.shares 가 본체). 스칼라 value = **최대 구성비**(dominant share, ratio)
     — evidence.dominant_type 이 그 항목. (2026-09-22 정정: 이전 판은 항목 수를 ratio 단위로 돌려줬다.)
@@ -151,9 +167,12 @@ def feed_mix_share(inp: FeedInput) -> FeedMetricResult:
 
 
 # ── CHANGE (period-over-period) ────────────────────────────────────────────
+@_stamped
 def feed_qty_change(prev: FeedInput, cur: FeedInput) -> FeedMetricResult:
     """cur − prev (kg) + rate. 이전 기간 no_data → prior_insufficient (0% 가 아니다). 기간 길이 불일치 → context_missing."""
-    ev = {"prev": _base_evidence(prev)["period"], "cur": _base_evidence(cur)["period"], "quantity_basis": QUANTITY_BASIS}
+    ev = {"prev": _base_evidence(prev)["period"], "cur": _base_evidence(cur)["period"], "quantity_basis": cur.quantity_basis}
+    if prev.quantity_basis != cur.quantity_basis:
+        return insufficient(FEED_QTY_CHANGE, "kg", R_CONTEXT_MISSING, basis_mismatch=[prev.quantity_basis, cur.quantity_basis], **ev)
     if prev.period.days != cur.period.days:
         return insufficient(FEED_QTY_CHANGE, "kg", R_CONTEXT_MISSING, **ev)
     p, c = feed_qty(prev), feed_qty(cur)
@@ -168,9 +187,12 @@ def feed_qty_change(prev: FeedInput, cur: FeedInput) -> FeedMetricResult:
     return FeedMetricResult(FEED_QTY_CHANGE, _r(delta, "kg"), "kg", DERIVED, evidence=ev)
 
 
+@_stamped
 def feed_cost_change(prev: FeedInput, cur: FeedInput) -> FeedMetricResult:
     """cur − prev (currency). 두 기간 모두 FEED_COST 가 값이어야 하고 같은 통화여야 한다."""
-    ev = {"prev": _base_evidence(prev)["period"], "cur": _base_evidence(cur)["period"]}
+    ev = {"prev": _base_evidence(prev)["period"], "cur": _base_evidence(cur)["period"], "quantity_basis": cur.quantity_basis}
+    if prev.quantity_basis != cur.quantity_basis:
+        return insufficient(FEED_COST_CHANGE, "currency", R_CONTEXT_MISSING, basis_mismatch=[prev.quantity_basis, cur.quantity_basis], **ev)
     if prev.period.days != cur.period.days:
         return insufficient(FEED_COST_CHANGE, "currency", R_CONTEXT_MISSING, **ev)
     p, c = feed_cost(prev), feed_cost(cur)
@@ -190,6 +212,9 @@ def feed_cost_change(prev: FeedInput, cur: FeedInput) -> FeedMetricResult:
 
 # ── CONDITIONAL (코호트) — legacy feed_metrics REUSE ───────────────────────
 def _cohort_or_reason(inp: FeedInput, metric: str, unit: str) -> tuple[legacy.FeedCohort | None, FeedMetricResult | None]:
+    if inp.quantity_basis != QUANTITY_BASIS:
+        # 입고량은 소비량이 아니다 — 코호트 효율 지표는 AS_RECORDED(수기 급이 경로)에서만 (D-FEED-01 §11)
+        return None, insufficient(metric, unit, R_BASIS_UNSUPPORTED, quantity_basis=inp.quantity_basis)
     ev = _base_evidence(inp)
     if inp.cohort is None or inp.cohort.groups == 0:
         return None, insufficient(metric, unit, R_NO_COHORT, **ev)
@@ -221,6 +246,7 @@ def _cohort_evidence(inp: FeedInput) -> dict[str, Any]:
         "legacy_formula_version": legacy.FORMULA_VERSION}}
 
 
+@_stamped
 def fcr(inp: FeedInput) -> FeedMetricResult:
     """Σ귀속사료 / Σ((exit−entry)×head_out) — kpi_service:535 와 동일 조건. 보간·head_in 대체 없음."""
     cohort, bad = _cohort_or_reason(inp, FCR, "kg/kg")
@@ -233,6 +259,7 @@ def fcr(inp: FeedInput) -> FeedMetricResult:
     return FeedMetricResult(FCR, r.fcr, "kg/kg", DERIVED, evidence=ev)
 
 
+@_stamped
 def feed_cost_per_pig(inp: FeedInput) -> FeedMetricResult:
     cohort, bad = _cohort_or_reason(inp, FEED_COST_PER_PIG, "currency/head")
     if bad:
@@ -246,6 +273,7 @@ def feed_cost_per_pig(inp: FeedInput) -> FeedMetricResult:
     return FeedMetricResult(FEED_COST_PER_PIG, r.feed_cost_per_pig, "currency/head", DERIVED, evidence=ev)
 
 
+@_stamped
 def feed_cost_per_kg_gain(inp: FeedInput) -> FeedMetricResult:
     cohort, bad = _cohort_or_reason(inp, FEED_COST_PER_KG_GAIN, "currency/kg")
     if bad:
@@ -259,6 +287,7 @@ def feed_cost_per_kg_gain(inp: FeedInput) -> FeedMetricResult:
     return FeedMetricResult(FEED_COST_PER_KG_GAIN, r.feed_cost_per_kg_gain, "currency/kg", DERIVED, evidence=ev)
 
 
+@_stamped
 def feed_qty_per_head(inp: FeedInput) -> FeedMetricResult:
     """Σ귀속사료 / Σhead_out (kg/head). 분모는 **출하두수** 로 명시 — 평균재고·입식두수가 아니다."""
     cohort, bad = _cohort_or_reason(inp, FEED_QTY_PER_HEAD, "kg/head")
@@ -272,9 +301,13 @@ def feed_qty_per_head(inp: FeedInput) -> FeedMetricResult:
                             "kg/head", DERIVED, evidence=ev)
 
 
+@_stamped
 def adg(inp: FeedInput) -> FeedMetricResult:
     """일당증체 = Σgain / Σ((end−start)×head_out) × 1000 (g/day) — kpi_service:534 와 같은 적격 코호트."""
     ev = _base_evidence(inp)
+    if inp.quantity_basis != QUANTITY_BASIS:
+        # ADG 자체는 사료와 무관하지만 코호트 지표 묶음(§11)은 한 basis 규칙을 따른다 — 입고 소스에서 효율 묶음을 내지 않는다
+        return insufficient(ADG, "g/day", R_BASIS_UNSUPPORTED, quantity_basis=inp.quantity_basis)
     if inp.cohort is None or inp.cohort.groups == 0:
         return insufficient(ADG, "g/day", R_NO_COHORT, **ev)
     c = inp.cohort

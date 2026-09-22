@@ -14,7 +14,16 @@ from datetime import date
 from decimal import Decimal
 from typing import Any
 
-from app.engine.feed.types import UNSPECIFIED_FEED_TYPE, Cohort, FeedInput, FeedRow, Period, Scope
+from app.engine.feed.types import (
+    QUANTITY_BASIS,
+    UNSPECIFIED_FEED_TYPE,
+    Cohort,
+    FeedInput,
+    FeedRow,
+    Period,
+    QuantityBasis,
+    Scope,
+)
 
 _WS = re.compile(r"\s+")
 
@@ -85,6 +94,7 @@ def normalize(
     period: Period,
     farm_currency: str,
     cohort: Cohort | None = None,
+    quantity_basis: QuantityBasis = QUANTITY_BASIS,
 ) -> FeedInput:
     """기간 밖 행은 버린다(로더가 이미 잘랐어도 여기서 한 번 더 — 엔진 입력은 스스로 완결돼야 한다)."""
     rows = tuple(
@@ -98,6 +108,7 @@ def normalize(
         rows=rows,
         cohort=cohort,
         unattributed_rows=sum(1 for x in rows if x.scope == "FARM_UNATTRIBUTED"),
+        quantity_basis=quantity_basis,
     )
 
 

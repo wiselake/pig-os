@@ -10,6 +10,7 @@ from app.engine.feed.types import (
     FORMULA_VERSION,
     INSUFFICIENT,
     QUANTITY_BASIS,
+    QUANTITY_BASIS_DELIVERED,
     FeedInput,
     FeedMetricResult,
     FeedRow,
@@ -17,6 +18,6 @@ from app.engine.feed.types import (
 )
 
 __all__ = [
-    "ACTUAL", "DERIVED", "INSUFFICIENT", "FORMULA_VERSION", "QUANTITY_BASIS",
+    "ACTUAL", "DERIVED", "INSUFFICIENT", "FORMULA_VERSION", "QUANTITY_BASIS", "QUANTITY_BASIS_DELIVERED",
     "FeedInput", "FeedMetricResult", "FeedRow", "Period",
 ]

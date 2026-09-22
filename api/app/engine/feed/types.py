@@ -11,9 +11,14 @@ from decimal import Decimal
 from typing import Any, Literal
 
 FORMULA_VERSION = "FEED_ENGINE.v1"
-# quantity_kg 의 의미(급이/소진/입고)는 미확정 — 기록된 값 그대로라는 사실만 계약한다 (UNRESOLVED-1).
-# 승격(CONSUMED 등)은 사람 결정 + FORMULA_VERSION bump 로만 한다.
-QUANTITY_BASIS = "AS_RECORDED"
+# quantity_kg 의 의미는 입력 소스가 선언한다 (D-FEED-01, 2026-09-22).
+#   AS_RECORDED  PigOS 수기 입력 — 급이/소진/입고 미확정, 기록된 값 그대로 (UNRESOLVED-1 그대로)
+#   DELIVERED    PigPlan 거래원장 사료 입고 행 — 구매/배송량. 소비량이 아니다
+# 두 basis 를 한 계산에 섞지 않는다(CHANGE/VARIANCE 는 basis 불일치 → INSUFFICIENT). DELIVERED → CONSUMED 변환 규칙은 없다.
+# CONSUMED 승격은 사람 결정 + FORMULA_VERSION bump 로만 한다.
+QuantityBasis = Literal["AS_RECORDED", "DELIVERED"]
+QUANTITY_BASIS: QuantityBasis = "AS_RECORDED"          # 기본값 = PigOS 수기 입력 경로
+QUANTITY_BASIS_DELIVERED: QuantityBasis = "DELIVERED"
 
 # ── provenance ──────────────────────────────────────────────────────────────
 # ESTIMATED 는 계약상 존재하지만 V1 엔진은 절대 생성하지 않는다 (불변식 T-I3).
@@ -28,6 +33,7 @@ R_NO_COST = "no_cost"                    # unit_cost 있는 행 0
 R_COST_INCOMPLETE = "cost_incomplete"    # unit_cost 없는 행이 있다 — 부분합은 원가가 아니다
 R_CURRENCY_MIXED = "currency_mixed"      # 통화 ≥2 — 환산하지 않는다
 R_NO_GAIN = "no_gain"                    # 코호트 증체 ≤ 0
+R_BASIS_UNSUPPORTED = "basis_unsupported"  # 입고(DELIVERED) 수량으로는 효율 지표(FCR 계열)를 내지 않는다
 R_NO_FEED = "no_feed"                    # 코호트 귀속 사료 0
 R_NO_HEAD_OUT = "no_head_out"            # 출하두수 0
 R_NO_COHORT = "no_cohort"                # CLOSED 그룹 0 (not applicable — no_data 와 다르다)
@@ -101,6 +107,7 @@ class FeedInput:
     rows: tuple[FeedRow, ...]            # record_date ∈ period 인 행만 (로더가 자른다)
     cohort: Cohort | None = None         # None = 로더가 코호트를 싣지 않음(코호트 지표 계산 안 함)
     unattributed_rows: int = 0           # 참고용: 기간 내 sow/group/building 전부 NULL 인 행 수
+    quantity_basis: QuantityBasis = QUANTITY_BASIS   # 소스가 선언 — 결과에 그대로 실린다
 
 
 @dataclass(frozen=True)
@@ -113,6 +120,7 @@ class FeedMetricResult:
     reason: str | None = None            # provenance == INSUFFICIENT 일 때만
     evidence: dict[str, Any] = field(default_factory=dict)
     formula_version: str = FORMULA_VERSION
+    quantity_basis: QuantityBasis = QUANTITY_BASIS   # 이 값이 무엇의 양인지 — 이름/설명에서 잃지 않는다
 
     def __post_init__(self) -> None:
         # 계약 자체가 위조를 막는다: 값이 없으면 INSUFFICIENT+reason, 있으면 reason 없음.

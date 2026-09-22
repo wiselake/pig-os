@@ -314,7 +314,9 @@ class TestInvariants:
         base = m.compute_all(inp(rows, ccy="USD"))
         # 엔진에는 국가·unit_system 입력 자체가 없다 — farm_currency 만 있고 그것도 NULL 통화 귀속에만 쓰인다
         assert m.compute_all(inp(rows, ccy="USD")) == base
-        assert FeedInput.__dataclass_fields__.keys() == {"period", "farm_currency", "rows", "cohort", "unattributed_rows"}
+        # quantity_basis 는 2026-09-22 D-FEED-01 로 추가된 계약 필드 — 국가·표시단위가 아니라 "이 양이 무엇인가" 다
+        assert FeedInput.__dataclass_fields__.keys() == {"period", "farm_currency", "rows", "cohort", "unattributed_rows", "quantity_basis"}
+        assert not {"country", "unit_system"} & FeedInput.__dataclass_fields__.keys()
 
     def test_rounding_happens_once_at_the_end(self):                   # T-R1
         i = inp([raw(qty="1", cost="1"), raw(qty="1", cost="1"), raw(qty="1", cost="1")])
