@@ -15,7 +15,34 @@
     "qtyError": "급여량은 0보다 커야 합니다.",
     "saveError": "저장에 실패했습니다.",
     "deleteError": "삭제에 실패했습니다.",
-    "noFarm": "농장을 먼저 선택하세요."
+    "noFarm": "농장을 먼저 선택하세요.",
+    "guidance": "이 달에 준 사료 총량을 kg 로 입력하세요(사료 종류별로 나눠도 됩니다). 단가는 kg 당입니다.",
+    "unitCost": "단가 (kg당)",
+    "unitCostPlaceholder": "선택",
+    "currency": "통화",
+    "costHint": "원가 합계는 그 달의 모든 행에 단가가 있을 때만 표시됩니다. 일부만 있으면 부분 금액과 빠진 행 수를 보여줍니다.",
+    "costError": "단가는 0 이상이어야 합니다.",
+    "summaryTitle": "월별 사료",
+    "basisRecorded": "여기에 기록한 급여량 기준입니다.",
+    "month": "월",
+    "noDataMonth": "이 달에 기록된 사료가 없습니다.",
+    "mQty": "사료량",
+    "mCost": "사료비",
+    "mUnitPrice": "단가",
+    "mChange": "전월 대비",
+    "mCostChange": "사료비",
+    "mMix": "구성",
+    "mDominant": "주 사료",
+    "costPartial": "부분 — 단가 없는 행 {n}건",
+    "partialLegend": "부분 원가(단가 없는 행 있음)",
+    "reason": {
+      "no_data": "기록 없음",
+      "no_cost": "단가 미입력",
+      "cost_incomplete": "단가 없는 행 있음",
+      "currency_mixed": "통화 혼합",
+      "prior_insufficient": "전월 자료 없음",
+      "context_missing": "비교 불가"
+    }
   },
   "prrsReport": {
     "title": "유전자별 PRRS",
@@ -468,7 +495,9 @@
     "deleteAccount": "계정 삭제",
     "deleteAccountDesc": "모든 데이터가 영구 삭제됩니다",
     "dataPrivacy": "데이터·프라이버시",
-    "dataPrivacyDesc": "동의·데이터 공유·철회"
+    "dataPrivacyDesc": "동의·데이터 공유·철회",
+    "feed": "사료",
+    "feedDesc": "사료 입력과 월별 집계"
   },
   "reports": {
     "selectFarm": "농장을 선택해주세요.",

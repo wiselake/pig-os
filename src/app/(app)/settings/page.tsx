@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
+  Wheat,
   User,
   Users,
   CreditCard,
@@ -59,6 +60,7 @@ export default function SettingsPage() {
     {
       title: t("secFarm"),
       items: [
+        { icon: Wheat,      label: t("feed"),        desc: t("feedDesc"),        href: "/feed" },   // 모바일 뷰포트 진입점 — 사이드바는 md 미만에서 숨김
         { icon: Building2,  label: t("farmInfo"),    desc: t("farmInfoDesc"),    href: "/settings/profile" },
         { icon: Users,      label: tUsers("title"),  desc: tUsers("subtitle"),   href: "/settings/users" },
         { icon: Sliders,    label: t("reproConfig"), desc: t("reproConfigDesc"), href: "/settings/farm" },
