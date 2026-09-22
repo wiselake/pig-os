@@ -192,9 +192,19 @@ class TestChange:
         c = m.feed_qty_change(inp([praw(qty="0")], P0), inp([raw(qty="10")], P))
         assert c.value == 10.0 and c.evidence["rate"] is None
 
-    def test_period_length_mismatch(self):                             # T-B2
-        c = m.feed_qty_change(inp([praw()], Period(date(2026, 8, 1), date(2026, 8, 31))), inp([raw()], P))
-        assert c.reason == "context_missing"
+    def test_period_length_mismatch(self):                             # T-B2 (P-6: 임의 구간은 길이가 같아야 한다)
+        c = m.feed_qty_change(inp([praw()], Period(date(2026, 8, 1), date(2026, 8, 20))), inp([raw()], P))
+        assert c.reason == "context_missing" and c.evidence["period_days"] == [20, 30]
+
+    def test_calendar_months_compare_regardless_of_length(self):       # P-6 (2026-09-22): 달력월 ↔ 달력월은 28~31일이어도 비교
+        aug, sep = Period(date(2026, 8, 1), date(2026, 8, 31)), P
+        c = m.feed_qty_change(inp([praw(qty="90")], aug), inp([raw(qty="100")], sep))
+        assert (c.value, c.evidence["comparison_grain"]) == (10.0, "calendar_month")
+        assert Period(date(2026, 2, 1), date(2026, 2, 28)).is_calendar_month and not Period(date(2026, 2, 1), date(2026, 2, 27)).is_calendar_month
+        assert not Period(date(2026, 8, 2), date(2026, 8, 31)).is_calendar_month
+        assert aug.comparison_grain(Period(date(2026, 9, 1), date(2026, 9, 30))) == "calendar_month"
+        assert Period(date(2026, 8, 2), date(2026, 8, 31)).comparison_grain(sep) == "equal_days"   # 30 == 30
+        assert Period(date(2026, 8, 1), date(2026, 8, 20)).comparison_grain(sep) is None
 
     def test_cost_change_requires_both_complete_and_same_currency(self):   # T-C3
         assert m.feed_cost_change(inp([praw(cost=None)], P0), inp([raw()], P)).reason == "prior_insufficient"

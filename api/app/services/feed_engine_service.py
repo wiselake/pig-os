@@ -85,3 +85,28 @@ async def compute_feed_metrics(
         prev_start = date.fromordinal(prev_end.toordinal() - span + 1)
         prev = await load_feed_input(db, farm, prev_start, prev_end, with_cohort=False)
     return compute_all(cur, prev)
+
+
+# ── 외부 소스 projection (P-4) — feed_source_rows → FeedInput. feed_records(AS_RECORDED) 와 절대 합치지 않는다 ──
+async def load_feed_input_from_source(
+    db: AsyncSession, farm_id: UUID, start: date, end: date, *, quantity_basis: str, source_system: str | None = None,
+) -> tuple[FeedInput, dict]:
+    """현재·ACTIVE·수량 ACCEPTED 관측만 → FeedInput(basis 명시). 코호트 없음(외부 입고 소스는 그룹 귀속이 없다).
+
+    farm_currency 는 **행의 통화**에서 온다 — farms.currency 를 읽지 않는다 (D-FEED-02). 행이 없으면 통화 미상("XXX"):
+    FeedInput.farm_currency 는 NULL 통화 fallback 용인데 이 경로의 행은 전부 통화가 있으므로 실제로 쓰이지 않는다.
+    반환 lineage: metric → FeedInput 행 순서 → source_row_ids → (source_system, source_row_key, contract) 역추적용 (§26).
+    """
+    from app.repositories import feed_source_repo as repo  # 지연 import — 엔진 순수성 검사와 무관한 서비스 계층
+
+    period = Period(start, end)
+    proj = await repo.load_raw_rows(db, farm_id, period, quantity_basis=quantity_basis, source_system=source_system)
+    if len(proj.currencies) > 1:
+        ccy = "XXX"          # 통화 혼합은 엔진이 currency_mixed 로 유보한다 — 여기서 하나를 고르지 않는다
+    else:
+        ccy = next(iter(proj.currencies), "XXX")
+    inp = normalize(proj.raw_rows, period=period, farm_currency=ccy, cohort=None, quantity_basis=quantity_basis)
+    lineage = {"source_row_ids": [str(x) for x in proj.source_row_ids],
+               "source_system": source_system, "quantity_basis": quantity_basis,
+               "contract_versions": sorted(proj.contract_versions)}
+    return inp, lineage

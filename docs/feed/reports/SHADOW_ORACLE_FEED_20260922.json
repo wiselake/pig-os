@@ -86,35 +86,35 @@
  },
  "change": {
   "qty_eligible": 80,
-  "qty_pass": 13,
+  "qty_pass": 80,
   "cost_eligible": 52,
-  "cost_pass": 9,
+  "cost_pass": 52,
   "cost_prior_insufficient": 5,
   "cost_incomplete_masked_as_success": 0,
   "qty_engine_reasons": {
-   "context_missing": 81,
-   "value": 13,
-   "no_data": 5
+   "value": 80,
+   "no_data": 17,
+   "prior_insufficient": 2
   },
   "cost_engine_reasons": {
-   "context_missing": 81,
-   "no_cost": 2,
-   "value": 9,
-   "cost_incomplete": 2,
-   "no_data": 5
+   "no_cost": 11,
+   "value": 52,
+   "cost_incomplete": 14,
+   "prior_insufficient": 5,
+   "no_data": 17
   },
   "pairs_equal_days": 18,
   "pairs_unequal_days": 81
  },
  "variance": {
-  "eligible": 9,
-  "identity_pass": 9,
+  "eligible": 52,
+  "identity_pass": 52,
   "identity_fail": 0,
   "ineligible_reasons": {
-   "context_missing": 81,
-   "no_cost": 2,
-   "cost_incomplete": 2,
-   "no_data": 5
+   "no_cost": 11,
+   "cost_incomplete": 14,
+   "prior_insufficient": 5,
+   "no_data": 17
   }
  },
  "cost_derivation": {
@@ -245,6 +245,73 @@
    },
    "status": "PASS"
   },
+  "quantity_change": {
+   "farm": "f3d1d3973c17",
+   "month": "2025-10",
+   "raw_summary": {
+    "source_rows": 81,
+    "quantity_accepted": 81,
+    "excluded": 0,
+    "cost_accepted": 0,
+    "cost_insufficient": 81,
+    "cost_excluded": 0,
+    "reasons": {
+     "COST_INCOMPLETE": 81
+    },
+    "feed_products": 8,
+    "feed_stages": 6
+   },
+   "canonical": {
+    "rows": 81,
+    "basis": "DELIVERED",
+    "currency": "KRW"
+   },
+   "engine": {
+    "FEED_QTY": {
+     "value": 1006270.0,
+     "provenance": "ACTUAL",
+     "reason": null,
+     "basis": "DELIVERED"
+    },
+    "FEED_COST": {
+     "value": null,
+     "provenance": "INSUFFICIENT",
+     "reason": "no_cost",
+     "basis": "DELIVERED"
+    },
+    "FEED_UNIT_PRICE": {
+     "value": null,
+     "provenance": "INSUFFICIENT",
+     "reason": "no_cost",
+     "basis": "DELIVERED"
+    },
+    "FEED_MIX_SHARE": {
+     "value": 0.5226,
+     "provenance": "DERIVED",
+     "reason": null,
+     "basis": "DELIVERED"
+    },
+    "FEED_QTY_CHANGE": {
+     "value": 131000.0,
+     "provenance": "DERIVED",
+     "reason": null,
+     "basis": "DELIVERED"
+    },
+    "FEED_COST_CHANGE": {
+     "value": null,
+     "provenance": "INSUFFICIENT",
+     "reason": "no_cost",
+     "basis": "DELIVERED"
+    }
+   },
+   "independent_expected": {
+    "qty": 1006270.0,
+    "cost": null,
+    "priced_kg": null,
+    "prev_qty": 875270.0
+   },
+   "status": "PASS"
+  },
   "consecutive_months": {
    "farm": "f3d1d3973c17",
    "month": "2025-10",
@@ -292,15 +359,15 @@
      "basis": "DELIVERED"
     },
     "FEED_QTY_CHANGE": {
-     "value": null,
-     "provenance": "INSUFFICIENT",
-     "reason": "context_missing",
+     "value": 131000.0,
+     "provenance": "DERIVED",
+     "reason": null,
      "basis": "DELIVERED"
     },
     "FEED_COST_CHANGE": {
      "value": null,
      "provenance": "INSUFFICIENT",
-     "reason": "context_missing",
+     "reason": "no_cost",
      "basis": "DELIVERED"
     }
    },
@@ -308,73 +375,6 @@
     "qty": 1006270.0,
     "cost": null,
     "priced_kg": null
-   },
-   "status": "PASS"
-  },
-  "quantity_change": {
-   "farm": "f3d1d3973c17",
-   "month": "2026-01",
-   "raw_summary": {
-    "source_rows": 71,
-    "quantity_accepted": 71,
-    "excluded": 0,
-    "cost_accepted": 0,
-    "cost_insufficient": 71,
-    "cost_excluded": 0,
-    "reasons": {
-     "COST_INCOMPLETE": 71
-    },
-    "feed_products": 8,
-    "feed_stages": 6
-   },
-   "canonical": {
-    "rows": 71,
-    "basis": "DELIVERED",
-    "currency": "KRW"
-   },
-   "engine": {
-    "FEED_QTY": {
-     "value": 813720.0,
-     "provenance": "ACTUAL",
-     "reason": null,
-     "basis": "DELIVERED"
-    },
-    "FEED_COST": {
-     "value": null,
-     "provenance": "INSUFFICIENT",
-     "reason": "no_cost",
-     "basis": "DELIVERED"
-    },
-    "FEED_UNIT_PRICE": {
-     "value": null,
-     "provenance": "INSUFFICIENT",
-     "reason": "no_cost",
-     "basis": "DELIVERED"
-    },
-    "FEED_MIX_SHARE": {
-     "value": 0.4832,
-     "provenance": "DERIVED",
-     "reason": null,
-     "basis": "DELIVERED"
-    },
-    "FEED_QTY_CHANGE": {
-     "value": 468490.0,
-     "provenance": "DERIVED",
-     "reason": null,
-     "basis": "DELIVERED"
-    },
-    "FEED_COST_CHANGE": {
-     "value": null,
-     "provenance": "INSUFFICIENT",
-     "reason": "no_cost",
-     "basis": "DELIVERED"
-    }
-   },
-   "independent_expected": {
-    "qty": 813720.0,
-    "cost": null,
-    "priced_kg": null,
-    "prev_qty": 345230.0
    },
    "status": "PASS"
   },
@@ -434,130 +434,134 @@
   },
   "cost_change": {
    "farm": "42b90a8d7e4c",
-   "month": "2026-01",
+   "month": "2025-10",
    "raw_summary": {
-    "source_rows": 77,
-    "quantity_accepted": 77,
-    "excluded": 0,
-    "cost_accepted": 77,
+    "source_rows": 86,
+    "quantity_accepted": 80,
+    "excluded": 6,
+    "cost_accepted": 80,
     "cost_insufficient": 0,
     "cost_excluded": 0,
-    "reasons": {},
-    "feed_products": 9,
+    "reasons": {
+     "INACTIVE_SOURCE_ROW": 6
+    },
+    "feed_products": 8,
     "feed_stages": 5
    },
    "canonical": {
-    "rows": 77,
+    "rows": 80,
     "basis": "DELIVERED",
     "currency": "KRW"
    },
    "engine": {
     "FEED_QTY": {
-     "value": 725040.0,
+     "value": 812270.0,
      "provenance": "ACTUAL",
      "reason": null,
      "basis": "DELIVERED"
     },
     "FEED_COST": {
-     "value": 422874360.0,
+     "value": 473350930.0,
      "provenance": "ACTUAL",
      "reason": null,
      "basis": "DELIVERED"
     },
     "FEED_UNIT_PRICE": {
-     "value": 583.2428,
+     "value": 582.7507,
      "provenance": "DERIVED",
      "reason": null,
      "basis": "DELIVERED"
     },
     "FEED_MIX_SHARE": {
-     "value": 0.7711,
+     "value": 0.7733,
      "provenance": "DERIVED",
      "reason": null,
      "basis": "DELIVERED"
     },
     "FEED_QTY_CHANGE": {
-     "value": -105930.0,
+     "value": 120370.0,
      "provenance": "DERIVED",
      "reason": null,
      "basis": "DELIVERED"
     },
     "FEED_COST_CHANGE": {
-     "value": -62376690.0,
+     "value": 58140830.0,
      "provenance": "DERIVED",
      "reason": null,
      "basis": "DELIVERED"
     }
    },
    "independent_expected": {
-    "qty": 725040.0,
-    "cost": 422874360.0,
-    "priced_kg": 725040.0,
-    "prev_cost": 485251050.0
+    "qty": 812270.0,
+    "cost": 473350930.0,
+    "priced_kg": 812270.0,
+    "prev_cost": 415210100.0
    },
    "status": "PASS"
   },
   "variance_eligible": {
    "farm": "42b90a8d7e4c",
-   "month": "2026-01",
+   "month": "2025-10",
    "raw_summary": {
-    "source_rows": 77,
-    "quantity_accepted": 77,
-    "excluded": 0,
-    "cost_accepted": 77,
+    "source_rows": 86,
+    "quantity_accepted": 80,
+    "excluded": 6,
+    "cost_accepted": 80,
     "cost_insufficient": 0,
     "cost_excluded": 0,
-    "reasons": {},
-    "feed_products": 9,
+    "reasons": {
+     "INACTIVE_SOURCE_ROW": 6
+    },
+    "feed_products": 8,
     "feed_stages": 5
    },
    "canonical": {
-    "rows": 77,
+    "rows": 80,
     "basis": "DELIVERED",
     "currency": "KRW"
    },
    "engine": {
     "FEED_QTY": {
-     "value": 725040.0,
+     "value": 812270.0,
      "provenance": "ACTUAL",
      "reason": null,
      "basis": "DELIVERED"
     },
     "FEED_COST": {
-     "value": 422874360.0,
+     "value": 473350930.0,
      "provenance": "ACTUAL",
      "reason": null,
      "basis": "DELIVERED"
     },
     "FEED_UNIT_PRICE": {
-     "value": 583.2428,
+     "value": 582.7507,
      "provenance": "DERIVED",
      "reason": null,
      "basis": "DELIVERED"
     },
     "FEED_MIX_SHARE": {
-     "value": 0.7711,
+     "value": 0.7733,
      "provenance": "DERIVED",
      "reason": null,
      "basis": "DELIVERED"
     },
     "FEED_QTY_CHANGE": {
-     "value": -105930.0,
+     "value": 120370.0,
      "provenance": "DERIVED",
      "reason": null,
      "basis": "DELIVERED"
     },
     "FEED_COST_CHANGE": {
-     "value": -62376690.0,
+     "value": 58140830.0,
      "provenance": "DERIVED",
      "reason": null,
      "basis": "DELIVERED"
     }
    },
    "independent_expected": {
-    "qty": 725040.0,
-    "cost": 422874360.0,
-    "priced_kg": 725040.0,
+    "qty": 812270.0,
+    "cost": 473350930.0,
+    "priced_kg": 812270.0,
     "identity": "PRICE+VOLUME+MIX=TOTAL"
    },
    "status": "PASS"
@@ -609,15 +613,15 @@
      "basis": "DELIVERED"
     },
     "FEED_QTY_CHANGE": {
-     "value": null,
-     "provenance": "INSUFFICIENT",
-     "reason": "context_missing",
+     "value": 497800.0,
+     "provenance": "DERIVED",
+     "reason": null,
      "basis": "DELIVERED"
     },
     "FEED_COST_CHANGE": {
      "value": null,
      "provenance": "INSUFFICIENT",
-     "reason": "context_missing",
+     "reason": "cost_incomplete",
      "basis": "DELIVERED"
     }
    },
@@ -736,15 +740,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 131000.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_cost",
        "basis": "DELIVERED"
       }
      },
@@ -764,10 +768,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": 131000.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_cost"
      }
     },
     {
@@ -814,15 +818,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -379620.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_cost",
        "basis": "DELIVERED"
       }
      },
@@ -842,10 +846,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": -379620.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_cost"
      }
     },
     {
@@ -891,15 +895,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -281420.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_cost",
        "basis": "DELIVERED"
       }
      },
@@ -918,10 +922,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": -281420.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_cost"
      }
     },
     {
@@ -1044,15 +1048,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -318970.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_cost",
        "basis": "DELIVERED"
       }
      },
@@ -1072,10 +1076,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": -318970.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_cost"
      }
     },
     {
@@ -1121,15 +1125,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -104740.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_cost",
        "basis": "DELIVERED"
       }
      },
@@ -1149,10 +1153,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": -104740.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_cost"
      }
     },
     {
@@ -1198,15 +1202,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 476840.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_cost",
        "basis": "DELIVERED"
       }
      },
@@ -1226,10 +1230,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": 476840.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_cost"
      }
     },
     {
@@ -1276,15 +1280,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -129920.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_cost",
        "basis": "DELIVERED"
       }
      },
@@ -1304,10 +1308,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": -129920.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_cost"
      }
     },
     {
@@ -1354,15 +1358,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 110330.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_cost",
        "basis": "DELIVERED"
       }
      },
@@ -1382,10 +1386,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": 110330.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_cost"
      }
     },
     {
@@ -1432,15 +1436,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 24832.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_cost",
        "basis": "DELIVERED"
       }
      },
@@ -1460,10 +1464,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": 24832.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_cost"
      }
     },
     {
@@ -1723,15 +1727,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 120370.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 58140830.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -1756,10 +1760,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": 58140830.0,
+       "price": -9228944.41,
+       "volume": 70628633.76,
+       "mix": -3258859.35
+      },
+      "qty_change": 120370.0,
+      "qty_change_reason": null,
+      "cost_change": 58140830.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -1803,15 +1813,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -167680.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -94862540.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -1836,10 +1846,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -94862540.0,
+       "price": 1667915.1,
+       "volume": -98059955.37,
+       "mix": 1529500.27
+      },
+      "qty_change": -167680.0,
+      "qty_change_reason": null,
+      "cost_change": -94862540.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -1883,15 +1899,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 186380.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 106762660.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -1916,10 +1932,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": 106762660.0,
+       "price": -1172159.53,
+       "volume": 109099115.77,
+       "mix": -1164296.24
+      },
+      "qty_change": 186380.0,
+      "qty_change_reason": null,
+      "cost_change": 106762660.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -2049,15 +2071,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -23260.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -8508140.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -2082,10 +2104,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -8508140.0,
+       "price": 3979240.0,
+       "volume": -13693885.49,
+       "mix": 1206505.49
+      },
+      "qty_change": -23260.0,
+      "qty_change_reason": null,
+      "cost_change": -8508140.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -2129,15 +2157,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 49040.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 32307210.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -2162,10 +2190,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": 32307210.0,
+       "price": 7332324.41,
+       "volume": 29468062.1,
+       "mix": -4493176.5
+      },
+      "qty_change": 49040.0,
+      "qty_change_reason": null,
+      "cost_change": 32307210.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -2209,15 +2243,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -54540.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -38718870.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -2244,10 +2278,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -38718870.0,
+       "price": -1490141.67,
+       "volume": -32338372.11,
+       "mix": -4890356.22
+      },
+      "qty_change": -54540.0,
+      "qty_change_reason": null,
+      "cost_change": -38718870.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -2293,15 +2333,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -28300.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -9998240.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -2328,10 +2368,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -9998240.0,
+       "price": 10400600.0,
+       "volume": -17003864.86,
+       "mix": -3394975.14
+      },
+      "qty_change": -28300.0,
+      "qty_change_reason": null,
+      "cost_change": -9998240.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -2375,15 +2421,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -56830.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -17547150.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -2412,10 +2458,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -17547150.0,
+       "price": 9483320.0,
+       "volume": -34663904.22,
+       "mix": 7633434.22
+      },
+      "qty_change": -56830.0,
+      "qty_change_reason": null,
+      "cost_change": -17547150.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -2459,15 +2511,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 105810.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 78592040.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -2494,10 +2546,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": 78592040.0,
+       "price": 13442801.89,
+       "volume": 68188623.33,
+       "mix": -3039385.21
+      },
+      "qty_change": 105810.0,
+      "qty_change_reason": null,
+      "cost_change": 78592040.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -2774,15 +2832,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 38070.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 12990250.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -2811,10 +2869,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": 12990250.0,
+       "price": -2398972.84,
+       "volume": 22951834.04,
+       "mix": -7562611.2
+      },
+      "qty_change": 38070.0,
+      "qty_change_reason": null,
+      "cost_change": 12990250.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -2858,15 +2922,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -6055.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -3482130.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -2895,10 +2959,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -3482130.0,
+       "price": -2511356.25,
+       "volume": -3512987.33,
+       "mix": 2542213.58
+      },
+      "qty_change": -6055.0,
+      "qty_change_reason": null,
+      "cost_change": -3482130.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -2942,15 +3012,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 15245.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 5523750.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -2979,10 +3049,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": 5523750.0,
+       "price": 685170.05,
+       "volume": 8957265.98,
+       "mix": -4118686.03
+      },
+      "qty_change": 15245.0,
+      "qty_change_reason": null,
+      "cost_change": 5523750.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -3116,15 +3192,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -99120.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -51067980.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -3153,10 +3229,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -51067980.0,
+       "price": 5543708.34,
+       "volume": -58626154.22,
+       "mix": 2014465.88
+      },
+      "qty_change": -99120.0,
+      "qty_change_reason": null,
+      "cost_change": -51067980.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -3200,15 +3282,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 89185.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 52784350.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -3237,10 +3319,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": 52784350.0,
+       "price": 23277135.66,
+       "volume": 59006887.87,
+       "mix": -29499673.53
+      },
+      "qty_change": 89185.0,
+      "qty_change_reason": null,
+      "cost_change": 52784350.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -3284,15 +3372,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -43150.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -10471015.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -3321,10 +3409,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -10471015.0,
+       "price": 4007851.72,
+       "volume": -26102957.36,
+       "mix": 11624090.65
+      },
+      "qty_change": -43150.0,
+      "qty_change_reason": null,
+      "cost_change": -10471015.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -3368,15 +3462,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -1965.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -743235.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -3405,10 +3499,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -743235.0,
+       "price": 7137790.6,
+       "volume": -1279383.98,
+       "mix": -6601641.62
+      },
+      "qty_change": -1965.0,
+      "qty_change_reason": null,
+      "cost_change": -743235.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -3452,15 +3552,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 29150.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 23965100.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -3489,10 +3589,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": 23965100.0,
+       "price": 5504911.16,
+       "volume": 18900135.39,
+       "mix": -439946.54
+      },
+      "qty_change": 29150.0,
+      "qty_change_reason": null,
+      "cost_change": 23965100.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -3536,15 +3642,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -52855.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -31851015.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -3573,10 +3679,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -31851015.0,
+       "price": 4300070.18,
+       "volume": -34740279.53,
+       "mix": -1410805.65
+      },
+      "qty_change": -52855.0,
+      "qty_change_reason": null,
+      "cost_change": -31851015.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -3832,15 +3944,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 497800.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "cost_incomplete",
        "basis": "DELIVERED"
       }
      },
@@ -3865,10 +3977,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": 497800.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "cost_incomplete"
      }
     },
     {
@@ -3914,15 +4026,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -62325.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "cost_incomplete",
        "basis": "DELIVERED"
       }
      },
@@ -3947,10 +4059,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": -62325.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "cost_incomplete"
      }
     },
     {
@@ -3996,15 +4108,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 29305.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "cost_incomplete",
        "basis": "DELIVERED"
       }
      },
@@ -4029,10 +4141,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": 29305.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "cost_incomplete"
      }
     },
     {
@@ -4158,15 +4270,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -81860.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "prior_insufficient",
        "basis": "DELIVERED"
       }
      },
@@ -4193,10 +4305,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": -81860.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "prior_insufficient"
      }
     },
     {
@@ -4242,15 +4354,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -21890.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "cost_incomplete",
        "basis": "DELIVERED"
       }
      },
@@ -4275,10 +4387,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": -21890.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "cost_incomplete"
      }
     },
     {
@@ -4324,15 +4436,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -17120.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "cost_incomplete",
        "basis": "DELIVERED"
       }
      },
@@ -4357,10 +4469,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": -17120.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "cost_incomplete"
      }
     },
     {
@@ -4406,15 +4518,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 15620.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "cost_incomplete",
        "basis": "DELIVERED"
       }
      },
@@ -4441,10 +4553,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": 15620.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "cost_incomplete"
      }
     },
     {
@@ -4491,15 +4603,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -14770.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "cost_incomplete",
        "basis": "DELIVERED"
       }
      },
@@ -4524,10 +4636,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": -14770.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "cost_incomplete"
      }
     },
     {
@@ -4573,15 +4685,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -33550.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "cost_incomplete",
        "basis": "DELIVERED"
       }
      },
@@ -4605,10 +4717,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": -33550.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "cost_incomplete"
      }
     },
     {
@@ -4854,15 +4966,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 22860.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 10462420.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -4879,10 +4991,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": 10462420.0,
+       "price": -1193707.6,
+       "volume": 12052952.74,
+       "mix": -396825.15
+      },
+      "qty_change": 22860.0,
+      "qty_change_reason": null,
+      "cost_change": 10462420.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -4926,15 +5044,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -53800.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -30368540.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -4955,10 +5073,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -30368540.0,
+       "price": -2587738.29,
+       "volume": -27758610.25,
+       "mix": -22191.47
+      },
+      "qty_change": -53800.0,
+      "qty_change_reason": null,
+      "cost_change": -30368540.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -5002,15 +5126,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 26220.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 14945340.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -5029,10 +5153,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": 14945340.0,
+       "price": 1054139.12,
+       "volume": 13656980.58,
+       "mix": 234220.31
+      },
+      "qty_change": 26220.0,
+      "qty_change_reason": null,
+      "cost_change": 14945340.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -5141,13 +5271,13 @@
       "FEED_QTY_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       }
      },
@@ -5156,9 +5286,9 @@
      "recon": {},
      "change": {
       "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change_reason": "no_data",
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_data"
      }
     },
     {
@@ -5204,13 +5334,13 @@
       "FEED_QTY_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       }
      },
@@ -5219,9 +5349,9 @@
      "recon": {},
      "change": {
       "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change_reason": "no_data",
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_data"
      }
     },
     {
@@ -5267,13 +5397,13 @@
       "FEED_QTY_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       }
      },
@@ -5282,9 +5412,9 @@
      "recon": {},
      "change": {
       "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change_reason": "no_data",
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_data"
      }
     },
     {
@@ -5330,13 +5460,13 @@
       "FEED_QTY_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       }
      },
@@ -5345,9 +5475,9 @@
      "recon": {},
      "change": {
       "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change_reason": "no_data",
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_data"
      }
     },
     {
@@ -5393,13 +5523,13 @@
       "FEED_QTY_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       }
      },
@@ -5408,9 +5538,9 @@
      "recon": {},
      "change": {
       "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change_reason": "no_data",
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_data"
      }
     },
     {
@@ -5456,13 +5586,13 @@
       "FEED_QTY_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       }
      },
@@ -5471,9 +5601,9 @@
      "recon": {},
      "change": {
       "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change_reason": "no_data",
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_data"
      }
     },
     {
@@ -5709,15 +5839,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 63450.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 37354700.01,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -5746,10 +5876,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": 37354700.0,
+       "price": -2230219.94,
+       "volume": 41007548.74,
+       "mix": -1422628.79
+      },
+      "qty_change": 63450.0,
+      "qty_change_reason": null,
+      "cost_change": 37354700.01,
+      "cost_change_reason": null
      }
     },
     {
@@ -5793,15 +5929,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -49790.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -28817889.99,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -5828,10 +5964,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -28817889.99,
+       "price": -847483.83,
+       "volume": -31769850.49,
+       "mix": 3799444.33
+      },
+      "qty_change": -49790.0,
+      "qty_change_reason": null,
+      "cost_change": -28817889.99,
+      "cost_change_reason": null
      }
     },
     {
@@ -5877,15 +6019,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 65390.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 39465430.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -5914,10 +6056,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": 39465430.0,
+       "price": 979978.84,
+       "volume": 43104420.41,
+       "mix": -4618969.25
+      },
+      "qty_change": 65390.0,
+      "qty_change_reason": null,
+      "cost_change": 39465430.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -6051,15 +6199,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -26895.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -19091100.01,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -6086,10 +6234,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -19091100.0,
+       "price": -883444.16,
+       "volume": -17284138.66,
+       "mix": -923517.18
+      },
+      "qty_change": -26895.0,
+      "qty_change_reason": null,
+      "cost_change": -19091100.01,
+      "cost_change_reason": null
      }
     },
     {
@@ -6133,15 +6287,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 39560.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 32892610.02,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -6170,10 +6324,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": 32892610.02,
+       "price": 1095596.62,
+       "volume": 25452235.77,
+       "mix": 6344777.63
+      },
+      "qty_change": 39560.0,
+      "qty_change_reason": null,
+      "cost_change": 32892610.02,
+      "cost_change_reason": null
      }
     },
     {
@@ -6217,15 +6377,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -18380.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -21474449.99,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -6252,10 +6412,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -21474449.98,
+       "price": 168911.43,
+       "volume": -12260598.3,
+       "mix": -9382763.11
+      },
+      "qty_change": -18380.0,
+      "qty_change_reason": null,
+      "cost_change": -21474449.99,
+      "cost_change_reason": null
      }
     },
     {
@@ -6299,15 +6465,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -23575.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -6589089.85,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -6334,10 +6500,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -6589089.85,
+       "price": 1181110.4,
+       "volume": -14972770.4,
+       "mix": 7202570.15
+      },
+      "qty_change": -23575.0,
+      "qty_change_reason": null,
+      "cost_change": -6589089.85,
+      "cost_change_reason": null
      }
     },
     {
@@ -6383,15 +6555,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 33500.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "cost_incomplete",
        "basis": "DELIVERED"
       }
      },
@@ -6417,10 +6589,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": 33500.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "cost_incomplete"
      }
     },
     {
@@ -6464,15 +6636,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -51640.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "prior_insufficient",
        "basis": "DELIVERED"
       }
      },
@@ -6499,10 +6671,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": -51640.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "prior_insufficient"
      }
     },
     {
@@ -6771,15 +6943,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -6140.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -11878310.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -6808,10 +6980,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -11878310.0,
+       "price": -7406213.0,
+       "volume": -3566326.17,
+       "mix": -905770.83
+      },
+      "qty_change": -6140.0,
+      "qty_change_reason": null,
+      "cost_change": -11878310.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -6858,15 +7036,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -24570.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -16004130.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -6895,10 +7073,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -16004130.0,
+       "price": -2692041.51,
+       "volume": -14141378.87,
+       "mix": 829290.38
+      },
+      "qty_change": -24570.0,
+      "qty_change_reason": null,
+      "cost_change": -16004130.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -6945,15 +7129,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 46485.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 26054575.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -6982,10 +7166,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": 26054575.0,
+       "price": 84269.18,
+       "volume": 26819316.19,
+       "mix": -849010.37
+      },
+      "qty_change": 46485.0,
+      "qty_change_reason": null,
+      "cost_change": 26054575.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -7125,15 +7315,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -115790.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -67253980.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -7162,10 +7352,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -67253980.0,
+       "price": -285162.26,
+       "volume": -68160715.57,
+       "mix": 1191897.83
+      },
+      "qty_change": -115790.0,
+      "qty_change_reason": null,
+      "cost_change": -67253980.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -7213,15 +7409,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -9940.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "cost_incomplete",
        "basis": "DELIVERED"
       }
      },
@@ -7250,10 +7446,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": -9940.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "cost_incomplete"
      }
     },
     {
@@ -7300,15 +7496,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 57450.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "prior_insufficient",
        "basis": "DELIVERED"
       }
      },
@@ -7337,10 +7533,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": 57450.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "prior_insufficient"
      }
     },
     {
@@ -7387,15 +7583,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 55085.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 35111695.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -7424,10 +7620,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": 35111695.0,
+       "price": 2763906.57,
+       "volume": 34193422.64,
+       "mix": -1845634.21
+      },
+      "qty_change": 55085.0,
+      "qty_change_reason": null,
+      "cost_change": 35111695.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -7474,15 +7676,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -94550.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -46875325.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -7511,10 +7713,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -46875325.0,
+       "price": 11351137.28,
+       "volume": -60474565.1,
+       "mix": 2248102.82
+      },
+      "qty_change": -94550.0,
+      "qty_change_reason": null,
+      "cost_change": -46875325.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -7561,15 +7769,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -32200.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -9168955.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -7598,10 +7806,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -9168955.0,
+       "price": 3285330.79,
+       "volume": -21030544.77,
+       "mix": 8576258.99
+      },
+      "qty_change": -32200.0,
+      "qty_change_reason": null,
+      "cost_change": -9168955.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -7860,13 +8074,13 @@
       "FEED_QTY_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       }
      },
@@ -7875,9 +8089,9 @@
      "recon": {},
      "change": {
       "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change_reason": "no_data",
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_data"
      }
     },
     {
@@ -7923,13 +8137,13 @@
       "FEED_QTY_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       }
      },
@@ -7938,9 +8152,9 @@
      "recon": {},
      "change": {
       "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change_reason": "no_data",
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_data"
      }
     },
     {
@@ -7986,13 +8200,13 @@
       "FEED_QTY_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       }
      },
@@ -8001,9 +8215,9 @@
      "recon": {},
      "change": {
       "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change_reason": "no_data",
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_data"
      }
     },
     {
@@ -8112,13 +8326,13 @@
       "FEED_QTY_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       }
      },
@@ -8127,9 +8341,9 @@
      "recon": {},
      "change": {
       "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change_reason": "no_data",
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_data"
      }
     },
     {
@@ -8178,13 +8392,13 @@
       "FEED_QTY_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "prior_insufficient",
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "cost_incomplete",
        "basis": "DELIVERED"
       }
      },
@@ -8210,9 +8424,9 @@
      },
      "change": {
       "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change_reason": "prior_insufficient",
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "cost_incomplete"
      }
     },
     {
@@ -8258,15 +8472,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 1170.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "cost_incomplete",
        "basis": "DELIVERED"
       }
      },
@@ -8291,10 +8505,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": 1170.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "cost_incomplete"
      }
     },
     {
@@ -8338,15 +8552,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 158330.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "prior_insufficient",
        "basis": "DELIVERED"
       }
      },
@@ -8373,10 +8587,10 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change": 158330.0,
+      "qty_change_reason": null,
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "prior_insufficient"
      }
     },
     {
@@ -8420,15 +8634,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -126925.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -71936369.56,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -8455,10 +8669,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -71936369.56,
+       "price": 5764864.35,
+       "volume": -79904728.88,
+       "mix": 2203494.97
+      },
+      "qty_change": -126925.0,
+      "qty_change_reason": null,
+      "cost_change": -71936369.56,
+      "cost_change_reason": null
      }
     },
     {
@@ -8502,15 +8722,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -21140.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -11637240.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -8535,10 +8755,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -11637240.0,
+       "price": 2458958.25,
+       "volume": -13858375.97,
+       "mix": -237822.28
+      },
+      "qty_change": -21140.0,
+      "qty_change_reason": null,
+      "cost_change": -11637240.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -8757,13 +8983,13 @@
       "FEED_QTY_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       }
      },
@@ -8772,9 +8998,9 @@
      "recon": {},
      "change": {
       "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change_reason": "no_data",
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_data"
      }
     },
     {
@@ -8820,13 +9046,13 @@
       "FEED_QTY_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "no_data",
        "basis": "DELIVERED"
       }
      },
@@ -8835,9 +9061,9 @@
      "recon": {},
      "change": {
       "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change_reason": "no_data",
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "no_data"
      }
     },
     {
@@ -8883,13 +9109,13 @@
       "FEED_QTY_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "prior_insufficient",
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
        "value": null,
        "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "reason": "prior_insufficient",
        "basis": "DELIVERED"
       }
      },
@@ -8915,9 +9141,9 @@
      },
      "change": {
       "qty_change": null,
-      "qty_change_reason": "context_missing",
+      "qty_change_reason": "prior_insufficient",
       "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "cost_change_reason": "prior_insufficient"
      }
     },
     {
@@ -9047,15 +9273,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -15535.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -18949217.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -9078,10 +9304,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -18949217.0,
+       "price": -1268346.31,
+       "volume": -14585960.24,
+       "mix": -3094910.45
+      },
+      "qty_change": -15535.0,
+      "qty_change_reason": null,
+      "cost_change": -18949217.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -9125,15 +9357,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -11770.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -2416764.5,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -9156,10 +9388,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -2416764.5,
+       "price": 3711982.94,
+       "volume": -11140870.29,
+       "mix": 5012122.85
+      },
+      "qty_change": -11770.0,
+      "qty_change_reason": null,
+      "cost_change": -2416764.5,
+      "cost_change_reason": null
      }
     },
     {
@@ -9203,15 +9441,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 6120.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": 1919415.5,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -9234,10 +9472,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": 1919415.5,
+       "price": -3088109.54,
+       "volume": 5963488.46,
+       "mix": -955963.42
+      },
+      "qty_change": 6120.0,
+      "qty_change_reason": null,
+      "cost_change": 1919415.5,
+      "cost_change_reason": null
      }
     },
     {
@@ -9281,15 +9525,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -3390.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -612229.5,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -9312,10 +9556,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -612229.5,
+       "price": 1679338.43,
+       "volume": -3335942.68,
+       "mix": 1044374.76
+      },
+      "qty_change": -3390.0,
+      "qty_change_reason": null,
+      "cost_change": -612229.5,
+      "cost_change_reason": null
      }
     },
     {
@@ -9359,15 +9609,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -4210.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -958774.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -9390,10 +9640,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -958774.0,
+       "price": -311448.48,
+       "volume": -4185875.02,
+       "mix": 3538549.5
+      },
+      "qty_change": -4210.0,
+      "qty_change_reason": null,
+      "cost_change": -958774.0,
+      "cost_change_reason": null
      }
     },
     {
@@ -9437,15 +9693,15 @@
        "basis": "DELIVERED"
       },
       "FEED_QTY_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -6185.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       },
       "FEED_COST_CHANGE": {
-       "value": null,
-       "provenance": "INSUFFICIENT",
-       "reason": "context_missing",
+       "value": -14640856.0,
+       "provenance": "DERIVED",
+       "reason": null,
        "basis": "DELIVERED"
       }
      },
@@ -9468,10 +9724,16 @@
       "mix": true
      },
      "change": {
-      "qty_change": null,
-      "qty_change_reason": "context_missing",
-      "cost_change": null,
-      "cost_change_reason": "context_missing"
+      "variance": {
+       "total": -14640856.0,
+       "price": 4969746.14,
+       "volume": -6928765.43,
+       "mix": -12681836.71
+      },
+      "qty_change": -6185.0,
+      "qty_change_reason": null,
+      "cost_change": -14640856.0,
+      "cost_change_reason": null
      }
     },
     {

@@ -6,7 +6,7 @@ raw ORM 은 여기 들어오지 않는다. 로더(services/feed_engine_service.p
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from typing import Any, Literal
 
@@ -59,6 +59,29 @@ class Period:
     @property
     def days(self) -> int:
         return (self.end - self.start).days + 1
+
+    @property
+    def is_calendar_month(self) -> bool:
+        """start 가 1일이고 end 가 그 달의 말일 — 달력 한 달 전체."""
+        if self.start.day != 1 or self.start.replace(day=1) != self.end.replace(day=1):
+            return False
+        nxt = (self.end.replace(day=28) + timedelta(days=4)).replace(day=1)
+        return self.end == nxt - timedelta(days=1)
+
+    def comparison_grain(self, other: Period) -> str | None:
+        """두 기간을 TOTAL 지표(CHANGE·VARIANCE)로 비교할 수 있는 근거. None = 비교 불가.
+
+        P-6 (2026-09-22, docs/feed/FEED_PERSISTENCE_ARCHITECTURE.md §P-6):
+          calendar_month  둘 다 달력 한 달 전체 — 길이가 28~31 로 달라도 "이 달 총량 vs 지난달 총량" 은 같은 grain 이다
+                          (F0 §9 "월이면 전월" 의 원래 의도. §5 표의 "같은 길이" 문구가 이를 잘못 좁혔다)
+          equal_days      임의 구간은 길이가 같을 때만 (7일 vs 30일 비교 차단 — 원래 규칙 유지)
+        RATE 지표(kg/day 등)는 V1 에 없다. 생기면 days 로 정규화하므로 이 규칙과 무관하다.
+        """
+        if self.is_calendar_month and other.is_calendar_month:
+            return "calendar_month"
+        if self.days == other.days:
+            return "equal_days"
+        return None
 
     def contains(self, d: date) -> bool:
         return self.start <= d <= self.end

@@ -127,7 +127,7 @@ AI EXPLANATION      llm_renderer 가 StructuredResult 를 문장화. 숫자 계�
 | `FEED_COST` | 사료비 | FARM | Σ(quantity_kg×unit_cost) / — | currency | CALENDAR_PERIOD | + unit_cost, currency(단일) | uncosted_rows>0 → INSUFFICIENT(cost_incomplete) — 부분합은 evidence 에만(`partial_cost`, `coverage`). costed 0 → no_cost. 통화≥2 → currency_mixed | coverage==100% | 없음 | cost-summary 는 부분합+coverage 노출 / feed_metrics 는 유보 → **canonical = 유보 + evidence** (E3 "채우지 않는다") | **CORE** |
 | `FEED_UNIT_PRICE` | 평균 단가 | FARM (feed_type 별 가능) | Σ(qty×cost) / Σqty (costed 행만) | currency/kg | CALENDAR_PERIOD | unit_cost 행 ≥1 | costed 0 → no_cost · currency_mixed | — | 없음 | NOT_FOUND | **CORE** |
 | `FEED_MIX_SHARE` | 사료 구성비 | FARM | Σqty(feed_type key) / Σqty — 결과 본체는 evidence.shares(항목별), **스칼라 value = 최대 구성비(dominant share)**, evidence.dominant_type | ratio_0_1 | CALENDAR_PERIOD | feed_type | UNSPECIFIED 도 한 항목으로 노출(숨기지 않음) | 어휘 흔들림 → normalized key 기준 | 없음 | NOT_FOUND | **CORE** (어휘는 UNRESOLVED-2, 산식은 확정) |
-| `FEED_QTY_CHANGE` | 급여량 변화 | FARM | QTY(p1) − QTY(p0) (+ ratio) | kg, ratio | CALENDAR_PERIOD ×2 (같은 길이) | 두 기간 모두 FEED_QTY 값 | 어느 한 기간 INSUFFICIENT → INSUFFICIENT(prior_insufficient) | 기간 길이 동일 | 없음 | NOT_FOUND | **CORE** |
+| `FEED_QTY_CHANGE` | 급여량 변화 | FARM | QTY(p1) − QTY(p0) (+ ratio) | kg, ratio | CALENDAR_PERIOD ×2 (**같은 grain** — 달력월↔달력월 또는 같은 길이, P-6 2026-09-22) | 두 기간 모두 FEED_QTY 값 | 어느 한 기간 INSUFFICIENT → INSUFFICIENT(prior_insufficient) | grain 비교 가능 (evidence.comparison_grain) | 없음 | NOT_FOUND | **CORE** |
 | `FEED_COST_CHANGE` | 사료비 변화 | FARM | COST(p1) − COST(p0) | currency | CALENDAR_PERIOD ×2 | 두 기간 FEED_COST 값(둘 다 complete, 같은 통화) | 同上 + currency_mixed | — | 없음 | NOT_FOUND | **CORE** |
 | `FEED_QTY_PER_HEAD` | 두당 급여량 | GROUP_COHORT | Σqty(그룹 귀속) / Σhead_count_out | kg/head | GROUP_LIFECYCLE | group_id 귀속 사료, CLOSED 코호트 | head_out 0 → no_head_out · 코호트 0 → no_cohort | 귀속률 | 없음 | NOT_FOUND | **CONDITIONAL** (귀속·코호트 존재) |
 | `FEED_COST_PER_PIG` | 두당 사료비 | GROUP_COHORT | Σ(qty×cost) / Σhead_out | currency/head | GROUP_LIFECYCLE | + cost complete | cost_incomplete·currency_mixed·no_head_out | coverage 100% | 없음 | PR #2 feed_metrics EXISTS(미연결) | **CONDITIONAL** |
@@ -209,7 +209,7 @@ reason 어휘 = 기존(`no_data · insufficient_sample · out_of_valid_range · 
 |---|---|---|---|
 | `CALENDAR_PERIOD` | CORE 전부 | `record_date ∈ [start, end]` (농장 현지 날짜, 입력 시 검증됨). 월·주·임의 구간 | **월·주·임의(start,end)**. 일별 집계는 F2 함수는 지원하되 표시 대상 아님 |
 | `GROUP_LIFECYCLE` | CONDITIONAL 전부 | 코호트 = `end_date ∈ [start,end]` 인 CLOSED 그룹. 분자 사료 = 그 그룹에 귀속된 행 **전생애**(record_date 무관) | 지원 (kpi_service 와 동일) |
-| period-over-period | *_CHANGE | p0 = p1 과 같은 길이의 직전 구간(월이면 전월) | 지원 |
+| period-over-period | *_CHANGE · VARIANCE | p0 = p1 과 **같은 grain** 의 직전 구간 — 월이면 전월(28~31일 길이 차이 허용) · 임의 구간이면 같은 길이. **P-6 (2026-09-22)**: §5 표의 "같은 길이" 는 이 줄의 "월이면 전월" 을 잘못 좁힌 표현이었고 실데이터(Oracle shadow)에서 월 쌍 99 중 81 을 막았다 — 정정. RATE 지표는 V1 에 없음(생기면 days 정규화) | 지원 |
 | rolling | — | — | **미지원**(V1). rolling12M 등은 KPI 트렌드 계층 몫 |
 
 혼동 금지: 코호트 metric 을 "이 달에 먹은 사료 / 이 달 증체" 로 계산하지 않는다(E4 실측 §5 사고 기록). 달력 metric 과 코호트 metric 은 같은 화면에 있어도 기간 의미가 다르다 — 표시 계층이 라벨로 구분한다.

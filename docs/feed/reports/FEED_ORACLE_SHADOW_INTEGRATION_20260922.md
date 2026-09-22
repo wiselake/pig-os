@@ -36,10 +36,11 @@ NEXT STEP     PERSISTENCE DESIGN
 ```text
 farms      manifest 42 (PP-{farm_no}, 프로덕션 read-only 확인 42/42 존재 · pigplan_migration 42/42)
            → 창 안 사료행 보유 9 (fuzzy 매칭 0)
-period     완료월 2025-09-01 ~ 2026-08-31 (12) · 부분월 2026-09-01 ~ 09-22 (3농장 121행 — 계산·대조에서 분리)
+period     완료월 2025-09-01 ~ 2026-08-31 (12) · 부분월 2026-09-01 ~ 09-22 (3농장 · 소스 122행 · 수량 ACCEPTED 121 — 계산·대조에서 분리)
 rows       5,339  →  수량 ACCEPTED 5,077 · EXCLUDED 262
    EXCLUDED   INACTIVE_SOURCE_ROW 258 · NON_POSITIVE_QUANTITY 4 · INVALID_DATE 0 (창 안엔 불량 날짜 없음)
-   원가       ACCEPTED 4,254 (직접 단가 3,188 + 총액/kg 파생 1,094) · INSUFFICIENT 823 (COST_INCOMPLETE 795 · COST_IDENTITY_MISMATCH 28) · EXCLUDED 0
+   원가       ACCEPTED 4,254 (직접 단가 3,160 + 총액/kg 파생 1,094) · INSUFFICIENT 823 (COST_INCOMPLETE 795 · COST_IDENTITY_MISMATCH 28) · EXCLUDED 0
+              (직접 단가가 있는 행은 3,188 이나 그중 28 은 항등 불일치로 원가 유보 → ACCEPTED 3,160. Codex F1 정정)
 ```
 
 원가 파생(`COST_DERIVED_FROM_TOTAL`)의 타당성: preflight 는 `FPER_PRICE IS NULL` 만 봤는데 실제로는 **`FPER_PRICE = 0` + `TOTAL_PRICE > 0`** 행이 1,094 있다. 파생 단가 분포 p05/p50/p95 = 535 / **579** / 679 vs 직접 단가 519 / **580** / 3,005 — 중앙값이 일치해 총액/kg 가 kg 당 단가와 같은 의미임을 실데이터가 뒷받침한다. 보정이 아니라 항등식(§preflight 96 %) 의 역산이다. 직접 단가 p95 3,005 는 378행·kg 0.73 %·소량(kg p50 300)·항등 372/378 성립 → 고가 소량 제품(자돈 사료 추정, 확정 안 함) = `VALID_OUTLIER` 후보, `UNKNOWN` 병기. 보정 없음.
@@ -62,7 +63,7 @@ group    0     GRP_NO → TJ_GAIN_GRP 조인 0.3 % (preflight) — 이 소스로
 | 원가 MISSING (`no_cost`) | 13 |
 | 행 없음 (`no_data`) | 19 |
 
-농장별 12개월 원가 상태(마스킹 id · C/P/M): 4농장 전월 C · 1농장 전월 M · 나머지 혼합. 수량 12/12 보유 6농장 · 8·5·4개월 각 1.
+농장별 12개월 원가 상태(마스킹 id · C/P/M): **2농장 12개월 전부 C** · 2농장 C/M 만(P 없음 — `farm_cost_profile.complete=4` 는 이 정의) · 4농장 P 포함 · 1농장 전월 M. 수량 12/12 보유 6농장 · 8·5·4개월 각 1. (Codex F1 정정)
 **preflight 재현**: 직접 단가 기준 농장 프로파일 fully 6 / partially 2 / unpriced 1 — preflight 6/2/1 과 **정확히 일치**. (엔진의 farm-month COMPLETE 판정은 파생 단가를 포함하고 월 단위라 4/4/1 로 다르게 보이는 것이 정상 — 정의가 다르다.)
 
 ## 5. RECONCILIATION — 엔진 vs Oracle 집계 SQL (엔진 미경유)
@@ -144,6 +145,32 @@ script              scripts/feed_oracle_shadow_run.py — credential 은 env 로
 
 C 를 추천하는 이유는 하나다 — **basis 가 테이블 이름이 아니라 행의 속성이어야** 다음 소스(급이기 IoT = CONSUMED 후보)가 붙을 때 구조를 다시 바꾸지 않는다.
 
+## 10-1. 근거 출처 (JSON 밖 숫자 — Codex F1)
+
+| 숫자 | 출처 |
+|---|---|
+| 42/42 PP- 농장 존재 · currency KRW 0/42 | 프로덕션 read-only SELECT (이 세션, count 만) — JSON 에 없음 |
+| 항등 96 % · 625 제품명 · 378행/0.73 %/kg p50 300/372 항등 | `PIGPLAN_ORACLE_FEED_PREFLIGHT_20260922.md` §3·§4 + 이 세션 Oracle 집계 1회 |
+| 허용오차 0.15 kg · 1 KRW · 0.0006 · 0.02 | `api/scripts/feed_oracle_shadow_run.py` (`close()` 호출 인자) |
+| 1437 passed | 로컬 full suite (Codex 환경은 DATABASE_URL 없어 2 skipped — 결과 상이는 인프라) |
+
+## 10-2. ★ 재실행 2026-09-22 저녁 — P-6 (달력월 grain) + Codex B7 정정 반영
+
+```text
+엔진 변경   Period.comparison_grain: 달력월↔달력월은 길이가 달라도 비교 (F0 §9 "월이면 전월" 의 원래 의도) · 임의 구간은 같은 길이만
+SQL 정정    독립 대조 SQL 이 country_code='KOR' 를 WHERE 에 걸어 비KOR 행의 수량까지 떨어뜨렸다(classify 는 수량에 국가를 보지 않음) → KOR 조건을 원가 CASE 에만
+재실행      같은 9농장 · 같은 창 · 같은 소스 스냅샷(09-22)
+
+RECON       89 대조 · 불일치 0 / 0 / 0 / 0  (변화 없음 — 9농장 전부 KOR)
+CHANGE      연속쌍 99 → FEED_QTY_CHANGE 값 80 · no_data 17 · prior_insufficient 2 · context_missing **0** (이전 81)
+                        FEED_COST_CHANGE 값 52 · cost_incomplete 14 · no_cost 11 · prior_insufficient 5 · no_data 17
+            손계산 일치 80/80 · 52/52 · cost_incomplete 위장 0 · basis 전부 DELIVERED
+VARIANCE    적격 52 (이전 9) · PRICE+VOLUME+MIX = TOTAL 52/52
+GOLDEN      8/8 PASS (variance 사례 월이 2026-01 → 2025-10 로 바뀜 — 첫 적격쌍이 앞당겨졌기 때문)
+```
+§6 의 "EXPECTED_LIMITATION → 계약 결정 후보" 는 P-6 로 닫혔다 (`../FEED_PERSISTENCE_ARCHITECTURE.md` §P-6).
+
+
 ## 11. 판정
 
 ```text
@@ -152,8 +179,8 @@ FARM_MAPPING_VALID                  YES   (9/9 직접 · 프로덕션 42/42)
 DELIVERED_QUANTITY_VALID            YES   (89/89 대조)
 CORE_QUANTITY_RECONCILED            YES
 CORE_COST_RECONCILED                YES   (COMPLETE 62 · PARTIAL 14 는 evidence 로 일치 · MISSING 13)
-CHANGE_METRICS_VALID                YES   (적격 쌍 22/22 — 단, 달 길이 규칙으로 81쌍 유보 → 계약 결정)
-VARIANCE_VALID                      YES   (9/9)
+CHANGE_METRICS_VALID                YES   (P-6 재실행: 80/80 · 52/52 — 유보 0. 최초 실행은 22/22 + 81 유보)
+VARIANCE_VALID                      YES   (P-6 재실행 52/52 · 최초 9/9)
 PIGOS_DB_WRITES                     0
 ```
 

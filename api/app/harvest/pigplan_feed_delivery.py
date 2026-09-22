@@ -14,7 +14,7 @@ D-FEED-03  ACCOUNT_CD='410002' — filter evidence strong · official label unve
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, Literal
 
@@ -44,6 +44,9 @@ SOURCE_CONTRACT: dict[str, Any] = {
     "group_attribution": "NONE (GRP_NO joins TJ_GAIN_GRP 0.3 %) — FCR family not computed",
 }
 
+SOURCE_CONTRACT_VERSION = "pigplan_feed_delivery.v1"
+SOURCE_SYSTEM = "pigplan"
+SOURCE_DATASET = "TM_ETC_TRADE"
 SOURCE_CURRENCY = "KRW"
 SOURCE_COUNTRY = "KOR"
 FILTER_ACCOUNT_CD = "410002"
@@ -82,6 +85,15 @@ class PigPlanFeedDeliveryRow:
     gain_yn: str | None
     country_code: str | None             # TA_FARM.COUNTRY_CODE
     has_supplier: bool = False           # COMP_CD IS NOT NULL
+    source_inserted_at: datetime | None = None   # LOG_INS_DT
+    source_updated_at: datetime | None = None    # LOG_UPT_DT — 동기화 watermark 근거 (100 % 채워짐, preflight)
+
+
+def source_row_key(row: PigPlanFeedDeliveryRow) -> str:
+    """소스 PK (FARM_NO, SEQ) — preflight 실측: PK+UNIQUE, 2.3M 행 중복 0·NULL 0. row number 가 아니다 (P-2 NATIVE_STABLE_KEY)."""
+    if row.seq is None:
+        raise ValueError("source row without SEQ cannot be persisted (no stable identity)")
+    return f"{row.source_farm_no}:{row.seq}"
 
 
 @dataclass(frozen=True)
@@ -187,7 +199,8 @@ SELECT t.farm_no, t.seq, t.wk_dt, t.total_kg, t.fper_price, t.total_price,
        t.feed_cd,
        (SELECT m.feed_nm FROM tm_feed m WHERE m.farm_no=t.farm_no AND m.feed_cd=t.feed_cd AND rownum=1) feed_nm,
        t.use_yn, t.account_cd, t.gain_yn, f.country_code,
-       CASE WHEN t.comp_cd IS NULL THEN 0 ELSE 1 END has_supplier
+       CASE WHEN t.comp_cd IS NULL THEN 0 ELSE 1 END has_supplier,
+       t.log_ins_dt, t.log_upt_dt
 FROM tm_etc_trade t LEFT JOIN ta_farm f ON f.farm_no = t.farm_no
 WHERE t.account_cd = :acct AND t.gain_yn = :gain
   AND t.farm_no IN ({farms})
@@ -198,28 +211,29 @@ WHERE t.account_cd = :acct AND t.gain_yn = :gain
 _INDEPENDENT_MONTH = """
 SELECT t.farm_no, to_char(t.wk_dt,'YYYY-MM') ym,
        sum(t.total_kg) kg,
-       sum(CASE WHEN t.fper_price > 0 AND (t.total_price IS NULL OR t.total_price <= 0 OR abs(t.total_price - t.fper_price*t.total_kg) < 1)
+       sum(CASE WHEN f.country_code = :ctry AND t.fper_price > 0 AND (t.total_price IS NULL OR t.total_price <= 0 OR abs(t.total_price - t.fper_price*t.total_kg) < 1)
                 THEN t.total_kg * t.fper_price
-                WHEN (t.fper_price IS NULL OR t.fper_price <= 0) AND t.total_price > 0 THEN t.total_price END) cost,
-       sum(CASE WHEN t.fper_price > 0 AND (t.total_price IS NULL OR t.total_price <= 0 OR abs(t.total_price - t.fper_price*t.total_kg) < 1)
+                WHEN f.country_code = :ctry AND (t.fper_price IS NULL OR t.fper_price <= 0) AND t.total_price > 0 THEN t.total_price END) cost,
+       sum(CASE WHEN f.country_code = :ctry AND t.fper_price > 0 AND (t.total_price IS NULL OR t.total_price <= 0 OR abs(t.total_price - t.fper_price*t.total_kg) < 1)
                 THEN t.total_kg
-                WHEN (t.fper_price IS NULL OR t.fper_price <= 0) AND t.total_price > 0 THEN t.total_kg END) priced_kg,
+                WHEN f.country_code = :ctry AND (t.fper_price IS NULL OR t.fper_price <= 0) AND t.total_price > 0 THEN t.total_kg END) priced_kg,
        count(*) rows_accepted,
-       sum(CASE WHEN t.fper_price > 0 AND (t.total_price IS NULL OR t.total_price <= 0 OR abs(t.total_price - t.fper_price*t.total_kg) < 1) THEN 1
-                WHEN (t.fper_price IS NULL OR t.fper_price <= 0) AND t.total_price > 0 THEN 1 ELSE 0 END) rows_costed
-FROM tm_etc_trade t JOIN ta_farm f ON f.farm_no = t.farm_no
-WHERE t.account_cd = :acct AND t.gain_yn = :gain AND t.use_yn = 'Y' AND f.country_code = :ctry
+       sum(CASE WHEN f.country_code = :ctry AND t.fper_price > 0 AND (t.total_price IS NULL OR t.total_price <= 0 OR abs(t.total_price - t.fper_price*t.total_kg) < 1) THEN 1
+                WHEN f.country_code = :ctry AND (t.fper_price IS NULL OR t.fper_price <= 0) AND t.total_price > 0 THEN 1 ELSE 0 END) rows_costed
+FROM tm_etc_trade t LEFT JOIN ta_farm f ON f.farm_no = t.farm_no
+WHERE t.account_cd = :acct AND t.gain_yn = :gain AND t.use_yn = 'Y'
   AND t.farm_no IN ({farms}) AND t.total_kg > 0
   AND t.wk_dt >= :d0 AND t.wk_dt < :d1 + 1 AND t.wk_dt >= to_date('1990-01-01','YYYY-MM-DD') AND t.wk_dt <= :today
 GROUP BY t.farm_no, to_char(t.wk_dt,'YYYY-MM')
 """
+# 수량·단계 집계는 국가와 무관(classify 도 수량은 국가를 보지 않는다). 국가(KOR)는 **원가에만** 건다 — Codex B7 정정 (2026-09-22).
 
 _INDEPENDENT_STAGE = """
 SELECT t.farm_no, to_char(t.wk_dt,'YYYY-MM') ym,
        (SELECT s.cname FROM tc_code_sys s WHERE s.pcode='100' AND s.code=t.ck_use_gubun_cd AND s.language_cd='ko' AND rownum=1) stage_nm,
        sum(t.total_kg) kg
-FROM tm_etc_trade t JOIN ta_farm f ON f.farm_no = t.farm_no
-WHERE t.account_cd = :acct AND t.gain_yn = :gain AND t.use_yn = 'Y' AND f.country_code = :ctry
+FROM tm_etc_trade t
+WHERE t.account_cd = :acct AND t.gain_yn = :gain AND t.use_yn = 'Y'
   AND t.farm_no IN ({farms}) AND t.total_kg > 0
   AND t.wk_dt >= :d0 AND t.wk_dt < :d1 + 1 AND t.wk_dt >= to_date('1990-01-01','YYYY-MM-DD') AND t.wk_dt <= :today
 GROUP BY t.farm_no, to_char(t.wk_dt,'YYYY-MM'), t.ck_use_gubun_cd
@@ -256,7 +270,7 @@ class PigPlanFeedDeliverySource:
                     acct=FILTER_ACCOUNT_CD, gain=FILTER_GAIN_YN, d0=start, d1=end)
         out: list[PigPlanFeedDeliveryRow] = []
         for (farm_no, seq, wk_dt, kg, price, total, stage_cd, stage_nm, feed_cd, feed_nm,
-             use_yn, acct, gain, ctry, has_supplier) in cur.fetchall():
+             use_yn, acct, gain, ctry, has_supplier, ins_dt, upt_dt) in cur.fetchall():
             d = wk_dt.date() if hasattr(wk_dt, "date") else wk_dt
             out.append(PigPlanFeedDeliveryRow(
                 source_farm_no=int(farm_no), seq=int(seq) if seq is not None else None,
@@ -265,7 +279,7 @@ class PigPlanFeedDeliverySource:
                 feed_stage_cd=stage_cd, feed_stage_name=stage_nm,
                 feed_cd=int(feed_cd) if feed_cd is not None else None, feed_name=feed_nm,
                 use_yn=use_yn, account_cd=acct, gain_yn=gain, country_code=ctry,
-                has_supplier=bool(has_supplier),
+                has_supplier=bool(has_supplier), source_inserted_at=ins_dt, source_updated_at=upt_dt,
             ))
         return out
 
@@ -278,7 +292,7 @@ class PigPlanFeedDeliverySource:
             agg[(int(farm_no), ym)] = {"kg": _dec(kg), "cost": _dec(cost), "priced_kg": _dec(priced_kg),
                                        "rows_accepted": int(rows_acc), "rows_costed": int(rows_costed), "stages": {}}
         cur.execute(_INDEPENDENT_STAGE.format(farms=self._farms_clause(farm_nos)),
-                    acct=FILTER_ACCOUNT_CD, gain=FILTER_GAIN_YN, ctry=SOURCE_COUNTRY, d0=start, d1=end, today=today)
+                    acct=FILTER_ACCOUNT_CD, gain=FILTER_GAIN_YN, d0=start, d1=end, today=today)
         for farm_no, ym, stage_nm, kg in cur.fetchall():
             key = (int(farm_no), ym)
             if key in agg:

@@ -169,12 +169,14 @@ def feed_mix_share(inp: FeedInput) -> FeedMetricResult:
 # ── CHANGE (period-over-period) ────────────────────────────────────────────
 @_stamped
 def feed_qty_change(prev: FeedInput, cur: FeedInput) -> FeedMetricResult:
-    """cur − prev (kg) + rate. 이전 기간 no_data → prior_insufficient (0% 가 아니다). 기간 길이 불일치 → context_missing."""
+    """cur − prev (kg) + rate. 이전 기간 no_data → prior_insufficient (0% 가 아니다). 비교 불가 grain(달력월 아니고 길이도 다름) → context_missing (P-6)."""
     ev = {"prev": _base_evidence(prev)["period"], "cur": _base_evidence(cur)["period"], "quantity_basis": cur.quantity_basis}
     if prev.quantity_basis != cur.quantity_basis:
         return insufficient(FEED_QTY_CHANGE, "kg", R_CONTEXT_MISSING, basis_mismatch=[prev.quantity_basis, cur.quantity_basis], **ev)
-    if prev.period.days != cur.period.days:
-        return insufficient(FEED_QTY_CHANGE, "kg", R_CONTEXT_MISSING, **ev)
+    grain = prev.period.comparison_grain(cur.period)
+    if grain is None:
+        return insufficient(FEED_QTY_CHANGE, "kg", R_CONTEXT_MISSING, period_days=[prev.period.days, cur.period.days], **ev)
+    ev["comparison_grain"] = grain
     p, c = feed_qty(prev), feed_qty(cur)
     if c.provenance == "INSUFFICIENT":
         return insufficient(FEED_QTY_CHANGE, "kg", c.reason or R_NO_DATA, **ev)
@@ -193,8 +195,10 @@ def feed_cost_change(prev: FeedInput, cur: FeedInput) -> FeedMetricResult:
     ev = {"prev": _base_evidence(prev)["period"], "cur": _base_evidence(cur)["period"], "quantity_basis": cur.quantity_basis}
     if prev.quantity_basis != cur.quantity_basis:
         return insufficient(FEED_COST_CHANGE, "currency", R_CONTEXT_MISSING, basis_mismatch=[prev.quantity_basis, cur.quantity_basis], **ev)
-    if prev.period.days != cur.period.days:
-        return insufficient(FEED_COST_CHANGE, "currency", R_CONTEXT_MISSING, **ev)
+    grain = prev.period.comparison_grain(cur.period)
+    if grain is None:
+        return insufficient(FEED_COST_CHANGE, "currency", R_CONTEXT_MISSING, period_days=[prev.period.days, cur.period.days], **ev)
+    ev["comparison_grain"] = grain
     p, c = feed_cost(prev), feed_cost(cur)
     if c.provenance == "INSUFFICIENT":
         return insufficient(FEED_COST_CHANGE, "currency", c.reason or R_NO_DATA, **ev)

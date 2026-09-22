@@ -5,7 +5,7 @@
   VOLUME = (Q¹ − Q⁰) · Σ_i p_i¹ s_i⁰                총량 변화, 기준 구성비
   MIX    = Q¹ · Σ_i p_i¹ (s_i¹ − s_i⁰)              구성비 변화, 현재 총량
   (i = feed_type key, p_i = 수량 가중 단가, s_i = q_i/Q). 신규/소멸 i 는 없는 쪽 q=0, p 는 있는 쪽 값.
-전제: 두 기간 모두 FEED_COST 가 값(cost complete) · 같은 통화 · 같은 기간 길이. 아니면 전체 INSUFFICIENT.
+전제: 두 기간 모두 FEED_COST 가 값(cost complete) · 같은 통화 · 비교 가능 grain(달력월↔달력월 또는 같은 길이, P-6). 아니면 전체 INSUFFICIENT.
 POPULATION 효과: NOT_SUPPORTED (두당 분모 미확정 — SPEC §11).
 
 ★ 유리수(Fraction) 산술 — Decimal 나눗셈(s_i = q_i/Q)은 순환소수를 자르므로 항등식이 마지막 자리에서
@@ -69,8 +69,9 @@ def decompose_cost_change(prev: FeedInput, cur: FeedInput) -> VarianceResult:
 def _decompose(prev: FeedInput, cur: FeedInput) -> VarianceResult:
     if prev.quantity_basis != cur.quantity_basis:
         return _ins(R_CONTEXT_MISSING, basis_mismatch=[prev.quantity_basis, cur.quantity_basis])
-    if prev.period.days != cur.period.days:
-        return _ins(R_CONTEXT_MISSING)
+    grain = prev.period.comparison_grain(cur.period)
+    if grain is None:
+        return _ins(R_CONTEXT_MISSING, period_days=[prev.period.days, cur.period.days])
     pc, cc = feed_cost(prev), feed_cost(cur)
     if cc.provenance == INSUFFICIENT:
         return _ins(cc.reason or R_CONTEXT_MISSING, cur_reason=cc.reason)
