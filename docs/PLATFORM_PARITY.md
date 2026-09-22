@@ -1633,6 +1633,27 @@ G3 429 PARITY = PARTIAL              — Web·Android DONE · iOS 기능 DONE ·
 - 재동의 액션(H16/H11) — 앱은 고지만. 계약이 정해지면 시트에 버튼
 
 
+## 9-11. `FEED_SUMMARY_API` — API 계약 추가 (2026-09-23 등재)
+
+```text
+GET /api/v1/farms/{farm_id}/feed/summary?period=YYYY-MM&basis=AS_RECORDED|DELIVERED
+GET /api/v1/farms/{farm_id}/feed/months?from=YYYY-MM&to=YYYY-MM&basis=
+POST /api/v1/farms/{farm_id}/feed-records   — 기존 계약, 웹 폼이 이제 unit_cost·currency 를 보낸다 (필드 자체는 06-26 부터 있었음 · nullable 불변)
+```
+
+계약 요지 (`docs/feed/FEED_READ_API_CONTRACT_DRAFT.md`): basis 필수(기본값 없음, 두 basis 합산 없음) · `metrics.*.value == null ⇔ provenance INSUFFICIENT ⇔ reason` —
+**클라이언트는 null 을 0 으로 그리지 않는다**(iOS M-3 교훈) · 부분원가는 `evidence.partial_cost` · `no_data` 는 200 · FCR/효율 지표 없음 · 판정 없음(`no_policy`) · 원천 raw row 없음.
+DELIVERED 는 프로덕션 적재(INITIAL LOAD APPROVAL) 전까지 `no_data` 가 정상.
+
+| | `platform_implementation_status` | 근거 |
+|---|---|---|
+| Core | `IN_PROGRESS` | `routers/base/feed_summary.py` · 통합테스트 6 — feed 브랜치 `4882427`, main 미병합(PR #7) |
+| Web | `IN_PROGRESS` | `(app)/feed/page.tsx` 단가·통화 입력 + 월 결과 · 8 로케일 · vitest 7 — `89c1e70`, 미배포 |
+| Android | `PLANNED` | 사료 입력 화면 없음(입력경로 감사 §1-1). 소비 시 null≠0 규칙 필수 |
+| iOS | `PLANNED` | 同 |
+
+★ API 계약 변경 아님(신규 엔드포인트 + 기존 nullable 필드 사용). 구버전 모바일 영향 0.
+
 ## 10. 후속 STEP (이번 범위 아님)
 
 ```
@@ -1654,6 +1675,7 @@ STEP 5   CI + Release Gate + App Version Gate
 
 | 날짜 | 내용 |
 |---|---|
+| 2026-09-23 | §9-11 `FEED_SUMMARY_API` 등재 — feed summary/months 읽기 API + 웹 단가·통화 입력 (feed 브랜치, 미병합·미배포). Android/iOS PLANNED |
 | 2026-09-22 | §9-10 iOS evidence 등록 — iOS PR #1~#7 main merge SHA 확인(gh api). §3-1/§3-2/§3-3/§9-3-3 iOS `DONE`, §3-6 iOS 송출 DONE(서버 관측 NO), §9-8 iOS CODE_COMPLETE/BLOCKED_BY_SERVER, §3-7·§3-8 iOS IN_PROGRESS(READY_NOT_ENABLED / MINIMAL_FOUNDATION). ★ `/consent/diff`·`client_version` 은 safety(PR #2) 에만 — iOS 1.1 gate = PR #2 merge 결정. 신규 개발 0건 |
 | 2026-09-18 | §9-9 `SIGNUP_RATE_LIMIT_429` 3-클라이언트 반영 — Web `DONE`(8b7077c) · Android `DONE`(0e1d450, 446/0) · iOS `DONE`(7210e1c, CI 216/0). §9-9-1 파리티 매트릭스 신설 |
 | 2026-09-21 | §9-9-1 판정 정정 — `THREE_CLIENT_PARITY_VERIFIED=YES` → **`FUNCTIONAL_429_PARITY=YES` / `THREE_CLIENT_PARITY_VERIFIED=NO` / G3 PARTIAL**. 근거: 성공 조건의 locale coverage 에서 iOS 가 en 1/8 이고 iOS 다국어(1.1) 가 예정된 제품이라 GAP 을 안고 YES 라 쓸 수 없다. Android 는 CI run 35555598654 로 `ANDROID_CI_GREEN=YES` |
