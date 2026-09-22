@@ -1,9 +1,15 @@
-"""Feed source initial load — snapshot/Oracle → feed_source_rows (LOCAL / EPHEMERAL PG ONLY).
+"""Feed source initial load — snapshot/Oracle → feed_source_rows.
 
-모드 (둘 중 하나, 기본 dry-run):
+모드 (기본 dry-run · 쓰기는 언제나 명시해야 한다):
   --dry-run        원천 읽기 · 변환 · 대사 미리보기. 대상 DB write 0 (연결은 farms 읽기만)
-  --target-local   로컬/일회용 PG 에 실제 적재. DATABASE_URL 호스트가 localhost/127.0.0.1/pigos-postgres 가 아니거나
-                   프로덕션 표식(rds.amazonaws.com · 52.78.65.6 · api.pigos.io · supabase)이 보이면 즉시 거부 (fail-closed)
+  --target-local   로컬/일회용 PG 에만 적재. 환경이 local 이 아니면 즉시 거부
+  --apply          승인된 일회성 프로덕션 적재. 아래 기대를 **전부** 명시해야 하고 하나라도 실제와 다르면 거부
+                     --expect-environment production
+                     --expect-code-sha <적재 코드 지문>      (app/harvest/feed_load_guard.code_fingerprint)
+                     --expect-migration <alembic revision>   (코드 head == 대상 DB revision)
+                     --expect-source-scope-hash <scope hash>
+                     --expect-source-rows <preflight 실측 N>
+  --verify-only    읽기 전용 대사(프로덕션 허용). 적재 후 검증용 — SELECT 만
 
 원천 (둘 중 하나):
   --snapshot PATH  L0-B 로 고정한 repo 밖 snapshot 파일
@@ -34,22 +40,36 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine  # noqa: E4
 
 from app.db.models.platform import Farm  # noqa: E402
 from app.engine.feed.types import Period  # noqa: E402
+from app.harvest import feed_load_guard as guard  # noqa: E402
 from app.harvest import feed_source_reconcile as rc  # noqa: E402
 from app.harvest import feed_source_snapshot as snap  # noqa: E402
 from app.harvest import feed_source_sync as sync  # noqa: E402
 from app.harvest import pigplan_feed_delivery as pf  # noqa: E402
 from app.harvest.manifest import FARM_CODES  # noqa: E402
 
-LOCAL_HOSTS = {"localhost", "127.0.0.1", "pigos-postgres", "::1"}
-PROD_MARKERS = ("rds.amazonaws.com", "52.78.65.6", "api.pigos.io", "supabase", "pigos-prod")
+LOCAL_HOSTS = guard.LOCAL_HOSTS
+PROD_MARKERS = guard.PROD_URL_MARKERS
+
+
+def target_label(url: str) -> str:
+    u = urlparse(url.replace("+asyncpg", ""))
+    return f"{(u.hostname or '?').lower()}/{(u.path or '').lstrip('/')}"
 
 
 def assert_local_target(url: str) -> str:
-    u = urlparse(url.replace("+asyncpg", ""))
-    host = (u.hostname or "").lower()
-    if host not in LOCAL_HOSTS or any(m in url for m in PROD_MARKERS):
-        raise SystemExit(f"REFUSED: target is not a local/ephemeral PG (host={host or '?'}) — production/shared write is forbidden")
-    return f"{host}/{(u.path or '').lstrip('/')}"
+    """로컬 전용 도구(드릴·projection 검증)가 쓰는 가드. 적재 스크립트 본체는 guard.check_write_allowed 를 쓴다."""
+    if guard.detect_environment(url) != "local" or (urlparse(url.replace("+asyncpg", "")).hostname or "").lower() not in LOCAL_HOSTS:
+        raise SystemExit(f"REFUSED: target is not a local/ephemeral PG (host={(urlparse(url.replace('+asyncpg', '')).hostname or '?')}) — production/shared write is forbidden")
+    return target_label(url)
+
+
+def alembic_heads() -> list[str]:
+    """코드 트리의 alembic head 목록 — 프로덕션 체크아웃에 .git 이 없어도 동작한다."""
+    from alembic.config import Config
+    from alembic.script import ScriptDirectory
+    cfg = Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
+    cfg.set_main_option("script_location", str(Path(__file__).resolve().parents[1] / "alembic"))
+    return list(ScriptDirectory.from_config(cfg).get_heads())
 
 
 async def bootstrap_farms(db: AsyncSession) -> int:
@@ -80,6 +100,14 @@ async def main() -> int:
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--dry-run", action="store_true")
     g.add_argument("--target-local", action="store_true")
+    g.add_argument("--apply", action="store_true", help="승인된 일회성 프로덕션 적재 (기대값 전부 필수)")
+    g.add_argument("--verify-only", action="store_true", help="읽기 전용 대사 (프로덕션 허용)")
+    ap.add_argument("--expect-environment")
+    ap.add_argument("--expect-code-sha")
+    ap.add_argument("--expect-migration")
+    ap.add_argument("--expect-source-scope-hash")
+    ap.add_argument("--expect-source-rows", type=int)
+    ap.add_argument("--print-fingerprint", action="store_true", help="적재 코드 지문만 출력하고 종료")
     ap.add_argument("--snapshot", type=Path)
     ap.add_argument("--oracle", action="store_true")
     ap.add_argument("--window-start", required=True)
@@ -89,11 +117,21 @@ async def main() -> int:
     ap.add_argument("--out", type=Path, required=True, help="집계 JSON (식별자 없음)")
     ap.add_argument("--bootstrap-farms", action="store_true", help="일회용 DB 에 PP- 농장 합성 생성 (target-local 전용)")
     a = ap.parse_args()
-    mode = "target-local" if a.target_local else "dry-run"
+    if a.print_fingerprint:
+        print(guard.code_fingerprint())
+        return 0
+    mode = ("apply" if a.apply else "verify-only" if a.verify_only else "target-local" if a.target_local else "dry-run")
     today = date.fromisoformat(a.today) if a.today else date.today()
     window = Period(date.fromisoformat(a.window_start), date.fromisoformat(a.window_end))
     url = os.environ.get("DATABASE_URL", "")
-    target = assert_local_target(url)                      # dry-run 도 로컬 외 DB 에는 연결하지 않는다
+    target = target_label(url)
+    exp = guard.Expectations(environment=a.expect_environment, code_sha=a.expect_code_sha, migration=a.expect_migration,
+                             source_scope_hash=a.expect_source_scope_hash, source_rows=a.expect_source_rows)
+    try:
+        gate = guard.check_write_allowed("dry-run" if mode == "verify-only" else mode, url, exp)
+    except guard.RefusedError as e:
+        print(f"REFUSED: {e}")
+        return 4
 
     if a.oracle:
         pw = os.environ.get("ORACLE_PW")
@@ -117,19 +155,39 @@ async def main() -> int:
             if mode != "target-local" or not target.endswith(("pigos_feedload", "pigos_feedload_rt")):
                 raise SystemExit("REFUSED: --bootstrap-farms only on an ephemeral pigos_feedload* target")
             print("bootstrapped farms:", await bootstrap_farms(db))
+        # 매핑 범위 = manifest 42 ∩ 대상 DB 의 PP- 농장. 관측된 농장 수를 코드에 박지 않는다.
         farm_map = await farm_map_from_db(db)
-        scoped = source.farms_with_rows(sorted(farm_map), window.start, window.end)
+        authorized = len(farm_map)
+        all_source_farms = set(source.farms_with_rows(FARM_CODES, window.start, window.end))
+        scoped = sorted(all_source_farms & set(farm_map))
+        unmapped = len(all_source_farms - set(farm_map))
         farm_map = {n: farm_map[n] for n in scoped}
         rows = source.fetch_rows(sorted(farm_map), window.start, window.end)
+        if mode == "apply":
+            db_rev = await db.scalar(text("SELECT version_num FROM alembic_version"))
+            try:
+                guard.check_migration(a.expect_migration, db_rev, alembic_heads())
+                guard.check_scope(a.expect_source_scope_hash, snap.scope_hash(FARM_CODES, window.start, window.end),
+                                  a.expect_source_rows, len(rows), unmapped_farms=unmapped)
+            except guard.RefusedError as e:
+                print(f"REFUSED: {e}")
+                await eng.dispose()
+                return 4
         expected = rc.expected_from_rows(rows, set(farm_map), window.start, window.end, today=today)
-        report = {"mode": mode, "source_mode": source_mode, "target": target,
+        report = {"mode": mode, "gate": gate, "source_mode": source_mode, "target": target,
+                  "authorized_mapping_scope": authorized, "observed_farms_with_rows": len(farm_map), "unmapped_included": unmapped,
                   "window": [window.start.isoformat(), window.end.isoformat()],
-                  "source_scope_hash": snap.scope_hash(sorted(farm_map), window.start, window.end),
+                  "source_scope_hash": snap.scope_hash(FARM_CODES, window.start, window.end),
                   "farms_in_scope": len(farm_map), "source_rows_fetched": len(rows),
                   "expected": {"total": expected.total, "by_month": dict(sorted(expected.by_month.items())),
                                "source_status": dict(expected.source_status), "quantity_status": dict(expected.quantity_status),
                                "cost_status": dict(expected.cost_status), "farms": len(expected.by_farm)}}
-        if mode == "dry-run":
+        if mode == "verify-only":
+            obs = await rc.observed_from_db(db, farm_map, revision=None)
+            report["observed_current_total"] = obs["expected_shape"].total
+            report["invariants"] = obs["invariants"]
+            report["mismatch"] = rc.diff(expected, obs["expected_shape"])
+        elif mode == "dry-run":
             size_before = None
         else:
             size_before = int(await db.scalar(text("SELECT pg_database_size(current_database())")))
