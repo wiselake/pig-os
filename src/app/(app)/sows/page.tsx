@@ -133,7 +133,7 @@ export default function SowsPage() {
         {/* Search + filter chips */}
         <div className="flex items-center gap-3 mb-4 flex-wrap">
           <div className="relative w-60">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text3" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text3" />
             <input
               type="text"
               placeholder={t("searchPlaceholder")}
@@ -175,7 +175,7 @@ export default function SowsPage() {
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center text-center gap-3 py-16 px-6">
               <div className="w-14 h-14 rounded-2xl bg-bg2 border border-border flex items-center justify-center text-text3">
-                <PiggyBank size={26} />
+                <PiggyBank size={28} />
               </div>
               <p className="text-sm font-bold text-text1">
                 {search ? t("emptyNoResult", { q: search }) : t("emptyNoSows")}
@@ -238,7 +238,7 @@ export default function SowsPage() {
                           const m = ALERT_META[rt];
                           return (
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${SEVERITY_PILL[m.severity]}`}>
-                              <AlertTriangle size={10} />
+                              <AlertTriangle size={12} />
                               {t(`riskShort.${rt}`)}
                             </span>
                           );
@@ -253,7 +253,7 @@ export default function SowsPage() {
                               title={t("editTooltip")}
                               className="p-1.5 rounded-md text-text3 hover:text-text hover:bg-bg2 transition"
                             >
-                              <Pencil size={13} />
+                              <Pencil size={12} />
                             </button>
                           )}
                           {/* 도폐사=관리권한(canManage, 백엔드 cull _MANAGE_ROLES — WORKER 제외) */}
@@ -263,7 +263,7 @@ export default function SowsPage() {
                               title={t("removalTooltip")}
                               className="p-1.5 rounded-md text-text3 hover:text-danger hover:bg-red-soft transition"
                             >
-                              <LogOut size={13} />
+                              <LogOut size={12} />
                             </button>
                           )}
                         </div>
@@ -298,7 +298,7 @@ export default function SowsPage() {
                       <span className="font-mono text-text3">{sow.entry_date.slice(0, 10)}</span>
                       {m && (
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${SEVERITY_PILL[m.severity]}`}>
-                          <AlertTriangle size={10} />
+                          <AlertTriangle size={12} />
                           {t(`riskShort.${rt}`)}
                         </span>
                       )}
@@ -309,7 +309,7 @@ export default function SowsPage() {
                           onClick={() => setEditTarget(sow)}
                           className="flex items-center gap-1 text-xs px-2 py-1 rounded-md text-text2 hover:text-text hover:bg-bg2 transition"
                         >
-                          <Pencil size={13} /> {t("editTooltip")}
+                          <Pencil size={12} /> {t("editTooltip")}
                         </button>
                       )}
                       {canManage(role) && sow.status !== "CULLED" && sow.status !== "DEAD" && (
@@ -317,7 +317,7 @@ export default function SowsPage() {
                           onClick={() => setCullTarget(sow)}
                           className="flex items-center gap-1 text-xs px-2 py-1 rounded-md text-text2 hover:text-danger hover:bg-red-soft transition"
                         >
-                          <LogOut size={13} /> {t("removalTooltip")}
+                          <LogOut size={12} /> {t("removalTooltip")}
                         </button>
                       )}
                     </div>

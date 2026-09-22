@@ -92,7 +92,7 @@ function IssueRow({
             isCrit ? "text-danger" : "text-warning"
           }`}
         >
-          {isCrit ? <AlertOctagon size={13} /> : <AlertTriangle size={13} />}
+          {isCrit ? <AlertOctagon size={12} /> : <AlertTriangle size={12} />}
           {t(issue.issue_type)}
         </span>
       </td>

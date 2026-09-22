@@ -57,9 +57,9 @@
     "statNpd": "NPD (非生产天数)",
     "statFarrowingRate": "分娩率",
     "statAiAlerts": "AI 提醒",
-    "met": "✓ 达标",
+    "met": "达标",
     "belowTarget": "▼ 未达标",
-    "belowOk": "✓ 达标以内",
+    "belowOk": "达标以内",
     "aboveTarget": "▲ 超标",
     "severeWarn": "紧急 {crit} · 警告 {warn}",
     "overdueSows": "待处理母猪 {n}",
@@ -72,7 +72,7 @@
     "pWeaning": "断奶",
     "ruleAlerts": "Rule Engine 提醒",
     "alertCount": "{n}",
-    "noAlertsAll": "✓ 暂无提醒 — 所有KPI正常",
+    "noAlertsAll": "暂无提醒 — 所有KPI正常",
     "aiBriefing": "AI 简报",
     "briefPrefix": "在栏母猪",
     "briefMid": "非生产天数",
@@ -256,7 +256,7 @@
     "herdWeanedOpen": "空怀/断奶",
     "herdActiveTotal": "在栏合计",
     "ruleAlerts": "Rule Engine 提醒",
-    "noAlerts": "✓ 暂无 Rule Engine 提醒 — 所有KPI正常",
+    "noAlerts": "暂无 Rule Engine 提醒 — 所有KPI正常",
     "headUnit": "头",
     "daysUnit": "天",
     "currentTarget": "当前 {cur} / 目标 {tgt}",
@@ -330,6 +330,7 @@
     "conflict": "与现有数据冲突，请刷新后重试。",
     "validation": "输入的信息有误，请检查后重试。",
     "rateLimited": "尝试次数过多，请稍候再试。",
+    "rateLimitedRetryIn": "约 {minutes} 分钟后可再次尝试。",
     "dbUnavailable": "服务暂时不可用，请稍后重试。",
     "serverError": "我们这边出现了问题。请提供以下代码联系支持："
   },
@@ -963,7 +964,7 @@
     "cAvgWeaned": "窝断奶数",
     "cLactDays": "哺乳天数",
     "cRts": "返情率",
-    "pwmrNote": "⚠ PWMR-A(死亡/断奶+死亡)与PWMR-B(总产-断奶/总产)可能相差3–5%p。",
+    "pwmrNote": "PWMR-A(死亡/断奶+死亡)与PWMR-B(总产-断奶/总产)可能相差3–5%p。",
     "cPwmrA": "PWMR-A",
     "cPwmrB": "PWMR-B",
     "groupByPeriod": "按期间",
@@ -1026,7 +1027,7 @@
   },
   "profile": {
     "title": "编辑个人资料",
-    "saved": "✓ 更改已保存",
+    "saved": "更改已保存",
     "changePhoto": "更换照片",
     "name": "姓名",
     "namePh": "请输入姓名",
@@ -1260,7 +1261,7 @@
     "selectFarm": "请先选择猪场。",
     "loading": "正在加载任务…",
     "loadError": "加载任务失败。",
-    "allClear": "全部处理完毕 — 无待办任务 🎉",
+    "allClear": "全部处理完毕 — 无待办任务",
     "overdueDays": "已逾期 {n} 天",
     "go": "前往",
     "done": "完成",
@@ -2031,6 +2032,12 @@
       "desc": "您同意的部分文件已变更。请查看当前版本。",
       "review": "查看变更"
     },
+    "diff": {
+      "required": "当前版本",
+      "recorded": "您同意的版本",
+      "never": "尚无记录",
+      "changed": "自您同意后已更新"
+    },
     "dismiss": "关闭"
   },
   "forgotPassword": {
@@ -2099,7 +2106,11 @@
     "phSows": "如：500",
     "phName": "如：张伟",
     "phUsername": "如：farmowner",
-    "phEmail": "farmer@example.com"
+    "phEmail": "farmer@example.com",
+    "consentPlanUnavailable": "无法加载适用于您所在国家/地区的条款。未同意条款则无法完成注册，请返回上一步重试。",
+    "publicationNotApprovedTitle": "您所在的地区尚未开放注册",
+    "publicationNotApproved": "您所选国家/地区尚未开放注册。该地区的服务条款与隐私声明仍在法律审核中，我们不会请您同意尚未定稿的文件。请发送邮件至 help@pigos.io，开放后我们会第一时间通知您。",
+    "consentRecordFailed": "未能记录您的同意。注册尚未完成，请重试。"
   },
   "kpiCards": {
     "labelPSY": "PSY",

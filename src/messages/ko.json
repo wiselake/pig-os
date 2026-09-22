@@ -57,9 +57,9 @@
     "statNpd": "NPD (비생산일수)",
     "statFarrowingRate": "분만율",
     "statAiAlerts": "AI 알림",
-    "met": "✓ 목표 달성",
+    "met": "목표 달성",
     "belowTarget": "▼ 목표 미달",
-    "belowOk": "✓ 목표 이하",
+    "belowOk": "목표 이하",
     "aboveTarget": "▲ 목표 초과",
     "severeWarn": "위급 {crit} · 경고 {warn}",
     "overdueSows": "관리대상 모돈 {n}두",
@@ -72,7 +72,7 @@
     "pWeaning": "이유",
     "ruleAlerts": "Rule Engine 알림",
     "alertCount": "{n}건",
-    "noAlertsAll": "✓ 현재 알림 없음 — 모든 KPI 정상 범위",
+    "noAlertsAll": "현재 알림 없음 — 모든 KPI 정상 범위",
     "aiBriefing": "AI 브리핑",
     "briefPrefix": "활성 모돈",
     "briefMid": "비생산일수",
@@ -256,7 +256,7 @@
     "herdWeanedOpen": "이유/공태",
     "herdActiveTotal": "활성 전체",
     "ruleAlerts": "Rule Engine 알림",
-    "noAlerts": "✓ 현재 Rule Engine 알림 없음 — 모든 KPI 정상 범위",
+    "noAlerts": "현재 Rule Engine 알림 없음 — 모든 KPI 정상 범위",
     "headUnit": "두",
     "daysUnit": "일",
     "currentTarget": "현재 {cur} / 목표 {tgt}",
@@ -330,6 +330,7 @@
     "conflict": "기존 데이터와 충돌합니다. 새로고침 후 다시 시도해 주세요.",
     "validation": "입력한 정보에 오류가 있습니다. 확인 후 다시 시도해 주세요.",
     "rateLimited": "시도 횟수가 너무 많습니다. 잠시 후 다시 시도해 주세요.",
+    "rateLimitedRetryIn": "약 {minutes}분 후 다시 시도할 수 있습니다.",
     "dbUnavailable": "일시적으로 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
     "serverError": "서버에 문제가 발생했습니다. 아래 코드와 함께 문의해 주세요:"
   },
@@ -963,7 +964,7 @@
     "cAvgWeaned": "이유두수",
     "cLactDays": "포유일",
     "cRts": "RTS율",
-    "pwmrNote": "⚠ PWMR-A(폐사/이유+폐사)와 PWMR-B(총산-이유/총산)는 3–5%p 차이날 수 있습니다.",
+    "pwmrNote": "PWMR-A(폐사/이유+폐사)와 PWMR-B(총산-이유/총산)는 3–5%p 차이날 수 있습니다.",
     "cPwmrA": "PWMR-A",
     "cPwmrB": "PWMR-B",
     "groupByPeriod": "기간별",
@@ -1026,7 +1027,7 @@
   },
   "profile": {
     "title": "프로필 편집",
-    "saved": "✓ 변경사항이 저장됐습니다",
+    "saved": "변경사항이 저장됐습니다",
     "changePhoto": "사진 변경",
     "name": "이름",
     "namePh": "이름을 입력하세요",
@@ -1260,7 +1261,7 @@
     "selectFarm": "농장을 먼저 선택하세요.",
     "loading": "작업 불러오는 중…",
     "loadError": "작업을 불러오지 못했습니다.",
-    "allClear": "모두 처리 완료 — 대기 중인 작업 없음 🎉",
+    "allClear": "모두 처리 완료 — 대기 중인 작업 없음",
     "overdueDays": "{n}일 경과",
     "go": "이동",
     "done": "완료",
@@ -2031,6 +2032,12 @@
       "desc": "동의하신 문서 중 변경된 내용이 있습니다. 현재 버전을 확인해 주세요.",
       "review": "변경사항 확인"
     },
+    "diff": {
+      "required": "현재 버전",
+      "recorded": "동의한 버전",
+      "never": "기록 없음",
+      "changed": "동의 이후 변경됨"
+    },
     "dismiss": "닫기"
   },
   "forgotPassword": {
@@ -2099,7 +2106,11 @@
     "phSows": "예: 500",
     "phName": "예: 홍길동",
     "phUsername": "예: farmowner",
-    "phEmail": "farmer@example.com"
+    "phEmail": "farmer@example.com",
+    "consentPlanUnavailable": "해당 국가에 적용되는 약관을 불러오지 못했습니다. 동의 없이는 가입을 완료할 수 없습니다. 이전 단계로 돌아가 다시 시도해 주세요.",
+    "publicationNotApprovedTitle": "아직 이 지역에서는 가입을 받지 않습니다",
+    "publicationNotApproved": "선택하신 국가는 아직 가입을 받지 않습니다. 해당 지역의 약관과 개인정보 처리방침이 법률 검토 중이며, 확정되지 않은 문서에 동의를 요청하지 않습니다. help@pigos.io 로 알려주시면 가입이 열리는 대로 안내드리겠습니다.",
+    "consentRecordFailed": "동의 내용을 기록하지 못했습니다. 가입이 완료되지 않았습니다. 다시 시도해 주세요."
   },
   "kpiCards": {
     "labelPSY": "PSY",

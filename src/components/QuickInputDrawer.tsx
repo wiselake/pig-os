@@ -102,7 +102,7 @@ export function QuickInputDrawer({ open, onClose }: QuickInputDrawerProps) {
                   className="w-10 h-10 rounded-xl flex items-center justify-center"
                   style={{ background: ev.color + "18" }}
                 >
-                  <Icon className="w-5 h-5" style={{ color: ev.color }} />
+                  <Icon size={20} style={{ color: ev.color }} />
                 </div>
                 <span className="text-[11px] font-semibold text-text2 text-center leading-tight">
                   {t(`ev_${ev.id}`)}

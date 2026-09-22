@@ -60,7 +60,7 @@ function AccountMenu() {
         <span className="hidden sm:inline text-xs font-semibold max-w-[110px] truncate">
           {user?.name ?? user?.username ?? t("account")}
         </span>
-        <ChevronDown size={13} className={open ? "rotate-180 transition" : "transition"} />
+        <ChevronDown size={12} className={open ? "rotate-180 transition" : "transition"} />
       </button>
 
       {open && (
@@ -167,7 +167,7 @@ export function Topbar({
           onClick={onBell}
           className="relative p-2 rounded-lg text-muted hover:bg-bg2 hover:text-text transition"
         >
-          <Bell size={18} />
+          <Bell size={16} />
           {alertCount > 0 && (
             <span className="absolute top-1 right-1 min-w-[14px] h-3.5 px-1 rounded-full bg-red text-white font-mono text-[9px] font-bold flex items-center justify-center">
               {alertCount}

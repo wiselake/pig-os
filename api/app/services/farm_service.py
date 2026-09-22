@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.permissions import get_accessible_farm_ids
 from app.db.models.config import ComplianceProfile, FarmConfig, RegionDefault
-from app.db.models.platform import Farm, User, UserFarm
+from app.db.models.platform import Farm, Organization, User, UserFarm
 from app.db.models.sow import Building, Sow
 from app.schemas.farm import (
     CURRENCY_SYMBOLS,
@@ -22,6 +22,15 @@ def _generate_farm_code(country: str, org_id: UUID) -> str:
     # org+country만으로 결정하면 같은 org의 2번째 동일국가 농장이 farm_code UNIQUE 충돌→500 (QA 온보딩 B1).
     # org 그룹핑(가독성) + 농장별 엔트로피로 유니크 보장.
     return f"FARM-{country.upper()}-{str(org_id)[:6].upper()}-{uuid4().hex[:6].upper()}"
+
+
+async def org_country(db: AsyncSession, org_id: UUID | None) -> str | None:
+    """조직(계정)의 authoritative 국가. 추가 농장 생성 시 cross-jurisdiction 판정에 쓴다.
+
+    User 모델에는 country 가 없고 Organization 에만 있다."""
+    if org_id is None:
+        return None
+    return await db.scalar(select(Organization.country).where(Organization.id == org_id))
 
 
 async def create_farm(

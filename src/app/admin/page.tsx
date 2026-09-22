@@ -39,7 +39,7 @@ export default function AdminOverviewPage() {
             <div key={key} className="bg-surface border border-border rounded-2xl p-5" style={{ boxShadow: "var(--shadow-card)" }}>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[11px] font-bold uppercase tracking-wide text-text3">{label}</span>
-                <Icon size={18} className="text-primary" />
+                <Icon size={16} className="text-primary" />
               </div>
               {isLoading ? (
                 <div className="h-9 w-16 bg-border rounded animate-pulse" />

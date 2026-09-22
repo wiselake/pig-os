@@ -57,9 +57,9 @@
     "statNpd": "NPD (non-productive days)",
     "statFarrowingRate": "Farrowing rate",
     "statAiAlerts": "AI alerts",
-    "met": "✓ Target met",
+    "met": "Target met",
     "belowTarget": "▼ Below target",
-    "belowOk": "✓ Within target",
+    "belowOk": "Within target",
     "aboveTarget": "▲ Over target",
     "severeWarn": "Critical {crit} · Warning {warn}",
     "overdueSows": "Sows needing attention {n}",
@@ -72,7 +72,7 @@
     "pWeaning": "Weaning",
     "ruleAlerts": "Rule Engine alerts",
     "alertCount": "{n}",
-    "noAlertsAll": "✓ No alerts — all KPIs within range",
+    "noAlertsAll": "No alerts — all KPIs within range",
     "aiBriefing": "AI briefing",
     "briefPrefix": "Active sows",
     "briefMid": "Non-productive days",
@@ -256,7 +256,7 @@
     "herdWeanedOpen": "Open/Weaned",
     "herdActiveTotal": "Total active",
     "ruleAlerts": "Rule Engine alerts",
-    "noAlerts": "✓ No Rule Engine alerts — all KPIs within range",
+    "noAlerts": "No Rule Engine alerts — all KPIs within range",
     "headUnit": "hd",
     "daysUnit": "d",
     "currentTarget": "Now {cur} / target {tgt}",
@@ -330,6 +330,7 @@
     "conflict": "This conflicts with existing data. Refresh and try again.",
     "validation": "Some information is invalid. Please check and try again.",
     "rateLimited": "Too many attempts. Please wait a moment and try again.",
+    "rateLimitedRetryIn": "You can try again in about {minutes} min.",
     "dbUnavailable": "Service is temporarily unavailable. Please try again in a moment.",
     "serverError": "Something went wrong on our side. Please contact support with this code:"
   },
@@ -963,7 +964,7 @@
     "cAvgWeaned": "Weaned/litter",
     "cLactDays": "Lactation days",
     "cRts": "RTS rate",
-    "pwmrNote": "⚠ PWMR-A (deaths/(weaned+deaths)) and PWMR-B ((TB−weaned)/TB) can differ by 3–5%p.",
+    "pwmrNote": "PWMR-A (deaths/(weaned+deaths)) and PWMR-B ((TB−weaned)/TB) can differ by 3–5%p.",
     "cPwmrA": "PWMR-A",
     "cPwmrB": "PWMR-B",
     "groupByPeriod": "By period",
@@ -1026,7 +1027,7 @@
   },
   "profile": {
     "title": "Edit profile",
-    "saved": "✓ Changes saved",
+    "saved": "Changes saved",
     "changePhoto": "Change photo",
     "name": "Name",
     "namePh": "Enter your name",
@@ -1260,7 +1261,7 @@
     "selectFarm": "Select a farm first.",
     "loading": "Loading tasks…",
     "loadError": "Failed to load tasks.",
-    "allClear": "All clear — no pending tasks 🎉",
+    "allClear": "All clear — no pending tasks",
     "overdueDays": "{n} days overdue",
     "go": "Go",
     "done": "Done",
@@ -2031,6 +2032,12 @@
       "desc": "Some documents you agreed to have changed. Please review the current version.",
       "review": "Review changes"
     },
+    "diff": {
+      "required": "Current version",
+      "recorded": "Version you agreed to",
+      "never": "Not yet recorded",
+      "changed": "Updated since you agreed"
+    },
     "dismiss": "Dismiss"
   },
   "forgotPassword": {
@@ -2099,7 +2106,11 @@
     "phSows": "e.g. 500",
     "phName": "e.g. John Kim",
     "phUsername": "e.g. farmowner",
-    "phEmail": "farmer@example.com"
+    "phEmail": "farmer@example.com",
+    "consentPlanUnavailable": "We couldn't load the terms that apply to your country. You can't complete sign-up without agreeing to them — please go back and try again.",
+    "publicationNotApprovedTitle": "Not open in your region yet",
+    "publicationNotApproved": "PigOS is not yet accepting sign-ups for the country you selected. Our terms and privacy notice for this region are still with our lawyers, and we will not ask you to agree to documents that are not final. Write to help@pigos.io and we will tell you as soon as it opens.",
+    "consentRecordFailed": "We couldn't record your agreement. Your sign-up isn't complete. Please try again."
   },
   "kpiCards": {
     "labelPSY": "PSY",

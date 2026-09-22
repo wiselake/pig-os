@@ -1,0 +1,100 @@
+# Feed PHASE 0 coverage audit
+generated_utc: 20260918T075017Z
+mode:          synthetic   (★ SYNTHETIC fixture — no real-farm conclusion may be drawn)
+target:        docker exec pigos-postgres (local)  db=pigos_feedaudit_1789717817
+alembic:       f3c6a8d0b2e4
+audit_sql:     698bda3  scripts/feed_coverage_audit.sql
+thresholds:    docs/feed/PHASE0_AUDIT_PLAN.md (judgement is made there, not here)
+
+BEGIN
+SET
+      section      |                                   metric                                    |   n   |   d    |  pct  |                                                       note                                                        
+-------------------+-----------------------------------------------------------------------------+-------+--------+-------+-------------------------------------------------------------------------------------------------------------------
+ A.feed_records    | A0 farms with >=1 feed record                                               |     2 |      3 |  66.7 | d = farms(active = true)
+ A.feed_records    | A0 farms with >=1 feed record, last 12 months                               |     2 |      3 |  66.7 | 
+ A.feed_records    | A0 rows (deleted_at IS NULL)                                                |    14 |        |       | 
+ A.feed_records    | A0 rows, last 12 months                                                     |    13 |        |       | 
+ A.feed_records    | A1 STRUCTURAL: columns that could qualify quantity_kg meaning               |     0 |        |       | looked for: record_kind|measure_type|quantity_type|unit|uom|delivery|consumed|disappearance|basis in feed_records
+ A.feed_records    | A1 rows with notes text (only free-text place a meaning could hide)         |     2 |     14 |  14.3 | 
+ A.feed_records    | A2 building_id IS NULL                                                      |    14 |     14 | 100.0 | 
+ A.feed_records    | A2 group_id IS NULL                                                         |     1 |     14 |   7.1 | 
+ A.feed_records    | A2 group_id set but no live finisher_group (orphan — no FK)                 |     2 |     13 |  15.4 | d = rows with group_id
+ A.feed_records    | A2 sow_id AND group_id both NULL (unattributable)                           |     1 |     14 |   7.1 | 
+ A.feed_records    | A2 sow_id IS NULL                                                           |    14 |     14 | 100.0 | 
+ A.feed_records    | A3 feed_type NULL or blank                                                  |     1 |     14 |   7.1 | 
+ A.feed_records    | A3 feed_type distinct (normalized lower/trim/space)                         |     4 |        |       | 
+ A.feed_records    | A3 feed_type distinct (raw)                                                 |     8 |        |       | 
+ A.feed_records    | A3 feed_type rows covered by top-5 normalized values                        |    13 |     13 | 100.0 | 
+ A.feed_records    | A3 feed_type spelling variants (raw distinct - normalized distinct)         |     4 |      8 |  50.0 | n>0 = same value typed differently
+ A.feed_records    | A4 distinct currencies                                                      |     2 |        |       | 
+ A.feed_records    | A4 quantity_kg-weighted: kg with unit_cost / total kg                       | 85200 | 112200 |  75.9 | n,d in kg (truncated)
+ A.feed_records    | A4 unit_cost <= 0 (suspicious)                                              |     2 |     12 |  16.7 | 
+ A.feed_records    | A4 unit_cost IS NOT NULL                                                    |    12 |     14 |  85.7 | 
+ A.feed_records    | A4 unit_cost IS NOT NULL AND currency IS NOT NULL                           |    11 |     14 |  78.6 | 
+ A.feed_records    | A4 unit_cost set but currency missing                                       |     1 |     12 |   8.3 | d = rows with unit_cost
+ A.feed_records    | A5 duplicate key (farm, group, date, feed_type, qty) rows beyond first      |     1 |     14 |   7.1 | double-entry candidates
+ A.feed_records    | A5 quantity_kg <= 0                                                         |     1 |     14 |   7.1 | 
+ A.feed_records    | A5 quantity_kg max (kg, truncated)                                          | 18000 |        |       | 
+ A.feed_records    | A5 quantity_kg p50 (kg, truncated)                                          |  7000 |        |       | distribution, not a rate
+ A.feed_records    | A5 quantity_kg p90 (kg, truncated)                                          | 15700 |        |       | 
+ B.finisher_groups | B0 groups (deleted_at IS NULL)                                              |     6 |        |       | 
+ B.finisher_groups | B1 closed (end_date IS NOT NULL)                                            |     4 |      6 |  66.7 | 
+ B.finisher_groups | B1 closed with end_date < start_date (invalid)                              |     0 |      4 |   0.0 | 
+ B.finisher_groups | B1 open groups older than 240 days (probably never closed)                  |     1 |      2 |  50.0 | d = open groups
+ B.finisher_groups | B2 avg_entry_weight_kg IS NOT NULL (all groups)                             |     5 |      6 |  83.3 | 
+ B.finisher_groups | B2 avg_exit_weight_kg IS NOT NULL (closed groups)                           |     3 |      4 |  75.0 | 
+ B.finisher_groups | B2 both weights present (closed groups)                                     |     3 |      4 |  75.0 | 
+ B.finisher_groups | B2 exit <= entry weight (invalid, closed w/ both)                           |     1 |      3 |  33.3 | 
+ B.finisher_groups | B3 head_count_out > head_count_in (invalid)                                 |     1 |      3 |  33.3 | 
+ B.finisher_groups | B3 head_count_out IS NOT NULL (closed groups)                               |     3 |      4 |  75.0 | 
+ B.finisher_groups | B4 FCR-computable: closed + both weights + head_count_out + feed            |     2 |      4 |  50.0 | d = closed groups
+ B.finisher_groups | B4 Feed-Cost-computable: FCR-computable + >=1 priced feed row               |     2 |      4 |  50.0 | d = closed groups
+ B.finisher_groups | B4 closed groups with feed                                                  |     4 |      4 | 100.0 | 
+ B.finisher_groups | B4 farms with >=1 FCR-computable group                                      |     2 |      3 |  66.7 | d = farms
+ B.finisher_groups | B4 groups with >=1 attributed feed record (all)                             |     5 |      6 |  83.3 | 
+ B2.piglet_groups  | P0 groups (deleted_at IS NULL)                                              |     2 |        |       | 
+ B2.piglet_groups  | P1 closed (transfer_date IS NOT NULL)                                       |     1 |      2 |  50.0 | 
+ B2.piglet_groups  | P2 both weights present (closed)                                            |     1 |      1 | 100.0 | d = closed
+ B2.piglet_groups  | P3 groups referenced by feed_records.group_id                               |     0 |      2 |   0.0 | group_id has no FK — could point here
+ C.mortality       | C1 STRUCTURAL: weight column on health_events                               |     0 |        |       | looked for: weight|kg
+ C.mortality       | C1 finisher DEATH events (health_events, group_id set)                      |     3 |        |       | 
+ C.mortality       | C1 finisher DEATH events with head_count                                    |     2 |      3 |  66.7 | 
+ C.mortality       | C2 sow removals DEAD with body_weight_kg                                    |     0 |      0 |       | d = removals DEAD
+ C.mortality       | C3 finisher_groups: head_count_in - head_count_out (implied losses, closed) |    12 |   1180 |   1.0 | n,d in head; no per-head weight anywhere
+ D.shipment        | D1 STRUCTURAL: live/carcass distinction column (finisher_groups|removals)   |     0 |        |       | looked for: carcass|live_weight|dressing|hot_weight
+ D.shipment        | D2 closed groups with avg_exit_weight_kg (basis unknown: live vs carcass)   |     3 |      4 |  75.0 | 
+ D.shipment        | D3 sow removals SOLD with body_weight_kg                                    |     0 |      0 |       | d = removals SOLD
+ D.shipment        | D3 sow removals SOLD with sale_price                                        |     0 |      0 |       | 
+ D.shipment        | D4 removal_type distinct values                                             |     0 |        |       | expected vocabulary: CULL/DEAD/SOLD/TRANSFER (kpi_service filters CULLED)
+ E.inventory       | E1 STRUCTURAL: feed stock / inventory tables                                |     0 |        |       | looked for table names ~ (feed_stock|feed_inventor|inventory|stock_count|opening|closing)
+ E.inventory       | E1 STRUCTURAL: feed_records columns for opening/closing balance             |     0 |        |       | looked for: opening|closing|balance|on_hand|stock
+ F.price_ref       | F1 distinct price_type                                                      |     0 |        |       | LIVE_HOG / PORK_CUTOUT / LEAN_HOG_FUTURES expected
+ F.price_ref       | F1 market_price_reference rows                                              |     0 |        |       | 
+ F.price_ref       | F1 rows with price_type = FEED (feed price reference exists?)               |     0 |      0 |       | 
+(61 rows)
+
+      section       | normalized | rows_ | raw_variants |           raw_values           
+--------------------+------------+-------+--------------+--------------------------------
+ A3.feed_type_top20 | finisher   |     5 |            3 | FINISHER | Finisher | finisher
+ A3.feed_type_top20 | grower     |     5 |            2 | Grower | grower 
+ A3.feed_type_top20 | tăng trọng |     2 |            2 | Tăng trọng | tăng trọng
+ A3.feed_type_top20 | starter    |     1 |            1 | Starter
+(4 rows)
+
+ section | removal_type | rows_ 
+---------+--------------+-------
+(0 rows)
+
+  section   |  month  | rows_ | farms | with_group | with_price 
+------------+---------+-------+-------+------------+------------
+ A0.monthly | 2025-05 |     1 |     1 |          1 |          1
+ A0.monthly | 2026-01 |     1 |     1 |          1 |          1
+ A0.monthly | 2026-04 |     1 |     1 |          1 |          1
+ A0.monthly | 2026-05 |     3 |     1 |          3 |          3
+ A0.monthly | 2026-06 |     4 |     2 |          3 |          2
+ A0.monthly | 2026-07 |     2 |     1 |          2 |          2
+ A0.monthly | 2026-08 |     1 |     1 |          1 |          1
+ A0.monthly | 2026-09 |     1 |     1 |          1 |          1
+(8 rows)
+
+COMMIT

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Check, ListTodo, RefreshCw, X } from "lucide-react";
+import { ArrowRight, Check, ListTodo, RefreshCw, X, CheckCircle2 } from "lucide-react";
 import { tasksApi } from "@/lib/api/endpoints/tasks";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { useAuthStore } from "@/store/auth.store";
@@ -81,6 +81,7 @@ export default function TasksPage() {
 
       {data && tasks.length === 0 && (
         <div className="bg-green-soft border border-success/30 rounded-xl p-6 text-sm text-success text-center">
+          <CheckCircle2 size={28} className="mx-auto mb-2.5" strokeWidth={1.5} aria-hidden />
           {t("allClear")}
         </div>
       )}
@@ -122,7 +123,7 @@ function TaskRow({
           className="text-xs font-medium text-primary border border-primary/30 rounded-lg px-2.5 py-1.5 hover:bg-primary/5 transition flex items-center gap-1 flex-shrink-0"
         >
           {t("go")}
-          <ArrowRight className="w-3 h-3" />
+          <ArrowRight size={12} />
         </Link>
       )}
 
@@ -132,7 +133,7 @@ function TaskRow({
         title={t("done")}
         className="p-1.5 rounded-lg text-success hover:bg-green-soft transition disabled:opacity-50 flex-shrink-0"
       >
-        <Check className="w-4 h-4" />
+        <Check size={16} />
       </button>
       <button
         onClick={onDismiss}

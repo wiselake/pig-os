@@ -42,6 +42,36 @@ export interface ResolvedApiError {
   status?: number;
   /** 백엔드 code 원문(로깅·디버깅용). UI 문구로 쓰지 않는다. */
   code?: string;
+  /**
+   * 429 의 `Retry-After` 헤더(초). 서버가 준 값만 싣는다 — 클라이언트가 정책을 추정해서
+   * 만들지 않는다. 없거나·정수가 아니거나·0 이하·하루를 넘으면 undefined (일반 안내로 폴백).
+   */
+  retryAfterSeconds?: number;
+}
+
+/** Retry-After 상한. 이보다 크면 서버 오류로 보고 버린다 — 하루 넘게 잠그는 정책은 없다. */
+const RETRY_AFTER_MAX_SECONDS = 86_400;
+
+/**
+ * `Retry-After` 를 초 단위 정수로. 서버 계약(api/app/core/rate_limit.py)은 delta-seconds 만
+ * 보내지만, 프록시가 HTTP-date 로 바꿔 보낼 수 있어 그것도 받는다.
+ *
+ * ★ 서버 정책(5회/시간 등)을 여기서 재현하지 않는다. 값이 없으면 없는 것이다.
+ */
+export function parseRetryAfter(raw: unknown, now: number = Date.now()): number | undefined {
+  if (typeof raw !== "string" && typeof raw !== "number") return undefined;
+  const s = String(raw).trim();
+  if (!s) return undefined;
+  let seconds: number;
+  if (/^\d+$/.test(s)) {
+    seconds = Number(s);
+  } else {
+    const at = Date.parse(s);
+    if (Number.isNaN(at)) return undefined;
+    seconds = Math.ceil((at - now) / 1000);
+  }
+  if (!Number.isFinite(seconds) || seconds <= 0 || seconds > RETRY_AFTER_MAX_SECONDS) return undefined;
+  return seconds;
 }
 
 /** 백엔드 code → 표시 종류. status 보다 우선한다(같은 status 에 여러 의미가 있다). */
@@ -82,12 +112,29 @@ const RETRYABLE: ReadonlySet<ApiErrorKind> = new Set<ApiErrorKind>([
 interface AxiosLike {
   code?: string;
   message?: string;
-  response?: { status?: number; data?: unknown };
+  response?: { status?: number; data?: unknown; headers?: Record<string, unknown> };
 }
 
-function bodyOf(err: AxiosLike): { code?: string; request_id?: string } {
+function bodyOf(err: AxiosLike): { code?: string; request_id?: string; detail?: unknown } {
   const d = err.response?.data;
-  return d && typeof d === "object" ? (d as { code?: string; request_id?: string }) : {};
+  return d && typeof d === "object" ? (d as { code?: string; request_id?: string; detail?: unknown }) : {};
+}
+
+/** axios 는 헤더 키를 소문자로 정규화하지만, 다른 어댑터·테스트 대역은 아닐 수 있다. */
+function headerOf(err: AxiosLike, name: string): unknown {
+  const h = err.response?.headers;
+  if (!h) return undefined;
+  const lower = name.toLowerCase();
+  for (const k of Object.keys(h)) if (k.toLowerCase() === lower) return h[k];
+  return undefined;
+}
+
+/**
+ * 429·451 은 `code` 없이 `detail: "TOKEN:qualifier"` 로 온다(FastAPI HTTPException 경로).
+ * status 가 이미 답을 주지만, 프록시가 status 를 바꿔 보내는 경우를 위해 토큰도 본다.
+ */
+function detailToken(detail: unknown): string | undefined {
+  return typeof detail === "string" ? detail.split(":")[0] : undefined;
 }
 
 /**
@@ -102,7 +149,7 @@ export function resolveApiError(
 ): ResolvedApiError {
   const e = (err ?? {}) as AxiosLike;
   const status = e.response?.status;
-  const { code, request_id: requestId } = bodyOf(e);
+  const { code, request_id: requestId, detail } = bodyOf(e);
 
   let kind: ApiErrorKind;
   if (status === undefined) {
@@ -110,6 +157,11 @@ export function resolveApiError(
     // ECONNABORTED 는 axios 의 타임아웃 코드다 — 네트워크 끊김과 구분해야
     // "연결 확인"과 "잠시 후 재시도" 중 맞는 안내를 할 수 있다.
     kind = e.code === "ECONNABORTED" || /timeout/i.test(e.message ?? "") ? "timeout" : "network";
+  } else if (status === 429 || detailToken(detail) === "RATE_LIMITED") {
+    // ★ 429 는 code 가 없다 — rate_limit.py 가 HTTPException 으로 던져 {detail} 만 온다.
+    //   BY_CODE 를 먼저 보면 (없으니) status 폴백으로 오긴 하지만, 뜻을 여기서 명시한다:
+    //   이것은 입력 오류도 권한 오류도 아니고, 451(법역·게시 차단)과도 다르다.
+    kind = "rateLimited";
   } else {
     // `code &&` 를 쓰면 code 가 빈 문자열일 때 "" 가 그대로 kind 가 된다(타입·런타임 모두 오류).
     // 존재 여부만 보고 조회한 뒤 ?? 로 폴백한다.
@@ -117,6 +169,8 @@ export function resolveApiError(
   }
 
   const finalKind = overrides?.[kind] ?? kind;
+  const retryAfterSeconds =
+    finalKind === "rateLimited" ? parseRetryAfter(headerOf(e, "retry-after")) : undefined;
   return {
     kind: finalKind,
     messageKey: finalKind,
@@ -124,7 +178,24 @@ export function resolveApiError(
     retryable: RETRYABLE.has(finalKind),
     status,
     code,
+    retryAfterSeconds,
   };
+}
+
+/**
+ * 429 안내 문구 — 기본 문장에, 서버가 Retry-After 를 줬을 때만 대략의 대기 시간을 덧붙인다.
+ * 값이 없거나 이상하면 기본 문장만. 카운트다운·버튼 잠금은 이 트랙의 범위가 아니다.
+ *
+ * @param tErr `useTranslations("errors")`
+ */
+export function rateLimitMessage(
+  tErr: (key: string, values?: Record<string, string | number>) => string,
+  e: Pick<ResolvedApiError, "retryAfterSeconds">,
+): string {
+  const base = tErr("rateLimited");
+  if (!e.retryAfterSeconds) return base;
+  const minutes = Math.max(1, Math.ceil(e.retryAfterSeconds / 60));
+  return `${base} ${tErr("rateLimitedRetryIn", { minutes })}`;
 }
 
 /**

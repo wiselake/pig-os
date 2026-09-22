@@ -1,0 +1,274 @@
+# 모바일 개발 백로그 — Android · iOS (2026-09-10)
+
+> **성격**: **새 조사 없음.** 전부 `PLATFORM_PARITY.md` 와 법무 문서에 이미 측정돼
+> 있던 항목이다. 이 문서가 하는 일은 **순서를 붙이는 것** 하나다.
+> **왜 필요한가**: 미결 12건이 문서 여러 절에 흩어져 있고 **우선순위가 없었다.**
+> 무엇부터 할지 물으면 매번 전 문서를 다시 읽어야 했다.
+
+---
+
+## 0. 읽는 법
+
+```
+근거    전부 PLATFORM_PARITY.md 의 절 번호로 건다. 여기서 사실을 새로 만들지 않는다
+순서    ① 배포를 막는 것 → ② 사용자에게 틀린 값을 보이는 것 →
+        ③ 심사·법무 → ④ 계약 선행 → ⑤ 관측
+저장소  wiselake/pigos-android · wiselake/pigos-ios — 둘 다 PigOS 저장소 밖이다
+        ★ 각 항목은 별도 저장소 작업이므로 착수 전 승인이 필요하다
+```
+
+---
+
+## 1. ★ P0 — 배포를 막는다
+
+### M-1. Android 가 451 사유를 버린다 — `PUBLICATION_GATE_451`
+
+```
+근거    PLATFORM_PARITY §9-7-1
+현상    OnboardingRepository.kt:32  runCatching { onboardingApi.complete(...) }
+        Response<T> 가 아니라 DTO 직접 수신 → Retrofit 이 비 2xx 에 throw
+        errorBody 를 읽는 코드 저장소 전체 0건
+결과    서버가 보낸 detail 이 어디에도 도달하지 않는다.
+        사용자는 "HTTP 451" 만 본다
+```
+
+★ **이 게이트가 만든 문제가 아니다.** 기존 `SIGNUP_BLOCKED:{reason}` 도 같은
+이유로 이미 사유가 사라지고 있었다. G-3 가 **드러냈을 뿐**이고, 고치면 둘 다 낫는다.
+
+★ **서버 로그에는 451 정상 응답으로 보인다.** 장애로 인지되지 않는 침묵 실패다.
+
+```
+수정    Response<T> 로 받아 errorBody 의 detail 을 표면화
+범위    작다. 다만 별도 저장소 — 승인 필요
+```
+
+### ★ 2026-09-11 (오후) — M-1 완료. 그리고 아래 오전 정정 자체가 과했다
+
+```
+pigos-android  b88c571   451 → consent_blocked_title (기존 8 로케일 문구 재사용)
+                         OnboardingBlockedReasonTest 4건 — 이 머신에서 4/4 재실행
+pigos-ios      608b418   사유코드 뱃지 #if DEBUG · testUnknownReasonCodeStillBlocks
+                         ★ 컴파일 미검증 (Xcode 없음) → PENDING_RECHECK
+근거           PLATFORM_PARITY §9-7-2
+```
+
+오전에 적은 "두 클라이언트 + 4항목 테이블"은 **틀렸다**. 실체는
+"Android 451 매핑 1건 + iOS 뱃지 제거 1건"이었고 둘 다 끝났다.
+
+틀린 이유 — 에러 경로만 읽고 정상 경로를 안 읽었다:
+- Android 는 plan 단계에서 `signup_blocked` 로 먼저 막힌다 (BlockedCard, 8 로케일 문구 이미 존재).
+  451 경로는 plan 이후 서버 게이트가 바뀐 레이스에서만 닿는다
+- 클라이언트 게이트 우회 불가 — `canSubmitStep` 이 plan null/실패도 막고, 테스트가 있다
+- iOS 는 문장이 제대로 나오고 그 밑에 뱃지만 하나 더 붙어 있었다
+
+★ **부수 발견 (다른 세션, 디스크 확인)**: iOS `Config/Debug.xcconfig` 가 34130df 이후
+프로덕션(`api.pigos.io`)을 가리킨다. 문서 7곳은 localhost 라고 적혀 있다. iOS 수동
+검증은 `PIGOS_API_BASE_URL` env 없이 돌리면 프로덕션 가입 시도가 된다 —
+PLATFORM_PARITY §9-7-3 · HUMAN_INPUT_QUEUE B-5. CI 단위 테스트는 스텁이라 안전.
+
+**4항목 사유코드 테이블은 만들지 않는다 — 결정**. KR_REFERENCE_ONLY / HOLD_D07 /
+LAUNCH_NOT_ENABLED 의 사용자 문구는 D-13 · Q-B 로 변호사에게 묻는 성격 규정 그
+자체라, 답 전에 8 개 언어에 박는 것은 승인 전 정책 반영이다. 중립 문구 한 벌만 쓴다.
+
+---
+
+### (오전 기록 — 보존, 위로 대체) 범위 정정 — M-1 은 Android 하나가 아니다
+
+세 가지가 추가로 실측됐다 (machine `bjh`, 양 저장소 직접 grep).
+
+```
+Android   errorBody() 를 읽는 코드는 test/…/BackendIntegrationTest.kt:99 뿐
+          → 프로덕션 경로 0건. 앞서 "0건"이라 적은 것은 main 기준이었고, 결론 동일
+
+iOS       OnboardingViewModel.swift:60
+            return consentPlan?.gate?.reasonCode ?? "SIGNUP_BLOCKED"
+          → 사유코드를 그대로 화면에 낸다. docstring 도 "그대로 노출한다"고 적어둠
+          ★ 경로가 Android 와 다르다 — 451 본문이 아니라 GET signup-plan 의
+            gate.reasonCode 에서 읽는다. 그래서 errorBody 문제가 아니라 표시 문제다
+
+양쪽      사유코드 → 문구 테이블이 없다. 주석에 HOLD_D07 · KR_REFERENCE_ONLY 가
+          언급될 뿐, LAUNCH_NOT_ENABLED 는 저장소 어디에도 없다
+```
+
+★ **451 은 "법적 이유로 차단"이다. 이유를 안 알려주면 상태코드의 의미 자체가
+안 지켜진다.** 지금 US 외에서 가입을 누르면 독일 사용자가 `SIGNUP_BLOCKED` 나
+`LAUNCH_NOT_ENABLED` 라는 영문 상수를 본다. H13 해석 A/B 어느 쪽이든 같다.
+
+그러므로 M-1 의 실체는:
+
+```
+1  사유코드 → 사용자 문구 테이블 (ko/en 최소)
+   LAUNCH_NOT_ENABLED · KR_REFERENCE_ONLY · HOLD_D07 · PUBLICATION_NOT_APPROVED
+   ★ 문구는 "아직 서비스하지 않는 지역" 수준. 법률 판단을 문구에 담지 않는다
+2  Android  errorBody() 를 프로덕션 경로로 + detail 의 SIGNUP_BLOCKED:{code} 파싱
+3  iOS      OnboardingViewModel:60 원시 상수 노출 제거 + 같은 테이블
+4  양쪽 테스트  모르는 사유코드가 와도 원시 문자열이 화면에 안 나온다
+```
+
+**M-2 는 M-1 에 흡수된다** — 같은 문구 테이블이다.
+
+### M-2. iOS 안내 문구 — M-1 에 흡수 (2026-09-11)
+
+```
+근거    PLATFORM_PARITY §9-7-1
+현상    APIError.swift:28  451 case 없음 → default: .http(status:detail:)
+        "Error occurred (451: PUBLICATION_NOT_APPROVED)."
+판정    크래시·묵살 없음. 사유가 보인다 → 배포 가능
+후속    웹은 f0934c0 로 8 로케일 안내를 붙였으나 iOS 는 그 문구를 모른다
+```
+
+---
+
+## 2. P0 — 사용자에게 틀린 값을 보인다
+
+### M-3. 벤치마크를 판정으로 변환 — `MOBILE_LOCAL_SEVERITY`
+
+```
+근거    PLATFORM_PARITY §3-3  DECISION_INTEGRITY_RISK
+Android DashboardScreen.kt:238-243  meetsAvg = myValue >= b.avg → Success/Warning
+iOS     DashboardScreen.swift:241-246  alert 없음 → AppColor.success
+```
+
+★ **iOS 쪽이 fail-OPEN 이다.** 판정이 없는 것을 **초록(정상)** 으로 그린다.
+서버가 "판정 불가"를 보내도 사용자는 "정상"으로 읽는다.
+
+★ 그리고 이것은 `ADR-KPI-00` §2.4 가 금지한 바로 그것이다 — **벤치마크는 설명용
+비교이고 심각도는 별도로 승인된 운영 정책**이다. 모바일이 그 경계를 지우고 있다.
+
+### M-4. `kpi_status` 미소비
+
+```
+근거    PLATFORM_PARITY §3-2   Android·iOS 둘 다 소비 0건
+의미    서버가 판정을 내려보내는데 클라이언트가 자기 기준으로 다시 판정한다
+관련    웹은 fdd9ca5 로 이미 자체 판정을 중단했다 — 모바일만 남았다
+```
+
+### M-5. `/kpi/presentation` 미소비
+
+```
+근거    PLATFORM_PARITY §3-1 · §9-3 (G4 완료 정의)
+Android DashboardScreen.kt:100-101  KpiCard("PSY") / ("NPD") 하드코딩
+        KpiDto.kt:31-33  @SerializedName 고정
+iOS     DashboardScreen.swift:162-165 하드코딩
+의미    ADR-KPI-00 의 "국가 추가 = INSERT 뿐"(I-2)이 모바일에서 깨진다
+        국가를 추가해도 모바일 화면은 안 바뀐다
+```
+
+★ M-3·M-4·M-5 는 **한 덩어리로 보는 게 맞다.** 셋 다 "서버가 정한 것을
+클라이언트가 다시 정한다"는 같은 결함의 세 얼굴이다.
+
+```
+2026-09-22  iOS     M-3·M-4·M-5 DONE — iOS main 3dfdc25(#1) · 91f6bc7(#2) · c5622b2(#7)   근거 PLATFORM_PARITY §9-10-2
+            Android 변화 없음 — #1·#2·#4 OPEN(stacked)
+```
+
+---
+
+## 3. 심사 · 법무
+
+### M-6. iOS 계정 삭제 화면 — App Store 5.1.1(v)
+
+```
+근거    PLATFORM_PARITY §2  BLOCKED
+현상    AuthService / DTO 는 있으나 View 미발견
+영향    App Store 심사 차단 사유
+```
+
+### M-7. `LEGAL-P0-IOS-CONSENT` — consent 호출 0건인데 가입된다
+
+```
+근거    LEGAL_P0_MANDATORY_CONSENT_LOGIN_GATE.md:166
+        "iOS 는 이 게이트가 켜지면 즉시 잠긴다"
+현상    iOS 는 /auth/register → /onboarding/farm 만 호출한다.
+        동의 기록 호출이 없다
+```
+
+★ **G-3 배포 후 iOS 는 register 에서 막힌다**(M-1·M-2 실측). 즉 이 항목은
+"동의를 안 받고 가입되던 문제"가 **게이트로 우연히 닫히는** 상태가 된다.
+근본 수정(동의 수집 경로 신설)은 여전히 남는다.
+
+### M-8. Android 구버전 대응 — `FORCE_UPDATE / LEGACY_CONTROL`
+
+```
+근거    PLATFORM_PARITY §3-7   Android·iOS 둘 다 0건
+현상    forceUpdate / minVersion / 426 처리 없음
+의미    API 계약이 바뀌어도 구버전을 멈출 수단이 없다
+        ★ CLAUDE.md §5 가 "모바일은 배포 주기가 길어 구버전이 오래 남는다"고
+          적어둔 바로 그 위험의 대응 수단이 부재
+2026-09-22  iOS  READY_NOT_ENABLED — APIError.upgradeRequired 매핑만(c5622b2). 판정·차단·UI 없음.
+                 서버 426 계약이 없으므로 여기서 멈춤 (PLATFORM_PARITY §9-10-3 ⑤ — 1.1 gate 아님)
+```
+
+---
+
+## 4. 선행조건이 붙은 것
+
+### M-9. `APP_VERSION_REQUEST_REPORTING`
+
+```
+근거    PLATFORM_PARITY §3-6
+Android DeviceRepository.kt:26  기기등록 시 1회만. NetworkModule 인터셉터는 auth·logging 둘뿐
+iOS     PushNotificationService.swift:47  1회만. Endpoint 헤더는 Authorization·Content-Type·Accept
+선행    서버는 c3a46cc 로 수신·관측 준비 완료 (송출·관측만, 판정 없음)
+의미    M-8 을 하려면 어느 버전이 살아 있는지 먼저 보여야 한다
+2026-09-22  iOS  송출 DONE — 모든 요청(토큰 refresh 포함)에 부착, ClientVersionHeaderTests (c5622b2)
+                 ★ 관측은 NO — 수신 미들웨어 c3a46cc 가 safety(PR #2) 에만 있고 main·PROD 에 없다
+                 (PLATFORM_PARITY §9-10-3 ②). "선행 완료" 는 배포 기준으로는 아직 거짓이다
+```
+
+★ **M-9 → M-8 순서다.** 버전 분포를 모르는 채 강제 업데이트를 켜면 정상
+클라이언트를 차단한다(`client_version.py:10` 이 같은 경고를 적어둔다).
+
+### M-10. `PRODUCT_INSTRUMENTATION`
+
+```
+근거    PLATFORM_PARITY §3-8   Android·iOS 둘 다 제품 계측 0건
+의미    모바일에서 무슨 일이 일어나는지 관측 수단이 없다
+        M-1 같은 침묵 실패를 사후에 발견할 방법도 여기에 걸린다
+2026-09-22  iOS  MINIMAL_FOUNDATION — 이벤트 어휘(웹 analytics.ts 동일) + TelemetrySink + os_log (c5622b2).
+                 벤더 없음 — PostHog 부착은 방침 §9·App Privacy 라벨 변경 결정 (BLOCKED_BY_DECISION, §9-10-4)
+```
+
+---
+
+## 5. 착수 순서 제안
+
+```
+완료        M-1   b88c571 · 608b418 (iOS 는 Mac/CI 빌드 1회 남음)
+            M-2   M-1 에 흡수 — 완료
+배포 후                 M-3   fail-OPEN 제거          ★ 틀린 값을 보이는 것 중 가장 위험
+            M-4·M-5  서버 판정 소비로 전환 (M-3 과 한 덩어리)
+심사 일정   M-6   iOS 계정 삭제 화면
+관측 먼저   M-9 → M-8   버전 보고 → 강제 업데이트
+            M-10  계측
+법무 트랙   M-7   iOS 동의 수집 경로 — LEGAL-P0-CONSENT-EVIDENCE 확정 후
+```
+
+★ **M-1 은 2026-09-11 해소.** 이 문서에서 배포를 막는 항목은 더 없다. 나머지는 배포 후 순차 진행 가능하다.
+
+---
+
+## 6. 이 문서가 하지 않는 것
+
+```
+✗ 새 조사·새 측정
+    전부 PLATFORM_PARITY 와 법무 문서의 기존 실측을 인용했다.
+    2026-09-10 에 추가된 것은 §9-7-1(모바일 451) 하나이고 그것도 기록 완료다.
+
+✗ 착수 승인
+    모든 항목이 별도 저장소(pigos-android · pigos-ios) 작업이다.
+
+✗ 공수 추정
+    두 저장소의 구조를 구현 관점으로 읽지 않았다. 읽은 것은 해당 결함 지점뿐이다.
+```
+
+---
+
+## 7. 관련
+
+```
+docs/PLATFORM_PARITY.md                §2 · §3-1~3-8 · §9-3 · §9-7   전 항목의 근거
+docs/legal/DEPLOY_GATE_20260910.md     G-3 배포 게이트
+docs/legal/LEGAL_P0_MANDATORY_CONSENT_LOGIN_GATE.md   M-7
+docs/adr/ADR-KPI-00-one-engine-many-policies.md       M-3·M-5 가 깨는 불변식
+```

@@ -18,7 +18,7 @@ export function InsightBanner({ insights, savedNoIssue }: { insights?: EventInsi
   if (!insights || insights.length === 0) {
     return savedNoIssue ? (
       <div className="flex items-center gap-1.5 text-[11px] text-success px-2 py-1">
-        <Info className="w-3 h-3" /> {t("allNormal")}
+        <Info size={12} /> {t("allNormal")}
       </div>
     ) : null;
   }

@@ -17,8 +17,13 @@
 | 4 | ANONYMIZATION_RELEASE_GATE_SPEC | `docs/specs/ANONYMIZATION_RELEASE_GATE_SPEC.md` | **Data Asset Policy 소유 (A-rule 집행 SSOT)** + 판매 게이트 체크리스트 | v0.1 스켈레톤 — PigSignal 판매 게이트 |
 | 5 | MEETING_NOTES_2026-07-21 | `docs/meetings/MEETING_NOTES_2026-07-21.md` | 회의 기록 + 액션 트래커. **결정 아님 — 확정은 Decision Register만** | v1.0 |
 | 6 | MASTER_SCHEDULE | `docs/planning/MASTER_SCHEDULE_2026-07.md` | 통합 일정 (대표 미팅 날짜 변수형) | v0.1 |
+| 7 | PIGOS_COUNTRY_LEGAL_ONBOARDING_SPEC v1.0 | `docs/legal/PIGOS_COUNTRY_LEGAL_ONBOARDING_SPEC_v1.0.md` | 국가별 가입·약관·동의·증빙 통합 baseline. Legal document ↔ Consent decision 분리, 문서 lifecycle(PUBLISHED only), promotion 파이프라인, **LEGAL-/KPI- ID namespace 분리** | v1.0 — DEVELOPMENT BASELINE / **LEGAL APPROVAL PENDING** |
 
 **런 프롬프트** (`docs/runs/`): RUN_PROMPT_A(정책 벡터) / B(Envelope) / C(KPI v0.4+evidence+대표 결정요청서) / D(국가·주별 법무 리서치). 플레이스홀더(baseline 해시·테스트 수·런로그 경로) 채운 후 실행.
+
+**프로젝트 정본 브리프**: `docs/PIGOS_PROJECT_BRIEF.md` — PigOS 가 무엇인지·타겟·경쟁 지형·실측 운영 상태를 한 곳에. PART A 는 외부 리서치 도구에 붙이는 컨텍스트 프롬프트, PART B 는 수집 정보를 개발 방향 결정으로 옮기는 규칙(정보→대표 결정→Decision Register→구현 순서 고정).
+
+**법무 실측 감사 2건** (#7 의 근거): `docs/legal/LEGAL_PUBLICATION_GAP_REPORT_20260902.md`(문서·구현·승인 gap — publish_candidate v1.0-rc 가 정본이고 runtime 은 placeholder) · `docs/legal/PRODUCTION_CONSENT_LEDGER_AUDIT_20260902.md`(운영 원장 0행 → `PLACEHOLDER_CONSENT_PROD = NOT_FOUND`).
 
 **기존 문서 연결**: `docs/specs/2026-06-17_country-kpi-differences.md`(런 C 입력, v0.4 대조 필수) · `docs/specs/2026-07-10_signup-onboarding-spec.md`(#1 §11과 정합 확인) · `docs/KPI_DEFINITIONS.md` · `docs/RULE_ENGINE_CATALOG.md` · `docs/legal-review-notes.md` · BILLING_ARCHITECTURE_NOTE.
 
@@ -29,6 +34,52 @@
 - GTM 실행 항목 → §4 참조 (Console 트래커에서 관리)
 - COVERAGE_AUDIT → 본 인덱스 §5로 흡수
 - CANONICAL_MODEL → Envelope(#1 §15)만 선행 고정, 전체 모델은 3번째 국가 온보딩 시
+
+---
+
+## 1-2. ★ 2026-09-08~10 신규 문서 (이 절이 없어 8종이 색인 밖에 있었다)
+
+### 법무 배포 트랙 — 진입점은 `DEPLOY_GATE`
+
+```
+docs/legal/DEPLOY_GATE_20260910.md      ★ 법무 배포 기준 문서
+                                        G-1~G-6 · 배포 순서 12단계 · §6-3 OTHER 범위
+                                        진행 상황은 "P0 5건"이 아니라 G-n 으로 말한다
+docs/legal/LEGAL_P0_FREEZE_20260910.md  트랙 동결 상태 · 재개 조건
+docs/legal/KNOWN_PUBLICATION_EXPOSURE.md   격리 명세 · 연장 이력 (2026-09-17)
+docs/legal/HUMAN_INPUT_QUEUE.md            H11~H15 사람 결정 대기
+```
+
+### 발송·결재 문서 (2026-09-10)
+
+```
+docs/legal/COUNSEL_REQUEST_US_FIRST_20260910.md        1차 자문 7건 (v2.3)
+docs/legal/COUNSEL_REQUEST_BREACH_DEADLINES_20260910.md 2차 자문 — 침해통지 기한 7개국 (v3)
+docs/legal/CEO_APPROVAL_REQUEST_20260910.md            대표 결재 5건 (v3)
+docs/legal/closure/PRECOUNSEL_BREACH_DEADLINES_DRAFT.md 별첨 B — 사전 초안 (미검증)
+docs/legal/closure/RISK_REGISTER_US_FIRST_20260910.md   R-01~R-15
+docs/legal/closure/LEGAL_BRIEF_OUTSTANDING_20260910.md  A~D 밖에서 답을 알아올 것
+```
+
+### RUN 공통 규칙
+
+```
+docs/runs/RUN_COMMON_RULES.md   §0 PREFLIGHT · 종료 판정 · 상태 어휘 · 기준값
+                                ★ RUN 문서는 §0 을 복사하지 말고 이것을 참조한다
+```
+
+### KPI 정의 트랙 (법무와 별개 · 현재 대기)
+
+```
+docs/kpi/T6_DEFINITION_CONFLICT_REGISTER.md   §0 3축 해석 원칙 · K-1~K-4
+docs/kpi/K1-K4_DECISION_RECORD.md             ③ CANONICAL 결정
+docs/kpi/K1-K3_PRE_DECISION_EVIDENCE.md       ① RUNTIME 실측 · §5-1 쿼리
+docs/adr/ADR-KPI-00-one-engine-many-policies.md   ADR-KPI-08 이 depends_on 하던 실물
+docs/runs/KPI_K_LOOP.md                       READY_BUT_BLOCKED — 착수한 적 없다
+```
+
+★ **이 절이 생기기 전까지 위 8종은 어느 진입점에서도 참조되지 않았다.**
+문서를 잘 쓰는 것과 찾을 수 있게 두는 것은 다른 일이다.
 
 ---
 

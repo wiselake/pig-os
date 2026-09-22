@@ -53,3 +53,20 @@ class FeedRecordResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class FeedBasicOut(BaseModel):
+    """Feed Basic 응답 계약 — PIGOS-F-0011. ★ 아직 어느 라우터도 이것을 내보내지 않는다.
+
+    계약을 지금 정하는 이유: 값이 없는 칸이 "0" 인지 "못 냈다" 인지를 응답이 스스로 말해야
+    한다. iOS 가 판정 없음을 초록으로 그리던 것(M-3)과 같은 fail-OPEN 이 원가 칸에서 재현되지
+    않게, 유보 이유(`withheld`)를 계약에 **지금** 넣는다 — 노출 전이라 비용이 0 이고, 노출 뒤에
+    넣으면 게시된 계약을 바꾸는 일이라 웹·Android·iOS 셋이 따라와야 한다.
+    """
+    formula_version: str
+    fcr: float | None
+    feed_cost_per_pig: float | None
+    feed_cost_per_kg_gain: float | None
+    currency: str | None
+    withheld: dict[str, str]          # 지표 → 이유 (feed_metrics.NO_GAIN · COST_INCOMPLETE · CURRENCY_MIXED …)
+

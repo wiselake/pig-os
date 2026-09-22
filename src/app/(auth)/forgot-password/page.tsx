@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { rateLimitMessage, resolveApiError } from "@/lib/api/errors";
 
 import { authApi } from "@/lib/api/endpoints/auth";
 
@@ -26,6 +27,7 @@ export default function ForgotPasswordPage() {
   const [err, setErr] = useState<string | null>(null);
 
   const t = useTranslations("forgotPassword");
+  const tErr = useTranslations("errors");
 
   async function onRequest(e: React.FormEvent) {
     e.preventDefault();
@@ -34,8 +36,13 @@ export default function ForgotPasswordPage() {
     try {
       await authApi.requestPasswordReset(email.trim());
       setDone(true);  // 열거방지: 성공/실패 무관 동일 메시지
-    } catch {
-      setDone(true);  // 요청 실패도 동일 처리(계정 존재 노출 금지)
+    } catch (e1: unknown) {
+      // ★ 429 만 예외다. 속도 제한은 요청자에 대한 사실이지 계정 존재에 대한 정보가 아니므로
+      //   열거방지를 깨지 않는다. 반대로 429 를 "메일을 보냈다" 로 보이면 사용자는 오지 않을
+      //   메일을 기다린다. 그 외 실패는 그대로 동일 처리(계정 존재 노출 금지).
+      const e = resolveApiError(e1);
+      if (e.kind === "rateLimited") setErr(rateLimitMessage(tErr, e));
+      else setDone(true);
     } finally {
       setBusy(false);
     }
@@ -51,8 +58,9 @@ export default function ForgotPasswordPage() {
       await authApi.confirmPasswordReset(token!, pw);
       setDone(true);
     } catch (e2: unknown) {
-      const s = (e2 as { response?: { status?: number } })?.response?.status;
-      setErr(s === 400 || s === 404 || s === 422 ? t("badToken") : t("err"));
+      const e = resolveApiError(e2);
+      if (e.kind === "rateLimited") setErr(rateLimitMessage(tErr, e));
+      else setErr(e.status === 400 || e.status === 404 || e.status === 422 ? t("badToken") : t("err"));
     } finally {
       setBusy(false);
     }

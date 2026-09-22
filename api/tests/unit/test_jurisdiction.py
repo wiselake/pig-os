@@ -2,9 +2,12 @@
 
 핵심: EU/GB 분리(v1.4 결정 — 부속조항 별도), US 주별 플래그, 게이트, 선택국≠농장국 보수적용.
 """
+import pytest
+
 from app.services.jurisdiction import resolve
 
 
+@pytest.mark.xfail(strict=True, reason="H13 (4) 해석 A(전역 default-deny) 에서만 깨진다 — B(OTHER 한정) 로 코드를 좁히면 XPASS 로 빨개져 결정 기록을 강제한다 (APPROVAL_RECORD §5-1 [2])")
 def test_eu_de_uses_eu_addendum_and_release_hold():
     j = resolve(selected_country="DE")
     assert j.group == "EU"
@@ -14,6 +17,7 @@ def test_eu_de_uses_eu_addendum_and_release_hold():
     assert j.gate.reason_code == "OPEN_EU_REP"
 
 
+@pytest.mark.xfail(strict=True, reason="H13 (4) 해석 A(전역 default-deny) 에서만 깨진다 — B(OTHER 한정) 로 코드를 좁히면 XPASS 로 빨개져 결정 기록을 강제한다 (APPROVAL_RECORD §5-1 [2])")
 def test_gb_is_split_from_eu():
     j = resolve(selected_country="GB")
     assert j.group == "GB"
@@ -73,6 +77,7 @@ def test_kr_signup_override_unblocks():
     assert j.gate.reason_code == "OVERRIDE_KR"
 
 
+@pytest.mark.xfail(strict=True, reason="H13 (4) 해석 A(전역 default-deny) 에서만 깨진다 — B(OTHER 한정) 로 코드를 좁히면 XPASS 로 빨개져 결정 기록을 강제한다 (APPROVAL_RECORD §5-1 [2])")
 def test_th_paid_gate_and_override():
     th = resolve(selected_country="TH")
     assert th.gate.paid_blocked is True and th.gate.reason_code == "GATE_D09"

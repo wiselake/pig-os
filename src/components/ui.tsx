@@ -96,7 +96,7 @@ export function AIAction({
   return (
     <div className="bg-surface border border-border rounded-xl p-[18px] mb-3 cursor-pointer transition-all hover:border-primary hover:shadow-[0_2px_12px_rgba(13,124,102,.08)]">
       <span className={`inline-flex items-center gap-1 text-[9px] font-bold tracking-wider uppercase px-2 py-0.5 rounded ${p.bg} ${p.text} mb-2`}>
-        <p.Icon size={11} /> {p.label}
+        <p.Icon size={12} /> {p.label}
       </span>
       <div className="text-sm font-bold mb-1">{title}</div>
       <div className="text-xs text-text2 leading-relaxed mb-2.5">{desc}</div>
@@ -201,7 +201,7 @@ export function PipeItem({
             aiDanger ? "bg-danger" : "bg-purple"
           }`}
         >
-          {aiDanger ? "!" : <Brain size={10} />}
+          {aiDanger ? "!" : <Brain size={12} />}
         </div>
       )}
     </div>

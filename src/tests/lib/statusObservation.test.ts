@@ -47,9 +47,23 @@ describe("resolveTier (Phase 3 — 백엔드 판정 우선)", () => {
     expect(resolveTier({ NPD: be("critical") }, "NPD", "normal")).toBe("critical");
   });
 
-  it("백엔드가 status를 안 주면 legacy 폴백(구버전 API 안전)", () => {
-    expect(resolveTier(undefined, "PSY", "warning")).toBe("warning");
-    expect(resolveTier({}, "PSY", "critical")).toBe("critical");
+  // ★ 2026-08-28 계약 변경: 백엔드 status 부재 시 legacy 임계로 폴백하지 않는다.
+  //   폴백 임계는 국가 구분이 없어(KR 기준) 미국 농장에 한국 기준을 적용하게 된다.
+  //   CROSS_COUNTRY_DECISION_RISK — D-19 v1.4 N-7 / PLATFORM_PARITY §3-3.
+  it("백엔드가 status를 안 주면 insufficient — 자체 판정 금지(fail-closed)", () => {
+    expect(resolveTier(undefined, "PSY", "warning")).toBe("insufficient");
+    expect(resolveTier({}, "PSY", "critical")).toBe("insufficient");
+  });
+
+  it("legacy 인자가 무엇이든 렌더 판정에 영향을 주지 않는다", () => {
+    for (const legacy of ["normal", "warning", "critical", "insufficient"] as const) {
+      expect(resolveTier(undefined, "PSY", legacy)).toBe("insufficient");
+    }
+  });
+
+  it("legacy 인자 없이 호출해도 동작한다", () => {
+    expect(resolveTier(undefined, "PSY")).toBe("insufficient");
+    expect(resolveTier({ PSY: be("warning") }, "PSY")).toBe("warning");
   });
 
   it("insufficient도 그대로 반영(프론트가 임의 판정하지 않음)", () => {

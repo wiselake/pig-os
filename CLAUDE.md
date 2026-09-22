@@ -11,9 +11,12 @@
 2. **태스크 완료마다** PROGRESS.md 현재상태 갱신 후 `git commit`
 3. **컨텍스트가 커지면** 사람에게 `/clear` 권유 (대화가 길어져 응답이 느려지거나, 한 세션에서 대형 태스크 3개 이상 완료 시)
 4. **UI 텍스트 추가/변경 시** `src/messages/` 아래 **en/ko/zh/es/vi/th/pt/ru 8개 파일 모두** 동시 업데이트 (누락 금지). `i18n.test.ts`가 키 파리티 강제. **컴포넌트/페이지에 인라인 `{en,ko,...}` 딕셔너리 금지 — 반드시 messages 파일 + `useTranslations`** (언어 표시명 상수 LANG_LABELS류만 예외). 언어 추가 = JSON 1개만 추가하면 끝.
-5. **웹에 기능·약관·API 계약이 붙거나 바뀌면** `docs/MOBILE_PARITY.md`에 한 줄 추가.
-   모바일(Android·iOS)은 **독립 저장소 2개**라 자동으로 따라오지 않는다. 상태는
-   `NEEDED` / `N/A`(사유 필수) / `DONE`(근거 필수) 셋 중 하나로 유지.
+5. **웹에 기능·약관·API 계약이 붙거나 바뀌면** `docs/PLATFORM_PARITY.md`에 한 줄 추가.
+   모바일(Android·iOS)은 **독립 저장소 2개**라 자동으로 따라오지 않는다.
+   셀 상태는 `platform_implementation_status` — `PLANNED`/`IN_PROGRESS`/`DONE`/
+   `PENDING_RECHECK`/`BLOCKED`/`NOT_APPLICABLE`(사유 필수).
+   ★ **`DONE` 은 implementation commit SHA 필수** — 없으면 `IN_PROGRESS`.
+   ★ **서버가 옳다고 모바일도 옳은 게 아니다** (D-13 B′ 로 반증됨).
    ★ 특히 **API 계약 변경(nullable 여부·필드 추가/삭제)은 기능보다 위험하다** —
    모바일은 배포 주기가 길어 구버전이 오래 남는다.
 6. **사용자 노출 기능/수치가 바뀌면** `docs/LANDING_SYNC.md`(랜딩 동기화 정본)를 갱신. 랜딩페이지(pigos.io, `c:/dev/pigos-landing`)는 이 문서를 참조해 `FACTS.md`를 맞춘다. **위조 0**: `[확정]`만 랜딩에 사실로 노출, `[베타/검증중]`은 hedge, `[내부]`는 비노출.
@@ -151,15 +154,32 @@ Renderer (Base: 템플릿 | Addon #1: LLM)
 
 ## KPI 계산 전략
 
-| 용도 | 방식 |
-|------|------|
-| 대시보드 첫 화면 | `kpi_snapshots` 테이블 조회 (스냅샷) |
-| 월간 리포트 | 스냅샷 |
+> ## ★ 현황 경고 (2026-08-28 실측)
+>
+> 아래 표는 **목표 아키텍처**다. 현재 운영과 다르다.
+>
+> ```
+> kpi_snapshots 행 수          0        (2026-05-29 이래 단 한 건도 기록된 적 없음)
+> daily/weekly/monthly 집계   매일 실행되나 71농장 전건 실패
+> 실패 사유                 KpiSnapshot 모델에 farrowing_rate 컴럼이 없다
+> 대시보드 실제 동작       요청 시 계산 + Redis 30초 캐시
+> ```
+>
+> 근거: `docs/runs/RUNTIME_INTEGRITY_AUDIT_20260828.md`
+>
+> **스냅샷이 동작 중이라고 가정하고 기능을 설계하지 말 것.**
+> 스냅샷 의존 기능(What Changed · 스냅샷-first Home · 과거비교 · 오프라인 read-cache)은
+> 파이프라인 수정이 선행되어야 한다.
+
+| 용도 | 방식 (목표) | 현재 상태 |
+|------|------|------|
+| 대시보드 첫 화면 | `kpi_snapshots` 테이블 조회 (스냅샷) | **미동작** — 요청 시 계산 중 |
+| 월간 리포트 | 스냅샷 | **미동작** |
 | Q&A 분석 | 스냅샷 우선 + 필요 시 실시간 상세 조회 |
 | 개별 이벤트 상세 | 실시간 계산 |
 | 데이터 수정 직후 | 해당 기간 스냅샷 즉시 재계산 |
 
-**백그라운드 잡 (ARQ)**:
+**백그라운드 잡 (ARQ)** — ★ 아래 3건은 현재 **전건 실패 중**이다(위 경고):
 - `daily_kpi_aggregation` — 매일 00:00
 - `weekly_kpi_aggregation` — 매주 월요일
 - `monthly_kpi_aggregation` — 매월 1일

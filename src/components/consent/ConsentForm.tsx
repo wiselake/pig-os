@@ -138,7 +138,7 @@ function DocCard({ doc, t }: { doc: ConsentDocMeta; t: (k: string) => string }) 
   return (
     <div className="bg-surface border border-border rounded-xl overflow-hidden">
       <button onClick={() => setOpen((o) => !o)} className="w-full flex items-center gap-2 px-4 py-3 text-left">
-        <FileText size={15} className="text-text3 shrink-0" />
+        <FileText size={14} className="text-text3 shrink-0" />
         <span className="text-sm font-semibold text-text flex-1 truncate">
           {t(`doc.${doc.doc_id}`)}
         </span>

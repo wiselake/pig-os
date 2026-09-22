@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useMutation } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/auth.store";
 import { authApi } from "@/lib/api/endpoints/auth";
+import { Check } from "lucide-react";
 
 export default function ProfilePage() {
   const t = useTranslations("profile");
@@ -38,7 +39,8 @@ export default function ProfilePage() {
       <h1 className="text-xl font-extrabold tracking-tight mb-5">{t("title")}</h1>
 
       {saved && (
-        <div className="mb-4 px-4 py-2.5 bg-green-soft border border-success/30 rounded-xl text-sm text-success font-medium">
+        <div className="mb-4 px-4 py-2.5 bg-green-soft border border-success/30 rounded-xl text-sm text-success font-medium flex items-center gap-2">
+          <Check size={14} strokeWidth={2.5} aria-hidden />
           {t("saved")}
         </div>
       )}

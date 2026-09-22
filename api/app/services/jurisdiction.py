@@ -6,7 +6,7 @@
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from app.policy.consent_matrix import (
     GROUP_CN,
@@ -70,6 +70,27 @@ _GATES: dict[str, Gate] = {
     "GB": Gate(release_hold=True, reason_code="OPEN_UK_REP"),
     "BR": Gate(release_hold=True, reason_code="OPEN_BR_SCC"),
 }
+
+
+# --- 개시 허용 국가 (launch enablement) — H13 (4), 2026-09-10 ---------------
+#
+# ★ 세 상태를 분리한다. 하나로 합치지 않는다.
+#
+#     publication eligibility   문서 세트가 완성됐는가        (manifest status)
+#     jurisdiction clearance    그 법역을 법무 검토했는가      (research/*_legal)
+#     launch enablement         가입을 열기로 결정했는가       (← 이 목록)
+#
+# 이 목록에 없는 국가는 문서 세트가 완전해도 가입이 열리지 않는다.
+# "부속조항이 없어 마스터+방침 두 건이 곧 완전한 세트가 된다"는 렌더러의 성질이
+# 개시 결정을 대신하지 못하게 하는 것이 이 목록의 유일한 목적이다.
+#
+# 추가 절차: 해당 국가의 최소 법무 검토 완료 → 사업 승인 → 여기에 ISO-2 추가.
+# 그룹(OTHER 등) 단위로 넣지 않는다 — 국가 단위여야 "고르는 행위"가 기록에 남는다.
+_LAUNCH_ALLOWLIST: frozenset[str] = frozenset({"US"})
+
+# 기존 그룹 단위 signup 해제 오버라이드는 그 그룹을 여는 사람의 명시적 판단이므로
+# 개시 허용도 함께 의미한다(이중 플래그를 요구하지 않는다).
+_SIGNUP_OVERRIDE_KEYS = {GROUP_CN: "CN_signup", GROUP_KR: "KR_signup"}
 
 
 @dataclass(frozen=True)
@@ -136,6 +157,18 @@ def resolve(
         if group in ("EU", "GB", "BR") and feature_overrides.get(f"{group}_release"):
             gate = Gate(reason_code=f"OVERRIDE_{group}")
 
+    # --- launch enablement 판정 (H13 (4)) --------------------------------
+    # publication eligibility 와 독립. 두 축을 모두 통과해야 가입이 열린다.
+    ov = feature_overrides or {}
+    launch_ok = (
+        country in _LAUNCH_ALLOWLIST
+        or bool(ov.get(f"LAUNCH_{country}"))
+        or bool(ov.get(_SIGNUP_OVERRIDE_KEYS.get(group, "")))
+    )
+    if not launch_ok and not gate.signup_blocked:
+        gate = replace(gate, signup_blocked=True, reason_code="LAUNCH_NOT_ENABLED")
+        notes.append(f"launch not enabled for {country} (H13 allowlist)")
+
     if gate.signup_blocked:
         # 사유는 게이트가 들고 있다. 예전엔 CN 문구를 그대로 붙여 KR 에도 "CN, D-07 HOLD" 가 찍혔다.
         notes.append(f"signup blocked ({country}, {gate.reason_code})")
@@ -151,47 +184,15 @@ def resolve(
         notes=notes,
     )
 
-
-# --- 가입 게이트 공용 진입점 -------------------------------------------------
-# 계정을 만드는 경로는 **전부** 여기를 통과해야 한다. 예전엔 게이트가 /consent/record
-# 한 곳에만 걸려 있어서, 차단 법역에서도 계정은 생성되고 동의만 451 로 실패했다
-# (= 동의 없는 계정이 남는다). 클라이언트 UI 를 유일한 방어선으로 두면 안 된다.
-
-def signup_overrides(extra: dict[str, bool] | None = None) -> dict[str, bool]:
-    """운영 기본 해제 스위치(env). 서버 값이라 클라이언트가 우회할 수 없다."""
-    from app.core.config import settings  # 지연 import — 설정 로딩 순서 의존 회피
-    return {"KR_signup": settings.allow_kr_signup, **(extra or {})}
-
-
-def resolve_for_signup(
-    *,
-    selected_country: str,
-    farm_country: str | None = None,
-    farm_state: str | None = None,
-    feature_overrides: dict[str, bool] | None = None,
-) -> Jurisdiction:
-    """가입 맥락의 법역 판별 — env 해제 스위치를 적용한 뒤 resolve 한다."""
-    return resolve(
-        selected_country=selected_country,
-        farm_country=farm_country,
-        farm_state=farm_state,
-        feature_overrides=signup_overrides(feature_overrides),
-    )
-
-
-def assert_signup_allowed(
-    *,
-    selected_country: str,
-    farm_country: str | None = None,
-    farm_state: str | None = None,
-) -> None:
-    """차단 법역이면 451(Unavailable For Legal Reasons). 사유코드를 그대로 실어 보낸다."""
-    from fastapi import HTTPException  # 지연 import — 이 모듈은 순수 정책 계층
-
-    j = resolve_for_signup(
-        selected_country=selected_country,
-        farm_country=farm_country,
-        farm_state=farm_state,
-    )
-    if j.gate.signup_blocked:
-        raise HTTPException(451, f"SIGNUP_BLOCKED:{j.gate.reason_code}")
+# ★ B-9 (2026-09-16): 가입 차단 assert 를 여기 두지 않는다.
+#
+# origin/main `8a80ea4` 은 여기에 signup_overrides · resolve_for_signup ·
+# assert_signup_allowed 를 두었다. 같은 판단을 `eligibility` 파사드도 하고 있어
+# **가입 허용 판단이 두 군데**가 됐고, G-3(게시 승인)·H13(개시 허용목록)은 파사드
+# 쪽에만 얹혀 있다. 한쪽만 통과하는 경로가 생기면 LEGAL-P0-CONSENT-AUTHORITY 가
+# 겪은 "동의 화면은 막는데 가입은 뚫린다" 가 재현된다.
+#
+# 그래서 이 모듈은 **순수 정책 계층**으로 남는다 — resolve 까지만 하고 HTTP 를 모른다.
+# 차단은 `eligibility.assert_country_entry_allowed` 하나. 저쪽의 회귀 케이스는
+# `tests/unit/test_signup_gate_absorbed.py` 로 이식했고, 원본 커밋은 origin 에 보존돼 있다.
+# 이 규칙은 그 파일의 test_jurisdiction_exposes_no_second_signup_assert 가 강제한다.

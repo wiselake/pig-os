@@ -73,9 +73,19 @@ def _render_one(doc_id: str, doc_meta: dict, want_lang: str) -> RenderedDoc:
 
 
 # group -> addendum doc id (TERMS_DISPLAY §2)
-_GROUP_ADDENDUM = {
+#
+# ★ D-16 (2026-09-10): KR·CN 은 부속조항을 두지 않는다 — 키를 빠뜨린 것이 아니라
+#   None 으로 명시한다. jurisdiction._ADDENDUM 과 같은 의도를 두 곳이 같은 형태로
+#   말하게 한다. 값 None 과 키 부재는 아래 build_document_set 에서 결과가 동일하다.
+#     KR    PigOS 비대상(A-rule, signup_blocked). 한국법 적용은 마스터 준거법 조항과
+#           목적② KR 분기가 흡수한다. ※ 법정 고지사항 충족 여부는 COUNSEL_PENDING
+#     CN    진입 구조 미결(D-07)이라 부속조항이 성립하지 않는다. HOLD 는
+#           docs/legal/internal/INTERNAL_LAUNCH_GATE_CN.md
+#     OTHER 부속조항 없음 = 마스터+방침 두 건이 완전한 세트 (설계)
+_GROUP_ADDENDUM: dict[str, str | None] = {
     "US": "ADDENDUM_US", "EU": "ADDENDUM_EU", "GB": "ADDENDUM_GB",
     "BR": "ADDENDUM_BR", "TH": "ADDENDUM_TH", "VN": "ADDENDUM_VN",
+    "KR": None, "CN": None, "OTHER": None,
 }
 
 

@@ -51,7 +51,7 @@ export default function LedgerPage() {
               kind === value ? "bg-primary/10 border-primary text-primary" : "border-border text-text3 hover:bg-bg2"
             }`}
           >
-            <Icon size={13} />
+            <Icon size={12} />
             {t(key)}
           </button>
         ))}

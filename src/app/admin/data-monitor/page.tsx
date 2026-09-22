@@ -46,7 +46,7 @@ export default function DataMonitorPage() {
   return (
     <div className="p-7 max-w-6xl">
       <header className="mb-5 flex items-center gap-2.5">
-        <Activity size={22} className="text-primary" />
+        <Activity size={20} className="text-primary" />
         <div>
           <h1 className="text-[22px] font-extrabold tracking-tight">{t("title")}</h1>
           <p className="text-xs text-text3 mt-0.5">{t("sub")}</p>
@@ -138,7 +138,7 @@ export default function DataMonitorPage() {
                       <td className="px-4 py-2.5 text-right">
                         {r.issues > 0 ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold border bg-red-soft text-danger border-danger/40">
-                            <AlertTriangle size={11} />{r.issues}
+                            <AlertTriangle size={12} />{r.issues}
                           </span>
                         ) : (
                           <span className="text-text3 font-mono text-xs">0</span>
@@ -146,7 +146,7 @@ export default function DataMonitorPage() {
                       </td>
                       <td className="px-4 py-2.5">
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold border ${m.cls}`}>
-                          <m.icon size={11} />{t(r.status)}
+                          <m.icon size={12} />{t(r.status)}
                         </span>
                       </td>
                     </tr>

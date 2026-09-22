@@ -40,7 +40,7 @@ export default function AdminAnnouncementsPage() {
           <p className="text-xs text-text3 mt-0.5">{t("annSubtitle")}</p>
         </div>
         <button onClick={() => setCreating(true)} className="inline-flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90">
-          <Plus size={15} /> {t("annNew")}
+          <Plus size={14} /> {t("annNew")}
         </button>
       </header>
 
@@ -54,7 +54,7 @@ export default function AdminAnnouncementsPage() {
             <div key={a.id} className="bg-surface border border-border rounded-2xl p-4 flex items-start gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  {a.pinned && <Pin size={13} className="text-primary" />}
+                  {a.pinned && <Pin size={12} className="text-primary" />}
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${CAT_CLS[a.category]}`}>{a.category}</span>
                   {!a.published && <span className="text-[10px] text-text3">· {t("annHidden")}</span>}
                   <span className="text-[11px] text-text3 font-mono ml-auto">{a.created_at?.slice(0, 10)}</span>

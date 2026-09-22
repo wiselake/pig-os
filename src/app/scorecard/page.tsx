@@ -125,7 +125,7 @@ export default function ScorecardPage() {
         {/* Hero */}
         <div className="text-center mb-7">
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-primary bg-primary-soft rounded-full px-3 py-1 mb-3">
-            <Sparkles size={13} /> PigOS
+            <Sparkles size={12} /> PigOS
           </div>
           <h1 className="text-2xl font-extrabold tracking-tight text-text">{t("title")}</h1>
           <p className="text-sm text-text3 mt-1.5">{t("subtitle")}</p>
@@ -180,7 +180,7 @@ export default function ScorecardPage() {
                 {result.overall_score}
               </div>
               <div className={`inline-flex items-center gap-1.5 mt-2 text-xs font-bold px-3 py-1 rounded-full border ${BAND_STYLE[result.overall_band].cls}`}>
-                {result.overall_band === "TOP" && <Trophy size={13} />}
+                {result.overall_band === "TOP" && <Trophy size={12} />}
                 {t(`band${result.overall_band}`)}
               </div>
             </div>
@@ -239,14 +239,14 @@ export default function ScorecardPage() {
 
             <div className="flex items-center gap-2">
               <button onClick={share} className="flex-1 flex items-center justify-center gap-1.5 text-sm font-semibold border border-border rounded-xl py-2.5 hover:border-primary transition">
-                <Share2 size={15} /> {copied ? t("copied") : t("share")}
+                <Share2 size={14} /> {copied ? t("copied") : t("share")}
               </button>
               <button onClick={saveImage} className="flex-1 flex items-center justify-center gap-1.5 text-sm font-semibold border border-border rounded-xl py-2.5 hover:border-primary transition">
-                <ImageDown size={15} /> {t("saveImage")}
+                <ImageDown size={14} /> {t("saveImage")}
               </button>
             </div>
             <button onClick={reset} className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold text-text3 hover:text-text py-1">
-              <RotateCcw size={13} /> {t("tryAnother")}
+              <RotateCcw size={12} /> {t("tryAnother")}
             </button>
           </div>
         )}

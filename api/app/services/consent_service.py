@@ -16,10 +16,15 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import ForbiddenError
+from app.core.permissions import can_access_farm
 from app.db.models.consent import ConsentRecord
+from app.db.models.platform import Farm, Organization, User
 from app.policy import consent_matrix as cm
 from app.schemas.consent import (
     ConsentChoice,
+    ConsentDiffItem,
+    ConsentDiffOut,
     ConsentStatusOut,
     DocMeta,
     GateOut,
@@ -30,11 +35,46 @@ from app.schemas.consent import (
     StateFlagsOut,
     WithdrawRequest,
 )
+from app.services import eligibility
 from app.services import jurisdiction as jz
 from app.services import terms_renderer as tr
 
 _TOGGLE_KINDS = {"OPT_IN", "WRITTEN_OPT_IN", "TRANSFER_CONSENT"}
 _WITHDRAW_ACTIONS = {"WITHDRAWN", "OBJECTED", "EXCLUSION_REQUESTED"}
+
+
+async def _assert_farm_authority(
+    db: AsyncSession, *, user_id: UUID, farm_id: UUID | None,
+) -> None:
+    """farm_id 가 주어졌으면 그 농장에 대한 접근 권한을 확인한다 (LEGAL-P0-CONSENT-FARM-AUTHORITY).
+
+    ## 왜 필요한가
+
+    이전에는 요청 본문의 `farm_id` 를 그대로 원장에 썼다. 인증만 하면 **남의 농장에
+    귀속된 동의 행**을 만들 수 있었다. 읽기는 user_id 로 걸려 유출은 없었지만,
+    원장은 "누가 · 어느 농장에 대해 · 무엇에 동의했는가" 의 법적 증거물이다.
+    귀속이 틀린 행이 섞이면 그 원장으로는 아무것도 증명하지 못한다.
+
+    ## 판정 기준 — 새 규칙을 만들지 않는다
+
+    법무 전용 membership 규칙을 따로 만들면 기존 권한 모델과 갈라진다. farm-scoped
+    API 가 이미 쓰는 canonical semantics(`can_access_farm`)를 그대로 재사용한다 —
+    SUPER_ADMIN 전체, 조직레벨 롤은 org 서브트리, 농장레벨 롤은 user_farms 멤버십.
+    `get_farm_context` 가 판정에 쓰는 것과 같은 함수다.
+
+    실패도 같은 예외를 쓴다. `get_farm_context` 는 없는 농장·비활성 농장·접근 불가
+    농장을 모두 ForbiddenError(403) 로 처리하며 404 로 존재를 숨기지 않는다.
+    동의 엔드포인트만 새 status 를 발명하지 않는다.
+
+    ★ farm_id 가 None 이면 검사하지 않는다. 계정 단위 목적(①⑥)은 농장 스코프가
+      없는 것이 정상이다(`ConsentRecord.farm_id` 가 nullable 인 이유). 이 변경은
+      모든 동의를 farm-scoped 로 강제하지 않는다.
+    """
+    if farm_id is None:
+        return
+    user = await db.get(User, user_id)
+    if user is None or not await can_access_farm(user, farm_id, db):
+        raise ForbiddenError("No access to this farm")
 
 
 def _effective_ui_kind(base_kind: str, purpose: str, sf: jz.StateFlags) -> str:
@@ -54,13 +94,13 @@ def build_signup_plan(
     include_body: bool = True,
     feature_overrides: dict[str, bool] | None = None,
 ) -> SignupPlan:
-    # 게이트 판정은 jurisdiction.resolve_for_signup 이 SSOT — 가입 경로 전부가 같은 판정을 쓴다.
-    # (KR 은 운영 기본 차단=레퍼런스 전용, allow_kr_signup env 로만 해제. 서버 값이라 우회 불가.)
-    j = jz.resolve_for_signup(
+    # override 구성은 eligibility 파사드가 단일 출처다. 여기서 따로 만들면
+    # "동의 화면은 막는데 가입은 뚫리는" 상태가 다시 생긴다(LEGAL-P0-CONSENT-AUTHORITY).
+    j = eligibility.resolve_entry(
         selected_country=selected_country,
         farm_country=farm_country,
         farm_state=farm_state,
-        feature_overrides=feature_overrides,
+        extra_overrides=feature_overrides,
     )
     use_lang = lang or tr.language_for(j.group)
     doc_set = tr.build_document_set(jurisdiction_code=j.code, group=j.group, lang=use_lang)
@@ -131,6 +171,9 @@ async def record_consents(
     db: AsyncSession, *, user_id: UUID, req: RecordConsentRequest,
 ) -> list[ConsentStatusOut]:
     """가입/설정 동의 선택을 원장에 기록. 필수 동의 미체크면 422."""
+    # 인가 먼저 — 남의 농장인지 여부는 본문 유효성보다 앞선 질문이다.
+    await _assert_farm_authority(db, user_id=user_id, farm_id=req.farm_id)
+
     if req.collection_context == "UI_SIGNUP" and not (req.terms_ack and req.privacy_ack):
         raise HTTPException(422, "TERMS_AND_PRIVACY_ACK_REQUIRED")
 
@@ -143,6 +186,14 @@ async def record_consents(
     )
     if plan.gate.signup_blocked:
         raise HTTPException(451, f"SIGNUP_BLOCKED:{plan.gate.reason_code}")
+
+    # G-3 심층 방어 — 미승인 문서에는 동의를 기록하지 않는다.
+    # 가입 진입점(register · onboarding/complete)에서 먼저 막지만, 이 API 는
+    # 설정 화면 등 다른 맥락에서도 불린다. 원장에 초안 버전이 적히는 것을
+    # 마지막으로 막는 자리가 여기다. ★ withdraw 에는 걸지 않는다 — 철회는
+    # 승인 여부와 무관하게 언제나 가능해야 한다.
+    if plan.any_draft:
+        raise HTTPException(451, "PUBLICATION_NOT_APPROVED")
 
     now = datetime.now(UTC)
     by_code = {c.purpose_code: c for c in req.choices}
@@ -183,7 +234,16 @@ async def record_consents(
 
     for rec in written:
         db.add(rec)
-    await db.flush()
+    # ★ commit 한다 (LEGAL-P0-CONSENT-LEDGER-PERSISTENCE).
+    #
+    #   flush 만 하면 요청 종료 시 `get_db` 가 세션을 닫으면서 전부 rollback 된다.
+    #   200 을 받고도 원장이 비는 상태였다. 이 저장소는 **서비스가 트랜잭션을
+    #   소유**하고 커밋한다 — event_service·auth_service·farm_service 전부 그렇다.
+    #   consent_service 만 쓰기를 하면서 커밋하지 않는 유일한 서비스였다.
+    #
+    #   여기서 커밋해도 다른 업무의 atomicity 를 깨지 않는다: 이 함수의 호출자는
+    #   consent 라우터 하나뿐이고, 다른 서비스 트랜잭션 안에서 불리지 않는다.
+    await db.commit()
     return [_to_status(r) for r in written]
 
 
@@ -207,10 +267,70 @@ async def current_consents(
     return [_to_status(r) for r in latest.values()]
 
 
+async def consent_diff(
+    db: AsyncSession, *, user_id: UUID, farm_id: UUID | None,
+) -> ConsentDiffOut:
+    """목적별 (필요 버전, 기록 버전) — 판정 없음 (LEGAL-P0-MANDATORY-CONSENT-LOGIN-GATE 구현 메모).
+
+    ★ 국가는 서버가 정한다. 클라이언트가 보낸 국가는 받지 않는다 — 문서가 적은 법역을
+      지정해 "동의 완료"로 보이게 만드는 경로를 계약 첫 줄에서 닫는다.
+
+    ★ 법역 판정은 가입 경로와 **같은 함수**다. selected=organization.country,
+      farm=farm.country 를 그대로 `build_signup_plan` → `jurisdiction.resolve()` 에 태운다.
+      둘이 다르면 resolve 가 더 엄격한 쪽을 고르고 counsel_review 를 켠다(jurisdiction.py:135).
+      여기서 "FARM 우선 / ORG 우선" 같은 폴백을 따로 두면 같은 계정에 법역 답이 둘이
+      된다 — `_ADDENDUM` / `_GROUP_ADDENDUM` 두 맵과 같은 모양(D-16). 그래서 폴백이 없다.
+      farm_id 가 없으면 계정 스코프(①⑥)이고 조직국 하나로 판정한다. 다국가 조직의
+      농장별 답은 farm_id 를 바꿔 가며 부른다 — 이 엔드포인트는 (user, farm) 한 쌍이다.
+
+    ★ 이 엔드포인트는 **버전 동일성만** 답한다. 동의의 충분성(증적 방식·주별 요건)은
+      답하지 않으며, 버전이 일치해도 재동의가 필요할 수 있다 — 네브래스카 농장은
+      notice_version 이 같아도 WRITTEN_OPT_IN 증적이 없으면 부족하다. US 주는 저장돼
+      있지 않아 farm_state=None 으로 판정하므로 주별 ui_kind 도 여기서는 보이지 않는다.
+      판정 층을 얹는 사람이 "diff 가 통과했으니 됐다"로 읽지 않게 하려는 문장이다.
+    """
+    await _assert_farm_authority(db, user_id=user_id, farm_id=farm_id)
+    user = await db.get(User, user_id)
+    org = await db.get(Organization, user.org_id) if user and user.org_id else None
+    farm = await db.get(Farm, farm_id) if farm_id is not None else None
+    if org is None and farm is None:
+        raise HTTPException(409, "NO_JURISDICTION_SOURCE")
+    selected_country = org.country if org is not None else farm.country  # type: ignore[union-attr]
+    farm_country = farm.country if farm is not None else None
+
+    plan = build_signup_plan(
+        selected_country=selected_country, farm_country=farm_country, farm_state=None,
+        lang=None, include_body=False,
+    )
+    recorded = {c.purpose_code: c for c in
+                await current_consents(db, user_id=user_id, farm_id=farm_id)}
+    items = []
+    for p in plan.purposes:
+        if not p.visible:
+            continue
+        r = recorded.get(p.purpose_code)
+        items.append(ConsentDiffItem(
+            purpose_code=p.purpose_code, lawful_basis=p.lawful_basis, ui_kind=p.ui_kind,
+            required_version=plan.notice_version,
+            recorded_version=r.notice_version if r else None,
+            recorded_status=r.consent_status if r else None,
+            recorded_at=r.accepted_at if r else None,
+        ))
+    return ConsentDiffOut(
+        jurisdiction=plan.jurisdiction.code, group=plan.jurisdiction.group,
+        selected_country=selected_country, farm_country=farm_country,
+        counsel_review=plan.jurisdiction.counsel_review, farm_id=farm_id,
+        required_version=plan.notice_version, any_draft=plan.any_draft, items=items,
+    )
+
+
 async def withdraw(
     db: AsyncSession, *, user_id: UUID, req: WithdrawRequest,
 ) -> ConsentStatusOut:
     """철회/이의/제외요청 append. 이전 근거·법역 승계."""
+    # record 만 막으면 이 경로로 같은 일을 할 수 있다 — 두 경로 모두 검증한다.
+    await _assert_farm_authority(db, user_id=user_id, farm_id=req.farm_id)
+
     if req.action not in _WITHDRAW_ACTIONS:
         raise HTTPException(422, f"INVALID_ACTION:{req.action}")
 
@@ -226,6 +346,14 @@ async def withdraw(
     if prev is None:
         raise HTTPException(404, f"NO_CONSENT_RECORD:{req.purpose_code}")
 
+    # ★ farm_id 를 생략하면 아래에서 prev.farm_id 를 상속한다(`req.farm_id or prev.farm_id`).
+    #   상속분을 검사하지 않으면 "farm_id 를 빼는 것"만으로 위 검증을 건너뛰고, 접근할 수
+    #   없는 농장에 귀속된 행을 **새로** 하나 더 만들 수 있다. 결함기에 만들어진 행이나
+    #   농장 비활성화(account_deletion_service 가 owner 삭제 시 farm.active=False)로
+    #   접근을 잃은 경우가 실제 경로다. 상속할 값도 같은 기준으로 검증한다.
+    if req.farm_id is None and prev.farm_id is not None:
+        await _assert_farm_authority(db, user_id=user_id, farm_id=prev.farm_id)
+
     now = datetime.now(UTC)
     rec = ConsentRecord(
         user_id=user_id, farm_id=req.farm_id or prev.farm_id, purpose_code=req.purpose_code,
@@ -236,7 +364,8 @@ async def withdraw(
         evidence_ref=(req.reason or prev.evidence_ref),
     )
     db.add(rec)
-    await db.flush()
+    # 철회도 남아야 한다 — 저장되지 않는 철회는 기록하지 않은 것과 같다.
+    await db.commit()
     return _to_status(rec)
 
 
