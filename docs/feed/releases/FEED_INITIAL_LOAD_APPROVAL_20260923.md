@@ -19,7 +19,12 @@ CODE FINGERPRINT (--expect-code-sha)
               app/engine/feed/{types,normalize}.py · scripts/feed_source_initial_load.py
               (프로덕션 체크아웃에 .git 이 없어 커밋 SHA 를 신뢰할 수 없다 — 내용 지문으로 고정)
 제외          4882427 read API · 89c1e70 web  → 이 가지에 **없다** (§9)
-CI            a4b4acd green(35704158217) · 70e0dc2 push 완료(러너 결과는 실행 직전 재확인)
+CI            Draft PR #8 (release/feed-initial-load → main) — 승인 SHA 가 자기 CI 근거를 갖게 하려고 연 것. merge 목적 아님
+              ★ 알려진 시간경계: main 에서 분기한 모든 브랜치는 15:00~24:00 UTC 창에서
+                test_kpi_presentation_resolver::test_future_presentation_row_ignored 하나로 빨갛다
+                (원인·수정은 docs/runs/D9_TIME_BOUNDARY_20260921.md · 수정은 PR #2 에만 있고 main 에 없다).
+                2026-09-23 23:52 UTC 실행이 그 이유로 빨강 → 00:03 UTC 이후 재실행으로 초록 확인.
+                실행 직전 CI 는 반드시 창 밖(00:00~15:00 UTC)에서 다시 확인한다
 ```
 
 ## 2. APPROVED MIGRATION
