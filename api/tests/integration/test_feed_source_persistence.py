@@ -175,8 +175,9 @@ async def test_oracle_unavailable_changes_nothing_and_is_not_empty_data(db: Asyn
     out = await _run(db, test_farm, [], fail=True)
     assert out.status == "SOURCE_UNAVAILABLE" and "ORA-12541" in out.error
     assert await _count(db) == before and await _count(db, is_current=True, source_status="ACTIVE") == 2   # 철회 0
-    runs = (await db.execute(select(FeedSourceSyncRun).order_by(FeedSourceSyncRun.started_at))).scalars().all()
-    assert runs[-1].status == "SOURCE_UNAVAILABLE" and runs[-1].rows_fetched == 0 and runs[-1].error
+    run = await db.get(FeedSourceSyncRun, out.run_id)          # started_at 이 같은 상수라 정렬로 고르면 TEST_BUG
+    assert run.status == "SOURCE_UNAVAILABLE" and run.rows_fetched == 0 and run.error
+    assert run.notes["error_class"] == "SOURCE_CONNECTION" and run.notes["data_changed"] is False
 
 
 @pytest.mark.asyncio
@@ -193,3 +194,53 @@ async def test_calendar_month_change_from_persisted_source(db: AsyncSession, tes
     bad = m.feed_qty_change(aug, sep.__class__(period=Period(date(2026, 9, 1), date(2026, 9, 20)), farm_currency="KRW",
                                                rows=sep.rows, quantity_basis="DELIVERED"))
     assert bad.reason == "context_missing" and bad.evidence["period_days"] == [31, 20]
+
+
+# ── L2 idempotency: 순서 무관 · 해시/uuid 결정론 · 중단 후 재시작 ──────────────────────────
+@pytest.mark.asyncio
+async def test_input_order_shuffle_gives_same_identities_hashes_and_ids(db: AsyncSession, test_farm: Farm):
+    import random
+    rows = [srow(i, d=f"2026-08-{(i % 28) + 1:02d}", kg=str(100 + i)) for i in range(1, 41)]
+    shuffled = rows[:]
+    random.Random(42).shuffle(shuffled)
+    obs_a = [sync.to_observation(r, pf.classify(r, today=TODAY), test_farm.id) for r in rows]
+    obs_b = [sync.to_observation(r, pf.classify(r, today=TODAY), test_farm.id) for r in shuffled]
+    assert {o.source_row_key for o in obs_a} == {o.source_row_key for o in obs_b}
+    assert {o.row_id() for o in obs_a} == {o.row_id() for o in obs_b}
+    assert {(o.source_row_key, o.payload_hash()) for o in obs_a} == {(o.source_row_key, o.payload_hash()) for o in obs_b}
+    r1 = await _run(db, test_farm, shuffled)
+    r2 = await _run(db, test_farm, rows)
+    assert (r1.inserted, r2.inserted, r2.unchanged) == (40, 0, 40)
+
+
+@pytest.mark.asyncio
+async def test_mid_batch_interruption_then_restart_has_no_duplicates_or_gaps(db: AsyncSession, test_farm: Farm, monkeypatch):
+    rows = [srow(i, d=f"2026-08-{(i % 28) + 1:02d}") for i in range(1, 31)]
+    real = repo.retract_missing
+
+    async def boom(*a, **k):                       # 삽입 뒤·커밋 전 실패 = 한 트랜잭션이므로 전부 rollback
+        raise RuntimeError("simulated crash after ingest, before commit")
+    monkeypatch.setattr(repo, "retract_missing", boom)
+    failed = await _run(db, test_farm, rows)
+    assert failed.status == "SYNC_FAILED" and await _count(db) == 0          # 부분 커밋 없음
+    run = await db.get(FeedSourceSyncRun, failed.run_id)
+    assert run.status == "SYNC_FAILED" and run.notes["data_changed"] is False and run.notes["resumable"]
+    monkeypatch.setattr(repo, "retract_missing", real)
+    restarted = await _run(db, test_farm, rows)                                # 재시작 = 처음부터, 멱등
+    assert (restarted.status, restarted.inserted) == ("SUCCEEDED", 30)
+    assert await _count(db) == 30 and await _count(db, is_current=True) == 30
+    again = await _run(db, test_farm, rows)
+    assert (again.inserted, again.unchanged) == (0, 30)
+    runs = {r.status for r in (await db.execute(select(FeedSourceSyncRun))).scalars()}
+    assert {"SYNC_FAILED", "SUCCEEDED"} <= runs
+
+
+@pytest.mark.asyncio
+async def test_failure_after_ingest_never_leaves_data_behind(db: AsyncSession, test_farm: Farm, monkeypatch):
+    """L3 드릴에서 잡힌 SYNC_BUG 회귀: 저장 뒤·원장 기록 중 예외 → SYNC_FAILED 이면서 데이터도 0 이어야 한다."""
+    rows = [srow(i, d=f"2026-08-{(i % 28) + 1:02d}") for i in range(1, 11)]
+    monkeypatch.setattr(sync, "_watermark", lambda rows: (_ for _ in ()).throw(TypeError("simulated bookkeeping failure")))
+    out = await _run(db, test_farm, rows)
+    assert out.status == "SYNC_FAILED" and await _count(db) == 0
+    run = await db.get(FeedSourceSyncRun, out.run_id)
+    assert run.status == "SYNC_FAILED" and run.notes["data_changed"] is False

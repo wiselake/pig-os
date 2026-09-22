@@ -68,8 +68,10 @@ class FeedSourceSyncRun(Base):
     rows_inserted: Mapped[int] = mapped_column(Integer, nullable=False, default=0)     # 새 revision (신규 + 정정)
     rows_unchanged: Mapped[int] = mapped_column(Integer, nullable=False, default=0)    # 같은 payload_hash → 아무것도 안 함
     rows_superseded: Mapped[int] = mapped_column(Integer, nullable=False, default=0)   # 정정으로 이전 revision 닫힘
-    rows_retracted: Mapped[int] = mapped_column(Integer, nullable=False, default=0)    # 소스에서 사라져 tombstone
+    rows_retracted: Mapped[int] = mapped_column(Integer, nullable=False, default=0)    # 소스에서 사라져 tombstone (rows_inserted 에 포함되지 않음 · 각각 이전 revision 을 supersede)
     error: Mapped[str | None] = mapped_column(Text)
+    source_scope_hash: Mapped[str | None] = mapped_column(String(64))     # sha256(system·dataset·filter·farm set·window) — 어떤 scope 를 읽었는지
+    notes: Mapped[dict | None] = mapped_column(JSONB)                      # error_class · retraction guard · 성능 등 구조화 메모
 
 
 class FeedSourceRow(Base):

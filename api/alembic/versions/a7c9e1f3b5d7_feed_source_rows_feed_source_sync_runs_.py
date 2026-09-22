@@ -43,6 +43,8 @@ def upgrade() -> None:
     sa.Column('rows_superseded', sa.Integer(), nullable=False),
     sa.Column('rows_retracted', sa.Integer(), nullable=False),
     sa.Column('error', sa.Text(), nullable=True),
+    sa.Column('source_scope_hash', sa.String(length=64), nullable=True),
+    sa.Column('notes', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
     sa.CheckConstraint("status IN ('RUNNING', 'SUCCEEDED', 'SOURCE_UNAVAILABLE', 'SYNC_FAILED')", name='ck_fssr_status'),
     sa.PrimaryKeyConstraint('id')
     )

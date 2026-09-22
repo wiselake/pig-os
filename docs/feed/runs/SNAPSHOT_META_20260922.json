@@ -1,0 +1,27 @@
+{
+ "format": "feed_source_snapshot.v1",
+ "extracted_at": "2026-09-22T07:55:31.318925+00:00",
+ "source_scope_hash": "7eb1e1536ef129664927b2799e88dfdb43602b869e3be885de705ec40ea9c273",
+ "content_hash": "705d8a06d301025b762bc07642c0c77742a1695922762cd7bef4fafbf48e32ba",
+ "row_count": 5461,
+ "farm_count": 9,
+ "date_min": "2025-09-01",
+ "date_max": "2026-09-22",
+ "dateless_rows": 0,
+ "use_yn_distribution": {
+  "Y": 5202,
+  "non-Y": 259
+ },
+ "rows_changed_after_insert": 540,
+ "window": [
+  "2025-09-01",
+  "2026-09-22"
+ ],
+ "oracle_elapsed_s": 0.78,
+ "filter": {
+  "ACCOUNT_CD": "410002",
+  "GAIN_YN": "M"
+ },
+ "contract": "pigplan_feed_delivery.v1",
+ "independent_aggregates_farm_months": 92
+}

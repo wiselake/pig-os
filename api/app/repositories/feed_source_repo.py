@@ -29,6 +29,7 @@ from app.engine.feed.normalize import RawFeedRow
 from app.engine.feed.types import Period
 
 NS = uuid.uuid5(uuid.NAMESPACE_DNS, "pigos.feed_source")
+ASYNCPG_MAX_PARAMS = 32000          # asyncpg 상한 32,767 아래 여유
 
 
 @dataclass(frozen=True)
@@ -93,7 +94,7 @@ class IngestResult:
 
 
 async def ingest_observations(db: AsyncSession, obs: list[Observation], *, observed_at: datetime,
-                              sync_run_id: UUID | None = None) -> IngestResult:
+                              sync_run_id: UUID | None = None, batch_size: int = 2000) -> IngestResult:
     """멱등 append. 한 배치 안에서 같은 identity 가 두 번 오면 마지막 것만 (소스 PK 라 실제로는 오지 않는다)."""
     res = IngestResult()
     if not obs:
@@ -101,15 +102,18 @@ async def ingest_observations(db: AsyncSession, obs: list[Observation], *, obser
     by_identity = {o.identity: o for o in obs}
     keys = list(by_identity)
     # 현재 revision 조회 (identity → (id, revision, payload_hash))
-    cur_rows = (await db.execute(
-        select(FeedSourceRow.source_system, FeedSourceRow.source_dataset, FeedSourceRow.source_row_key,
-               FeedSourceRow.id, FeedSourceRow.revision, FeedSourceRow.payload_hash)
-        .where(FeedSourceRow.is_current.is_(True),
-               FeedSourceRow.source_system == keys[0][0],
-               FeedSourceRow.source_dataset == keys[0][1],
-               FeedSourceRow.source_row_key.in_([k[2] for k in keys]))
-    )).all()
-    current = {(r[0], r[1], r[2]): (r[3], r[4], r[5]) for r in cur_rows}
+    current: dict[tuple[str, str, str], tuple[UUID, int, str]] = {}
+    row_keys = [k[2] for k in keys]
+    for i in range(0, len(row_keys), 5000):
+        cur_rows = (await db.execute(
+            select(FeedSourceRow.source_system, FeedSourceRow.source_dataset, FeedSourceRow.source_row_key,
+                   FeedSourceRow.id, FeedSourceRow.revision, FeedSourceRow.payload_hash)
+            .where(FeedSourceRow.is_current.is_(True),
+                   FeedSourceRow.source_system == keys[0][0],
+                   FeedSourceRow.source_dataset == keys[0][1],
+                   FeedSourceRow.source_row_key.in_(row_keys[i:i + 5000]))
+        )).all()
+        current.update({(r[0], r[1], r[2]): (r[3], r[4], r[5]) for r in cur_rows})
 
     to_supersede: list[UUID] = []
     values: list[dict[str, Any]] = []
@@ -137,16 +141,20 @@ async def ingest_observations(db: AsyncSession, obs: list[Observation], *, obser
             "payload_hash": h, "payload": o.payload,
         })
         res.inserted += 1
-    if to_supersede:
-        await db.execute(update(FeedSourceRow).where(FeedSourceRow.id.in_(to_supersede))
+    for i in range(0, len(to_supersede), 5000):
+        await db.execute(update(FeedSourceRow).where(FeedSourceRow.id.in_(to_supersede[i:i + 5000]))
                          .values(is_current=False, superseded_at=observed_at))
     if values:
         # 같은 id(= identity+payload) 가 이미 있으면(과거 revision 으로 되돌아온 정정) 새 행을 만들지 않는다 —
         # 그 경우는 이력상 존재하는 revision 이므로 current 로 되살린다.
-        stmt = pg_insert(FeedSourceRow).values(values).on_conflict_do_update(
-            constraint="uq_fsr_identity_payload",
-            set_={"is_current": True, "superseded_at": None, "sync_run_id": sync_run_id, "observed_at": observed_at})
-        await db.execute(stmt)
+        # 배치는 같은 트랜잭션 안의 statement 분할일 뿐이다 — 부분 커밋 없음.
+        # asyncpg 는 statement 당 바인드 32,767 개 상한 (L1 실측: 2,000행×30열 = 60k → InterfaceError) → 열 수로 상한을 다시 계산
+        per_stmt = max(1, min(batch_size, ASYNCPG_MAX_PARAMS // len(values[0])))
+        for i in range(0, len(values), per_stmt):
+            stmt = pg_insert(FeedSourceRow).values(values[i:i + per_stmt]).on_conflict_do_update(
+                constraint="uq_fsr_identity_payload",
+                set_={"is_current": True, "superseded_at": None, "sync_run_id": sync_run_id, "observed_at": observed_at})
+            await db.execute(stmt)
     await db.flush()
     return res
 

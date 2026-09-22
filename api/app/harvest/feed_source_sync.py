@@ -49,6 +49,14 @@ def to_observation(row: pf.PigPlanFeedDeliveryRow, cls: pf.RowClassification, fa
     )
 
 
+def _watermark(rows: list[pf.PigPlanFeedDeliveryRow]) -> datetime | None:
+    """max(LOG_UPT_DT). Oracle DATE 는 naive — aware 값이 섞여도(테스트·다른 소스) 비교가 깨지지 않게 naive 로 맞춘다."""
+    vals = [r.source_updated_at for r in rows if r.source_updated_at is not None]
+    if not vals:
+        return None
+    return max(v.replace(tzinfo=None) if v.tzinfo is not None else v for v in vals)
+
+
 @dataclass
 class SyncOutcome:
     run_id: UUID
@@ -61,15 +69,35 @@ class SyncOutcome:
     error: str | None = None
 
 
+def error_class(e: BaseException) -> str:
+    """원장에 남기는 실패 종류 — 빈 결과와 절대 같은 이름을 갖지 않는다 (§24)."""
+    n = type(e).__name__
+    msg = str(e)
+    if "ORA-01017" in msg or "ORA-01031" in msg or "permission" in msg.lower() or n == "PermissionError":
+        return "PERMISSION_DENIED"
+    if "timeout" in msg.lower() or n in ("TimeoutError", "socket.timeout"):
+        return "TIMEOUT"
+    if "sqlalchemy" in type(e).__module__ or "asyncpg" in msg:
+        return "TARGET_DB"                 # 대상 PG 쪽 실패 — 소스 장애와 구분한다
+    if n in ("ConnectionError", "OperationalError", "InterfaceError") or "ORA-12" in msg or "DPY-" in msg:
+        return "SOURCE_CONNECTION"
+    return n
+
+
 async def run_pigplan_feed_sync(db: AsyncSession, source: FeedDeliverySourceLike, farm_map: dict[int, UUID], *,
                                 today: date, lookback_days: int, observed_at: datetime,
-                                window: Period | None = None) -> SyncOutcome:
-    """한 번의 동기화. 호출자가 세션/소스를 준비한다. 스케줄러가 부르지 않는다(이번 단계)."""
+                                window: Period | None = None, batch_size: int = 2000) -> SyncOutcome:
+    """한 번의 동기화. 호출자가 세션/소스를 준비한다. 스케줄러가 부르지 않는다(이번 단계).
+
+    한 트랜잭션 — 부분 커밋 없음: 중간 실패는 전부 rollback + SYNC_FAILED (재시작 = 처음부터, 멱등이라 중복 0).
+    """
     window = window or Period(today - timedelta(days=lookback_days), today)
+    from app.harvest.feed_source_snapshot import scope_hash
     run = FeedSourceSyncRun(source_system=pf.SOURCE_SYSTEM, source_dataset=pf.SOURCE_DATASET,
                             source_contract_version=pf.SOURCE_CONTRACT_VERSION, status="RUNNING",
                             started_at=observed_at, window_start=window.start, window_end=window.end,
-                            lookback_days=lookback_days, farms=len(farm_map))
+                            lookback_days=lookback_days, farms=len(farm_map),
+                            source_scope_hash=scope_hash(sorted(farm_map), window.start, window.end))
     db.add(run)
     await db.flush()
     run_id = run.id
@@ -79,43 +107,52 @@ async def run_pigplan_feed_sync(db: AsyncSession, source: FeedDeliverySourceLike
         rows = source.fetch_rows(sorted(farm_map), window.start, window.end)
     except Exception as e:  # noqa: BLE001 — 소스 장애는 종류를 가리지 않고 '빈 데이터'로 읽지 않는다
         run.status, run.error, run.completed_at = "SOURCE_UNAVAILABLE", f"{type(e).__name__}: {e}"[:2000], observed_at
+        run.notes = {"error_class": error_class(e), "data_changed": False}
         await db.commit()
         return SyncOutcome(run_id=run_id, status="SOURCE_UNAVAILABLE", error=run.error)
 
-    # 2) 분류 → 관측 → 멱등 저장 → 철회 감지. 저장 실패는 SYNC_FAILED + rollback (원장 행은 남긴다)
+    # 2) 분류 → 관측 → 멱등 저장 → 철회 감지. 저장은 SAVEPOINT 안 — 실패하면 데이터만 되돌리고 원장 행은 SYNC_FAILED 로 남긴다
+    rows_fetched = len(rows)
     try:
-        obs: list[repo.Observation] = []
-        present: set[str] = set()
-        for r in rows:
-            fid = farm_map.get(r.source_farm_no)
-            if fid is None or r.seq is None:
-                continue                      # 매핑 없는 농장/키 없는 행은 저장하지 않는다 (fuzzy 매칭 없음)
-            c = pf.classify(r, today=today)
-            if c.reasons == ("OUT_OF_FILTER",):
-                continue
-            o = to_observation(r, c, fid)
-            obs.append(o)
-            present.add(o.source_row_key)
-        res = await repo.ingest_observations(db, obs, observed_at=observed_at, sync_run_id=run_id)
-        retracted = await repo.retract_missing(db, source_system=pf.SOURCE_SYSTEM, source_dataset=pf.SOURCE_DATASET,
-                                              farm_ids=list(farm_map.values()), window=window, present_keys=present,
-                                              observed_at=observed_at, sync_run_id=run_id)
-        wm = [r.source_updated_at for r in rows if r.source_updated_at is not None]
-        run.status, run.completed_at = "SUCCEEDED", observed_at
-        run.rows_fetched, run.rows_inserted, run.rows_unchanged = len(rows), res.inserted, res.unchanged
-        run.rows_superseded, run.rows_retracted = res.superseded, retracted
-        run.watermark_to = max(wm) if wm else None
+        async with db.begin_nested():
+            obs: list[repo.Observation] = []
+            present: set[str] = set()
+            for r in rows:
+                fid = farm_map.get(r.source_farm_no)
+                if fid is None or r.seq is None:
+                    continue                      # 매핑 없는 농장/키 없는 행은 저장하지 않는다 (fuzzy 매칭 없음)
+                c = pf.classify(r, today=today)
+                if c.reasons == ("OUT_OF_FILTER",):
+                    continue
+                o = to_observation(r, c, fid)
+                obs.append(o)
+                present.add(o.source_row_key)
+            res = await repo.ingest_observations(db, obs, observed_at=observed_at, sync_run_id=run_id, batch_size=batch_size)
+            # ── 철회 가드: 이번 실행이 "권위 있고 완전한" 결과일 때만 철회한다.
+            #    빈 결과(0행) 또는 이번 실행에 한 행도 없는 농장은 소스 침묵으로 보고 그 농장의 철회를 건너뛴다 (§24, L3/L5).
+            fetched_farms = {r.source_farm_no for r in rows}
+            retract_farm_ids = [fid for no, fid in farm_map.items() if no in fetched_farms]
+            skipped_farms = len(farm_map) - len(retract_farm_ids)
+            retracted = 0
+            if rows and retract_farm_ids:
+                retracted = await repo.retract_missing(db, source_system=pf.SOURCE_SYSTEM, source_dataset=pf.SOURCE_DATASET,
+                                                      farm_ids=retract_farm_ids, window=window, present_keys=present,
+                                                      observed_at=observed_at, sync_run_id=run_id)
+            # ★ 원장 기록까지 SAVEPOINT 안에서 — 여기서 무엇이 터져도 데이터가 남지 않는다 (L3 드릴에서 잡힌 SYNC_BUG:
+            #   savepoint 밖 예외가 SYNC_FAILED 를 적고도 outer commit 으로 데이터를 남겼다)
+            run.status, run.completed_at = "SUCCEEDED", observed_at
+            run.rows_fetched, run.rows_inserted, run.rows_unchanged = rows_fetched, res.inserted, res.unchanged
+            run.rows_superseded, run.rows_retracted = res.superseded, retracted
+            run.watermark_to = _watermark(rows)
+            run.notes = {"empty_source": not rows, "retraction_skipped_farms": skipped_farms, "batch_size": batch_size,
+                         "observations": len(obs)}
         await db.commit()
-        return SyncOutcome(run_id=run_id, status="SUCCEEDED", fetched=len(rows), inserted=res.inserted,
+        return SyncOutcome(run_id=run_id, status="SUCCEEDED", fetched=rows_fetched, inserted=res.inserted,
                            unchanged=res.unchanged, superseded=res.superseded, retracted=retracted)
-    except Exception as e:  # noqa: BLE001
-        await db.rollback()
-        failed = FeedSourceSyncRun(id=run_id, source_system=pf.SOURCE_SYSTEM, source_dataset=pf.SOURCE_DATASET,
-                                   source_contract_version=pf.SOURCE_CONTRACT_VERSION, status="SYNC_FAILED",
-                                   started_at=observed_at, completed_at=observed_at, window_start=window.start,
-                                   window_end=window.end, lookback_days=lookback_days, farms=len(farm_map),
-                                   rows_fetched=len(rows), error=f"{type(e).__name__}: {e}"[:2000])
-        db.add(failed)
+    except Exception as e:  # noqa: BLE001 — SAVEPOINT 가 데이터 변경을 되돌렸다. 원장에는 실패를 남긴다
+        run.status, run.completed_at, run.rows_fetched = "SYNC_FAILED", observed_at, rows_fetched
+        run.error = f"{type(e).__name__}: {e}"[:2000]
+        run.notes = {"error_class": error_class(e), "data_changed": False, "resumable": "restart_from_scratch_idempotent"}
         await db.commit()
-        return SyncOutcome(run_id=run_id, status="SYNC_FAILED", fetched=len(rows), error=failed.error)
+        return SyncOutcome(run_id=run_id, status="SYNC_FAILED", fetched=rows_fetched, error=run.error)
 
