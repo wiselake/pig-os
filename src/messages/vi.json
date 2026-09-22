@@ -15,7 +15,34 @@
     "qtyError": "Số lượng phải lớn hơn 0.",
     "saveError": "Lưu thất bại.",
     "deleteError": "Xóa thất bại.",
-    "noFarm": "Vui lòng chọn trại trước."
+    "noFarm": "Vui lòng chọn trại trước.",
+    "guidance": "Nhập tổng lượng thức ăn đã cho trong tháng (kg, có thể tách theo loại). Đơn giá tính theo kg.",
+    "unitCost": "Đơn giá (mỗi kg)",
+    "unitCostPlaceholder": "tùy chọn",
+    "currency": "Tiền tệ",
+    "costHint": "Tổng chi phí chỉ hiển thị khi mọi dòng trong tháng đều có đơn giá; nếu không sẽ hiển thị số tiền một phần và số dòng thiếu.",
+    "costError": "Đơn giá phải từ 0 trở lên.",
+    "summaryTitle": "Thức ăn theo tháng",
+    "basisRecorded": "Dựa trên lượng đã ghi tại đây.",
+    "month": "Tháng",
+    "noDataMonth": "Chưa có bản ghi thức ăn trong tháng này.",
+    "mQty": "Thức ăn",
+    "mCost": "Chi phí thức ăn",
+    "mUnitPrice": "Đơn giá",
+    "mChange": "so với tháng trước",
+    "mCostChange": "chi phí",
+    "mMix": "Cơ cấu",
+    "mDominant": "Loại chính",
+    "costPartial": "một phần — {n} dòng thiếu đơn giá",
+    "partialLegend": "chi phí một phần (có dòng thiếu đơn giá)",
+    "reason": {
+      "no_data": "không có bản ghi",
+      "no_cost": "chưa nhập đơn giá",
+      "cost_incomplete": "có dòng thiếu đơn giá",
+      "currency_mixed": "lẫn tiền tệ",
+      "prior_insufficient": "không có dữ liệu tháng trước",
+      "context_missing": "không so sánh được"
+    }
   },
   "prrsReport": {
     "title": "PRRS theo di truyền",
@@ -468,7 +495,9 @@
     "deleteAccount": "Xóa tài khoản",
     "deleteAccountDesc": "Toàn bộ dữ liệu sẽ bị xóa vĩnh viễn",
     "dataPrivacy": "Dữ liệu & Quyền riêng tư",
-    "dataPrivacyDesc": "Đồng ý, chia sẻ dữ liệu, rút lại"
+    "dataPrivacyDesc": "Đồng ý, chia sẻ dữ liệu, rút lại",
+    "feed": "Thức ăn",
+    "feedDesc": "Ghi thức ăn và xem tổng theo tháng"
   },
   "reports": {
     "selectFarm": "Vui lòng chọn trại.",

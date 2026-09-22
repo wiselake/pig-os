@@ -15,7 +15,34 @@
     "qtyError": "La cantidad debe ser mayor que 0.",
     "saveError": "Error al guardar.",
     "deleteError": "Error al eliminar.",
-    "noFarm": "Seleccione una granja primero."
+    "noFarm": "Seleccione una granja primero.",
+    "guidance": "Ingrese el total de alimento suministrado este mes en kg (puede separar por tipo). El costo unitario es por kg.",
+    "unitCost": "Costo unitario (por kg)",
+    "unitCostPlaceholder": "opcional",
+    "currency": "Moneda",
+    "costHint": "El total de costo solo aparece cuando todas las filas del mes tienen costo unitario; si no, verá un monto parcial y cuántas filas faltan.",
+    "costError": "El costo unitario debe ser 0 o más.",
+    "summaryTitle": "Alimento mensual",
+    "basisRecorded": "Según lo registrado aquí (alimento suministrado).",
+    "month": "Mes",
+    "noDataMonth": "No hay alimento registrado este mes.",
+    "mQty": "Alimento",
+    "mCost": "Costo de alimento",
+    "mUnitPrice": "Precio unitario",
+    "mChange": "vs. mes anterior",
+    "mCostChange": "costo",
+    "mMix": "Composición",
+    "mDominant": "Tipo principal",
+    "costPartial": "parcial — {n} fila(s) sin costo unitario",
+    "partialLegend": "costo parcial (algunas filas sin costo unitario)",
+    "reason": {
+      "no_data": "sin registros",
+      "no_cost": "sin costo unitario",
+      "cost_incomplete": "algunas filas sin costo unitario",
+      "currency_mixed": "monedas mezcladas",
+      "prior_insufficient": "mes anterior no disponible",
+      "context_missing": "no comparable"
+    }
   },
   "prrsReport": {
     "title": "PRRS por genética",
@@ -468,7 +495,9 @@
     "deleteAccount": "Eliminar cuenta",
     "deleteAccountDesc": "Todos los datos se eliminan permanentemente",
     "dataPrivacy": "Datos y privacidad",
-    "dataPrivacyDesc": "Consentimiento, uso compartido, retirada"
+    "dataPrivacyDesc": "Consentimiento, uso compartido, retirada",
+    "feed": "Alimento",
+    "feedDesc": "Registrar alimento y ver totales mensuales"
   },
   "reports": {
     "selectFarm": "Seleccione una granja.",
