@@ -157,6 +157,11 @@ iOS     DashboardScreen.swift:162-165 하드코딩
 ★ M-3·M-4·M-5 는 **한 덩어리로 보는 게 맞다.** 셋 다 "서버가 정한 것을
 클라이언트가 다시 정한다"는 같은 결함의 세 얼굴이다.
 
+```
+2026-09-22  iOS     M-3·M-4·M-5 DONE — iOS main 3dfdc25(#1) · 91f6bc7(#2) · c5622b2(#7)   근거 PLATFORM_PARITY §9-10-2
+            Android 변화 없음 — #1·#2·#4 OPEN(stacked)
+```
+
 ---
 
 ## 3. 심사 · 법무
@@ -190,6 +195,8 @@ iOS     DashboardScreen.swift:162-165 하드코딩
 의미    API 계약이 바뀌어도 구버전을 멈출 수단이 없다
         ★ CLAUDE.md §5 가 "모바일은 배포 주기가 길어 구버전이 오래 남는다"고
           적어둔 바로 그 위험의 대응 수단이 부재
+2026-09-22  iOS  READY_NOT_ENABLED — APIError.upgradeRequired 매핑만(c5622b2). 판정·차단·UI 없음.
+                 서버 426 계약이 없으므로 여기서 멈춤 (PLATFORM_PARITY §9-10-3 ⑤ — 1.1 gate 아님)
 ```
 
 ---
@@ -204,6 +211,9 @@ Android DeviceRepository.kt:26  기기등록 시 1회만. NetworkModule 인터�
 iOS     PushNotificationService.swift:47  1회만. Endpoint 헤더는 Authorization·Content-Type·Accept
 선행    서버는 c3a46cc 로 수신·관측 준비 완료 (송출·관측만, 판정 없음)
 의미    M-8 을 하려면 어느 버전이 살아 있는지 먼저 보여야 한다
+2026-09-22  iOS  송출 DONE — 모든 요청(토큰 refresh 포함)에 부착, ClientVersionHeaderTests (c5622b2)
+                 ★ 관측은 NO — 수신 미들웨어 c3a46cc 가 safety(PR #2) 에만 있고 main·PROD 에 없다
+                 (PLATFORM_PARITY §9-10-3 ②). "선행 완료" 는 배포 기준으로는 아직 거짓이다
 ```
 
 ★ **M-9 → M-8 순서다.** 버전 분포를 모르는 채 강제 업데이트를 켜면 정상
@@ -215,6 +225,8 @@ iOS     PushNotificationService.swift:47  1회만. Endpoint 헤더는 Authorizat
 근거    PLATFORM_PARITY §3-8   Android·iOS 둘 다 제품 계측 0건
 의미    모바일에서 무슨 일이 일어나는지 관측 수단이 없다
         M-1 같은 침묵 실패를 사후에 발견할 방법도 여기에 걸린다
+2026-09-22  iOS  MINIMAL_FOUNDATION — 이벤트 어휘(웹 analytics.ts 동일) + TelemetrySink + os_log (c5622b2).
+                 벤더 없음 — PostHog 부착은 방침 §9·App Privacy 라벨 변경 결정 (BLOCKED_BY_DECISION, §9-10-4)
 ```
 
 ---

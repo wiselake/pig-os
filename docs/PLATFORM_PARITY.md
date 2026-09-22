@@ -176,6 +176,8 @@ LEGACY_ROWS
 
 `hardcode_classification = LABEL_ONLY + PRESENTATION_POLICY`
 
+> ☞ **iOS 행은 2026-09-22 §9-10 에서 재판정** (iOS main merge SHA 등록). 위 표는 08-28 실측 그대로 둔다.
+
 ### 3-2. `KPI_STATUS_CONSUMPTION`
 
 | | 상태 | 근거 |
@@ -183,6 +185,8 @@ LEGACY_ROWS
 | Core/Web | DONE | `(app)/page.tsx:120,158-160` `resolveTier(kpi_status,…)` + `reportStatusMismatches` |
 | **Android** | **BLOCKED** | `kpi_status` 소비 **0건** (전 소스 grep) |
 | **iOS** | **BLOCKED** | `kpi_status` 소비 **0건** |
+
+> ☞ **iOS 행은 2026-09-22 §9-10 에서 재판정** (iOS main merge SHA 등록). 위 표는 08-28 실측 그대로 둔다.
 
 ### 3-3. `MOBILE_LOCAL_SEVERITY` — DECISION_INTEGRITY_RISK
 
@@ -197,6 +201,8 @@ LEGACY_ROWS
 | **Core/Web** | **BLOCKED** — `WEB_LOCAL_STATUS_FALLBACK` | `src/lib/kpi/status.ts` — `psyTier >=28/>=22` · `npdTier <=35/<=50` · `farrowingRateTier >=90/>=80`. `statusObservation.ts:53 resolveTier()` 가 backend `kpi_status` 부재 시 이 값으로 폴백 |
 | **Android** | **BLOCKED** | `DashboardScreen.kt:238-243` `meetsAvg = myValue >= b.avg` → Success/Warning. **벤치마크를 판정으로 변환** |
 | **iOS** | **BLOCKED** | `DashboardScreen.swift:241-246` alert 없음 → `AppColor.success`. **판정 없음이 초록(FAIL-OPEN)** |
+
+> ☞ **iOS 행은 2026-09-22 §9-10 에서 재판정** (iOS main merge SHA 등록). 위 표는 08-28 실측 그대로 둔다.
 
 ### 3-3-1. ACTIVE vs DORMANT — 같은 BLOCKED 가 아니다
 
@@ -265,6 +271,8 @@ Android contract_compliance = NO
 | **Core/Web** | **BLOCKED** | 요청 헤더에 앱/클라이언트 버전 없음 |
 | **Android** | **BLOCKED** | `DeviceRepository.kt:26` **기기등록 시 1회만**. `NetworkModule` 인터셉터는 `auth`·`logging` 둘뿐 → **per-request 헤더 없음** |
 | **iOS** | **BLOCKED** | `PushNotificationService.swift:47` **기기등록 시 1회만**. `APIClient`/`Endpoint` 헤더는 `Authorization`·`Content-Type`·`Accept` 뿐 |
+
+> ☞ **iOS 행은 2026-09-22 §9-10 에서 재판정** (iOS main merge SHA 등록). 위 표는 08-28 실측 그대로 둔다.
 
 ### 3-7. `FORCE_UPDATE / LEGACY_CONTROL`
 
@@ -771,6 +779,9 @@ runtime_reproduction_status  NOT_RUNTIME_VERIFIED
 commit SHA 를 요구하고 SHA 는 있으나, **두 SHA 모두 merge 되지 않은 stacked branch 위**에 있다.
 main 에 없는 SHA 를 `DONE` 근거로 쓰면 그것이 곧 거짓 DONE 이다 →
 셀 상태는 `IN_PROGRESS` 를 유지하고, merge 시점에 승격한다.
+
+> ☞ 2026-09-22: **iOS 는 merge 됐다** — iOS main `3dfdc25`(#1) · `91f6bc7`(#2). iOS 셀만 `DONE` 승격 (§9-10).
+>    Android #1·#2 는 여전히 OPEN(stacked) → Android 셀은 `IN_PROGRESS` 그대로.
 
 #### 9-3-4. ★ G4 로 닫지 못한 것 — `BLOCKED_BY_PRODUCT_DECISION`
 
@@ -1505,6 +1516,8 @@ US 주(state)는 저장돼 있지 않아 farm_state=None 으로 판정한다 —
 | Android | `PLANNED` | 소비 0건. `ConsentAmendmentViewModel` 이 있으나 이 계약을 모른다 |
 | iOS | `PLANNED` | 소비 0건 |
 
+> ☞ **iOS 행은 2026-09-22 §9-10 에서 재판정** (iOS main merge SHA 등록). 위 표는 08-28 실측 그대로 둔다.
+
 ## 9-9. `SIGNUP_RATE_LIMIT_429` — API 계약 추가 (2026-09-16 등재)
 
 ```
@@ -1559,6 +1572,67 @@ G3 429 PARITY = PARTIAL              — Web·Android DONE · iOS 기능 DONE ·
 
 ★ 이 트랙은 **정책·게이트를 바꾸지 않았다.** 서버 한도값·버킷·451 처리·가입 게이트 전부 그대로다.
 
+## 9-10. ★ iOS evidence 등록 — 2026-09-22 (append-only)
+
+> 출처: iOS 세션 요청서 「PLATFORM_PARITY / MOBILE_BACKLOG iOS 행 갱신 (2026-09-21 밤)」.
+> 이 세션이 `gh api repos/wiselake/pigos-ios` 로 **각 SHA 가 iOS main 에 포함됨을 확인**한 뒤 등록했다.
+> pig-os 는 가져오기 전용 — iOS 코드는 건드리지 않았다. Android 는 이 절의 대상이 아니다
+> (Android PR #1·#2·#4·#6·#7·#8 전부 OPEN, merge 는 #3 CI 수리뿐 — 셀 변화 없음).
+
+### 9-10-1. iOS main merge commit
+
+| iOS PR | merge SHA | 내용 |
+|---|---|---|
+| #1 | `3dfdc25` | `KpiDecision.from(kpi_status)` — nil/unknown → `insufficient` fail-closed |
+| #2 | `91f6bc7` | `KpiRepository.presentation()` · `resolveKpiCards` — items 순서 그대로, unknown code 관측·건너뜀, 폴백 3종 구분. 웹 `resolveKpiCards` 와 동일 규칙 |
+| #3 | `b338a51` | 서버 동의 계약 사용 (M-7) |
+| #4 | `61b7e54` | 429 (§9-9) |
+| #5 | `bda8189` | `/consent/diff` 소비 — 기록 있는 목적의 버전 불일치 → 고지. any_draft 억제 · 게이트 아님 · 재동의 기록 없음 (웹 `AmendmentBanner` 규칙 동일) |
+| #6 | `16ae9bd` | 1.1 localization — ko 496키, 429 문구 ko 포함(`ErrorMessageLocalizationTests`). 지원 언어 en+ko |
+| #7 | `c5622b2` | (a) 벤치마크 행 `my >= avg` 색 판정 제거 (b) `AnalyticsScreens.prrsSeverity` 앱 내 임계 제거 (c) `X-PigOS-Platform: ios` / `X-PigOS-App-Version` 을 **모든** 요청(토큰 refresh 포함)에 부착, `ClientVersionHeaderTests` (d) `/legal/privacy` 서버 렌더링(`LegalDocumentWebView`) (e) `APIError.upgradeRequired` 매핑만 (f) 이벤트 어휘 + `TelemetrySink` + os_log 싱크 |
+
+### 9-10-2. iOS 셀 재판정
+
+| 항목 | 이전 | 2026-09-22 | `implementation_commit` | 비고 |
+|---|---|---|---|---|
+| §3-1 `COUNTRY_KPI_PRESENTATION` | BLOCKED | **DONE** | `91f6bc7` | `runtime_reproduction_status` 는 여전히 NOT_RUNTIME_VERIFIED (§9-3-3 그대로) |
+| §3-2 `KPI_STATUS_CONSUMPTION` | BLOCKED / IN_PROGRESS(§9-2-2) | **DONE** | `3dfdc25` | |
+| §3-3 `MOBILE_LOCAL_SEVERITY` | BLOCKED (fail-OPEN) | **DONE** | `3dfdc25` + `c5622b2` | 대시보드 `dotColor` 서버 판정만 · 벤치마크 색 판정·`prrsSeverity` 제거 |
+| §3-6 `APP_VERSION_REQUEST_REPORTING` | BLOCKED (1회) | **DONE — 송출** | `c5622b2` | ★ **서버 관측은 NO**: 수신 미들웨어 `c3a46cc`(`core/client_version.py`) 는 **safety(PR #2) 에만 있고 main `fc96efc`·프로덕션에 없다**. 앱이 보내도 서버는 남기지 않는다 → 아래 9-10-3 ② |
+| §9-3-3 G4 iOS | IN_PROGRESS(stacked) | **DONE** | `3dfdc25` · `91f6bc7` | main 포함 확인으로 승격 조건 충족 |
+| §9-8 `CONSENT_DIFF` iOS | PLANNED | **DONE — CODE_COMPLETE / BLOCKED_BY_SERVER** | `bda8189` | ★ `/consent/diff` 는 **safety(PR #2, f402ed4) 에만** 있다. origin/main·프로덕션 probe **404** (2026-09-22). 앱은 404 를 `.unavailable` 로 두고 아무것도 띄우지 않는다 → 9-10-3 ① |
+| §3-7 `FORCE_UPDATE / LEGACY_CONTROL` iOS | BLOCKED | **READY_NOT_ENABLED** (셀 = IN_PROGRESS) | `c5622b2` | 426 매핑만. 판정·차단·UI 없음. 서버 426 계약 부재 → 그 이상 진행 불가 (§12-1 순서) |
+| §3-8 `PRODUCT_INSTRUMENTATION` iOS | BLOCKED | **MINIMAL_FOUNDATION** (셀 = IN_PROGRESS) | `c5622b2` | 어휘(웹 `analytics.ts` 동일 이름)+싱크만. **벤더 없음** — iOS 방침 "추적 기술 미사용" 고지 + App Privacy 라벨이 그 전제라 PostHog 부착은 `BLOCKED_BY_DECISION`(방침·라벨 동반 변경) |
+| §9-9 429 locale (G3) | iOS en 1/8 | **en+ko 2/2** | `16ae9bd` | iOS 지원 언어가 en·ko 라 나머지 6개는 갭이 아니라 **범위 밖**. `THREE_CLIENT_PARITY_VERIFIED` 는 그대로 NO(Web·Android 8 vs iOS 2 — 정의 자체를 "플랫폼별 지원 언어 전부" 로 바꾸는 결정은 별도) |
+
+★ **`/legal/privacy` iOS = CLIENT_DONE / CANONICALITY_DEPENDS_ON_SERVER.** iOS 는 version/hash/published
+메타 없이 페이지를 읽는다. 정본성은 전적으로 서버 보장 — 2026-09-21 배포 verify(마커 0 · sha 일치,
+`docs/legal/KNOWN_PUBLICATION_EXPOSURE.md` `production_marker_count 0`) 가 현재 근거다.
+
+### 9-10-3. iOS 1.1 release gate 가 pig-os 에 요구하는 것 — **신규 개발 0건**
+
+```
+①  /consent/diff 배포            코드 있음(safety f402ed4). main·PROD 없음.  = PR #2 merge + api 배포 결정
+②  버전 헤더 수신 로그 실측      코드 있음(safety c3a46cc). main·PROD 없음.  = PR #2 merge + api 배포 결정
+                                 → 그 뒤 client_version 로그에 ios / 1.1.0 이 보이면 §3-6 을 "관측 확인" 으로
+③  /legal/privacy 정본성 재증명  개발 아님 — 배포 verify 스크립트 재실행 1회 (09-21 근거 있음)
+④  /legal/terms                  결정 — "새로 만들지 말라" 가 요청 자체. 1.1 gate 아님. 계약이 생기면 같은 WebView
+⑤  426 계약                      결정 — 상태코드·detail(`UPGRADE_REQUIRED:min=…`?)·헤더. 1.1 gate 아님
+```
+
+★ **①② 는 한 가지로 수렴한다 — PR #2 (safety/pigos-20260916) merge.** 2026-09-21 결정
+(`MERGE NOW = NO`, 거버넌스 범위 겹침)은 그대로다. 이 절은 그 결정에 **iOS 1.1 release gate 가
+걸려 있다는 사실 하나를 더 얹는다.** ARQ hotfix(PR #6) 때처럼 consent/diff + client_version 만
+쪼개 내는 선택지가 있으나 결정 뒤 얘기다.
+
+### 9-10-4. iOS 쪽 결정 대기 (`BLOCKED_BY_DECISION` — 백엔드 아님)
+
+- AI 고지문 한국어 번역(1.1) — 심사받은 영문의 충실 번역, `public_privacy.ko.md` §8 어휘. **법무 교정 필요**
+- 계측 벤더(PostHog) 부착 여부 — 방침 §9 · App Privacy 라벨 동반 변경
+- `ACTIVE_SOWS` 카드 유지/제거 — §9-3-4 그대로
+- 재동의 액션(H16/H11) — 앱은 고지만. 계약이 정해지면 시트에 버튼
+
+
 ## 10. 후속 STEP (이번 범위 아님)
 
 ```
@@ -1580,6 +1654,7 @@ STEP 5   CI + Release Gate + App Version Gate
 
 | 날짜 | 내용 |
 |---|---|
+| 2026-09-22 | §9-10 iOS evidence 등록 — iOS PR #1~#7 main merge SHA 확인(gh api). §3-1/§3-2/§3-3/§9-3-3 iOS `DONE`, §3-6 iOS 송출 DONE(서버 관측 NO), §9-8 iOS CODE_COMPLETE/BLOCKED_BY_SERVER, §3-7·§3-8 iOS IN_PROGRESS(READY_NOT_ENABLED / MINIMAL_FOUNDATION). ★ `/consent/diff`·`client_version` 은 safety(PR #2) 에만 — iOS 1.1 gate = PR #2 merge 결정. 신규 개발 0건 |
 | 2026-09-18 | §9-9 `SIGNUP_RATE_LIMIT_429` 3-클라이언트 반영 — Web `DONE`(8b7077c) · Android `DONE`(0e1d450, 446/0) · iOS `DONE`(7210e1c, CI 216/0). §9-9-1 파리티 매트릭스 신설 |
 | 2026-09-21 | §9-9-1 판정 정정 — `THREE_CLIENT_PARITY_VERIFIED=YES` → **`FUNCTIONAL_429_PARITY=YES` / `THREE_CLIENT_PARITY_VERIFIED=NO` / G3 PARTIAL**. 근거: 성공 조건의 locale coverage 에서 iOS 가 en 1/8 이고 iOS 다국어(1.1) 가 예정된 제품이라 GAP 을 안고 YES 라 쓸 수 없다. Android 는 CI run 35555598654 로 `ANDROID_CI_GREEN=YES` |
 | 2026-08-27 | `MOBILE_PARITY.md` 신설 |
