@@ -19,6 +19,11 @@ SNAPSHOT_FORMAT = "feed_source_snapshot.v1"
 
 
 def scope_hash(farm_nos: list[int], start: date, end: date) -> str:
+    """승인 범위의 지문 — system·dataset·filter·contract·**승인 농장 집합**·창.
+
+    ★ 여기 들어가는 농장 집합은 **권한 범위**(manifest 직접 매핑 42)다. 그 창에 행이 있었던 농장 수(관측값)가
+      아니다 — 관측값을 넣으면 한 농장이 그 달에 쉬었다는 이유로 승인이 무효가 된다(2026-09-23 리허설 E).
+    """
     body = {"system": pf.SOURCE_SYSTEM, "dataset": pf.SOURCE_DATASET, "filter": pf.SOURCE_CONTRACT["source_filter"],
             "contract": pf.SOURCE_CONTRACT_VERSION, "farms": sorted(int(f) for f in farm_nos),
             "window": [start.isoformat(), end.isoformat()]}

@@ -51,7 +51,9 @@ def main() -> int:
         elapsed = time.perf_counter() - t0
     finally:
         src.close()
-    meta = snap.summarize(rows, farms, start, end, extracted_at=datetime.now(UTC), oracle_elapsed_s=round(elapsed, 2))
+    meta = snap.summarize(rows, FARM_CODES, start, end, extracted_at=datetime.now(UTC), oracle_elapsed_s=round(elapsed, 2))
+    meta["authorized_mapping_scope"] = len(FARM_CODES)
+    meta["observed_farms_with_rows"] = len(farms)
     meta["independent_aggregates_farm_months"] = len(indep)
     snap.save(a.out, rows, meta)
     # 독립 집계는 마스킹 없이 snapshot 옆(repo 밖)에 — L4 가 읽는다
