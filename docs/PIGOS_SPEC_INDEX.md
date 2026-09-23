@@ -17,7 +17,7 @@
 | 4 | ANONYMIZATION_RELEASE_GATE_SPEC | `docs/specs/ANONYMIZATION_RELEASE_GATE_SPEC.md` | **Data Asset Policy 소유 (A-rule 집행 SSOT)** + 판매 게이트 체크리스트 | v0.1 스켈레톤 — PigSignal 판매 게이트 |
 | 5 | MEETING_NOTES_2026-07-21 | `docs/meetings/MEETING_NOTES_2026-07-21.md` | 회의 기록 + 액션 트래커. **결정 아님 — 확정은 Decision Register만** | v1.0 |
 | 6 | MASTER_SCHEDULE | `docs/planning/MASTER_SCHEDULE_2026-07.md` | 통합 일정 (대표 미팅 날짜 변수형) | v0.1 |
-| 7 | FEED (사료) 트랙 | `docs/feed/` | 사료 엔진·저장·PigPlan 입고 연동·화면. 진입점: **화면 기획서 `FEED_SCREEN_SPEC_DRAFT.md`**(B-1·B-2·D-15 선택지) → 엔진 `FEED_ENGINE_V1_CANONICAL_SPEC.md` · 저장 `FEED_PERSISTENCE_ARCHITECTURE.md` · API `FEED_READ_API_CONTRACT_DRAFT.md` · 입력 `FEED_PILOT_INPUT_PROTOCOL.md` · 적재 `INITIAL_LOAD_RUNBOOK.md` · 게이트·기록 `releases/` (API/UI 게이트, 적재 승인·실행, 후속 결정 대기) | 데이터 적재 완료(2026-09-23) · **API/UI 미공개 — 화면 기획서 결정 대기** |
+| 7 | FEED (사료) 트랙 | `docs/feed/` | 사료 엔진·저장·PigPlan 입고 연동·화면. 진입점: **화면 기획서 `FEED_SCREEN_SPEC_DRAFT.md`**(B-1·B-2·D-15 선택지) → 엔진 `FEED_ENGINE_V1_CANONICAL_SPEC.md` · 저장 `FEED_PERSISTENCE_ARCHITECTURE.md` · API `FEED_READ_API_CONTRACT_DRAFT.md` · 입력 `FEED_PILOT_INPUT_PROTOCOL.md` · 적재 `INITIAL_LOAD_RUNBOOK.md` · 게이트·기록 `releases/` (API/UI 게이트, 적재 승인·실행, 후속 결정 대기) | 데이터 적재 완료(2026-09-23) · B-1·B-2·D-15(REFERENCE_VISIBLE) 결정됨 · **API/UI 미공개 — 반영·게이트 검증 대기** |
 
 **런 프롬프트** (`docs/runs/`): RUN_PROMPT_A(정책 벡터) / B(Envelope) / C(KPI v0.4+evidence+대표 결정요청서) / D(국가·주별 법무 리서치). 플레이스홀더(baseline 해시·테스트 수·런로그 경로) 채운 후 실행.
 
@@ -57,7 +57,7 @@ registry 행에도 decided_by·approved_at 필수.
 - 회사소개서 취합 / 국가별 버전 소개(JP는 B-06 후)
 
 ## 5. 대표 결정 대기 (미팅 안건)
-⓪ 사료: B-1 부분월 · B-2 FCR 제외 · D-15a/b 공개 범위 + 운영 D-A·D-B·D-C (`docs/feed/FEED_SCREEN_SPEC_DRAFT.md` §5 · `docs/feed/releases/FEED_LOAD_FOLLOWUP_DECISIONS_20260923.md`) ① Entitlement 결재(D-08 두수 무제한 / D-09 경영 P0 / D-10 R1·R2) ② D-07 KR 데이터 해외 비교 ③ B-06 일본(런 C가 프로필 분리 옵션 생성) ④ Safe Claim Matrix 경쟁사 비교 예외 (+D-03 기간귀속, D-04 경영 KR 노출). → 런 C의 T4가 결정요청서(CEO_DECISION_BRIEF) 생성. 국가 KPI 실사 자료 공유와 동일 미팅 권장.
+⓪ 사료: 2026-09-23 결정 완료(B-1·B-2·D-15·D-A·D-B·D-C) — 실행 추적 `docs/feed/releases/FEED_LOAD_FOLLOWUP_DECISIONS_20260923.md` ① Entitlement 결재(D-08 두수 무제한 / D-09 경영 P0 / D-10 R1·R2) ② D-07 KR 데이터 해외 비교 ③ B-06 일본(런 C가 프로필 분리 옵션 생성) ④ Safe Claim Matrix 경쟁사 비교 예외 (+D-03 기간귀속, D-04 경영 KR 노출). → 런 C의 T4가 결정요청서(CEO_DECISION_BRIEF) 생성. 국가 KPI 실사 자료 공유와 동일 미팅 권장.
 
 CTO 선결정: D-01(N/A B안) / D-02(통화 원본보존) / D-05 / D-06.
 
