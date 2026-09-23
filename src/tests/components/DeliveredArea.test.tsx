@@ -2,7 +2,7 @@ import { readFileSync } from "fs";
 import { resolve } from "path";
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor } from "@testing-library/react";
 
 import { renderWithClient } from "../test-utils";
 
@@ -23,6 +23,13 @@ vi.mock("@/lib/api/endpoints/feed", () => ({
 
 import { feedApi } from "@/lib/api/endpoints/feed";
 import DeliveredArea from "@/components/feed/DeliveredArea";
+
+// 부정 단언("그리지 않는다·요청하지 않는다")은 sources 응답이 렌더에 반영되고 뒤따르는 쿼리가 시작될 시간을 준 뒤에 한다.
+// 이것 없이 단언하면 컴포넌트가 무엇을 하든 통과한다(W6 음성 증명 M30 이 그렇게 통과했다).
+async function settle() {
+  await waitFor(() => expect(feedApi.sources).toHaveBeenCalled());
+  await act(async () => { await new Promise((r) => setTimeout(r, 60)); });
+}
 
 const VISIBLE = (rows: number, status = "SUCCEEDED") => ({
   as_recorded: { rows: 0 },
@@ -56,7 +63,7 @@ describe("DeliveredArea — 서버 판정만 따른다", () => {
   it("HIDDEN 이면 아무것도 그리지 않고 입고 요약을 요청하지도 않는다", async () => {
     h.sources = HIDDEN;
     renderWithClient(<DeliveredArea farmId="farm-1" period="2026-08" />);
-    await waitFor(() => expect(feedApi.sources).toHaveBeenCalled());
+    await settle();
     expect(screen.queryByTestId("feed-area-delivered")).toBeNull();
     expect(feedApi.summary).not.toHaveBeenCalled();
     expect(feedApi.months).not.toHaveBeenCalled();
@@ -66,14 +73,14 @@ describe("DeliveredArea — 서버 판정만 따른다", () => {
     h.sources = HIDDEN;
     h.summary = SUMMARY();                                    // 누가 요약을 채워 둬도
     renderWithClient(<DeliveredArea farmId="farm-1" period="2026-08" />);
-    await waitFor(() => expect(feedApi.sources).toHaveBeenCalled());
+    await settle();
     expect(document.body.textContent).not.toContain("691,900");
   });
 
   it("노출이어도 입고 행이 0 이면(매핑 42 중 33 농장) 영역이 없다 — 0 kg 로 그리지 않는다", async () => {
     h.sources = VISIBLE(0);
     renderWithClient(<DeliveredArea farmId="farm-1" period="2026-08" />);
-    await waitFor(() => expect(feedApi.sources).toHaveBeenCalled());
+    await settle();
     expect(screen.queryByTestId("feed-area-delivered")).toBeNull();
     expect(feedApi.summary).not.toHaveBeenCalled();
   });
