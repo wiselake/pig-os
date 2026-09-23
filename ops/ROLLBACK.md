@@ -163,6 +163,31 @@ curl -s -o /dev/null -w "%{http_code}\n" https://api.pigos.io/health
 
 **롤백 태그가 없으면** 이 경로는 못 쓴다. 소스를 이전 커밋으로 되돌려 재빌드해야 한다(느리다).
 
+### C-0. ★ a7c9e1f3b5d7 이전 코드로 되돌릴 때 (2026-09-23~)
+
+프로덕션 DB 는 2026-09-23 feed initial load 로 `a7c9e1f3b5d7`(feed_source_rows · feed_source_sync_runs) 이다.
+그 이전 코드(head `f3c6a8d0b2e4`, main `fc96efc` 이하)는 이 리비전을 모른다.
+
+- **순서: D(DB downgrade → `f3c6a8d0b2e4`) 먼저, 그 다음 옛 코드 배포.** 일반 규칙(C 먼저, D 나중)과 **반대**다 —
+  옛 코드는 새 테이블을 쓰지 않으므로 스키마를 먼저 내려도 현재 앱이 깨지지 않지만, 거꾸로 하면
+  코드가 모르는 리비전 위에서 앱이 돈다.
+- `ops/deploy.sh` 0/5 게이트가 거꾸로 된 순서를 **기계적으로 거부**한다(exit 3, "database is ahead of the code").
+  우회 스위치 없음 — 게이트를 끄지 말고 순서를 지킨다. (§C 의 `docker tag … up -d --no-build` 롤백은 게이트를 거치지
+  않으므로 이 순서를 사람이 지켜야 한다.)
+- ★ **이 롤백의 비용 (게이트 규칙이 지금과 같은 동안):**
+  ```text
+  데이터 손실   downgrade 가 feed_source_rows·feed_source_sync_runs 를 drop — 적재된 5,461행과 동기화 원장이 사라진다
+  복구 비용     다시 채우려면 initial load 전체를 다시 한다: Oracle 재추출 + 반출 기록(custody) 절차 재실행
+               + 승인 게이트(기대값·스코프 해시·코드 지문) + 대사. 즉 "옛 코드로 잠깐 돌아가기" 가 데이터 작업이 된다
+  다른 길      데이터만 살리려면: downgrade 전에 두 테이블만 덤프(`pg_dump -t feed_source_rows -t feed_source_sync_runs`)해 두고
+               다시 upgrade 한 뒤 복원 — 이 경로는 **검증하지 않았다**
+  ```
+  a7c9 는 테이블 추가뿐(additive)이라 옛 코드는 새 스키마 위에서 문제없이 돈다 — 데이터를 지워야 하는 이유는
+  스키마가 아니라 게이트 규칙이다. additive 리비전 허용 목록으로 바꿀지는 결정 대기
+  (`docs/feed/releases/FEED_LOAD_FOLLOWUP_DECISIONS_20260923.md` D-A).
+- downgrade 실측 검증: 빈 테이블 `docs/feed/runs/restore_test_20260923/` · **데이터가 든 상태** `docs/feed/runs/restore_test_postload_20260923/`
+  (격리 컨테이너, 5,461행 → downgrade PASS → 스키마가 적재 전과 동일 · 비피드 92 테이블 행 수 불변).
+
 ---
 
 ## D. 마이그레이션 롤백
@@ -178,6 +203,7 @@ $M current                    # 확인
 
 - `downgrade` 는 데이터를 지울 수 있다. 컬럼·테이블 drop 이 있으면 그 데이터는 사라진다.
 - 코드가 새 스키마를 기대하는 상태에서 스키마만 되돌리면 앱이 깨진다. **C(코드 롤백)를 먼저 하고 D 를 한다.**
+  - 예외: 되돌릴 대상이 `a7c9e1f3b5d7` 이전 코드면 **D 먼저** — §C-0.
 - 로컬 PG 로 이전(2026-08-25)한 뒤로 `ECHECKOUTTIMEOUT`(풀러 고갈)은 나지 않는다.
   대신 실패하면 **진짜 실패다** — 재시도로 넘기지 말고 메시지를 읽는다.
 - 실패는 트랜잭션째 롤백되니 중간 상태로 남지 않는다.
@@ -261,6 +287,11 @@ $M current                                   # 마커가 덤프 시점과 맞는
 curl -s -o /dev/null -w "%{http_code}\n" https://api.pigos.io/health
 ```
 
+★ **스키마 해시로 복원 성공을 판정하지 말 것 (2026-09-23 실측).** 복원은 CHECK 제약 표기를 다시 파싱해 바꾼다
+(`ANY ((ARRAY['A'::character varying, …])::text[])` → `ANY (ARRAY[('A'::character varying)::text, …])`, 의미 동일).
+복원한 DB 의 `pg_dump --schema-only` 해시는 원본과 다르게 나온다. 판정은 테이블 목록 차집합(위) · 테이블별 행 수 ·
+alembic_version · information_schema 컬럼 지문으로 한다. 근거 `docs/feed/runs/restore_test_postload_20260923/RESULT.md`.
+
 ★ **ANALYZE 는 자동으로 돌 때까지 기다리지 말고 직접 친다.** 복원 직후엔 통계가
 없어 플랜이 틀어진다.
 
@@ -309,3 +340,12 @@ $P -c "DROP DATABASE pigos_restore_test"       # ★ 반드시 정리 — 디스
 > 원인이 두 개였고 하나만 고친 상태였던 것이다(나머지는 `farrowings` by-sow 인덱스
 > 누락, 3.7초). 교훈: **증상 하나에 원인 하나라고 가정하지 말 것.** 옮긴 뒤에도
 > 반드시 다시 재고, 단계별로 쪼개서 잰다(B-2).
+>
+> 2026-09-23 발견 — **오프사이트(S3) 백업 공백 약 4주.**
+> 영향 기간: 2026-08-25 ~ 2026-09-23 11:08 KST. S3 버킷·IAM 역할·`.env` 설정은 있었다. repo 에는 2026-08-25 13:21(`b374e0d`)부터
+> S3 단계가 있었고 그날 13:45~14:47 KST 에는 S3 업로드도 실제로 됐다(버킷에 그 시각 객체 5개). 그런데 서버의 `backup_db.sh`·`backup_incremental.sh`
+> 는 수정 시각 2026-08-25 14:43 의 **S3 단계가 없는 판**이었다 — 같은 날 서버 파일이 더 옛 판으로 덮어써진 퇴행으로 보인다(누가·어떻게는 기록 없음).
+> 그 뒤로 백업은 DB 와 같은 EBS 볼륨에만 있었다.
+> 원인 한 줄: 서버 소스가 SHA 로 고정되지 않아 repo 와 서버 스크립트가 갈라진 것을 아무것도 잡지 못했다.
+> 현재: 2026-09-23 main 판으로 교체, 수동 실행으로 S3 업로드 확인 · 적재 전 복구점도 S3 에 보존(`RECOVERY_POINTS.md` RP-1).
+> 재발 방지: 서버 배포물 SHA manifest + deploy gate 대조(결정 D-B) — `ops/` 스크립트도 manifest 에 포함해 백업 스크립트 드리프트를 같은 대조로 잡는다.

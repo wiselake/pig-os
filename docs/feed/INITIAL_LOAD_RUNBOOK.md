@@ -89,6 +89,18 @@ projection: quantity/cost/unit_price/mix vs Oracle SQL · lineage 전량 역추�
 - snapshot 파일(원자료 포함)은 repo 밖 임시 경로. 작업 종료 시 삭제하고 `OVERNIGHT_RESULTS` §END 에 삭제 여부 기록.
 - 일회용 DB(`pigos_feedload*`) DROP.
 
+### 8-1. 파일 권한 · 잔여 스윕 (2026-09-23 리뷰 ② 반영 — 필수)
+
+```text
+시작      원천 데이터를 만지는 모든 셸·스크립트 첫 줄 `umask 077`. 서버 작업 디렉터리는 `mktemp -d`(700) — 공용 경로(/var/tmp/feed 등) 금지.
+          컨테이너가 써야 하면 uid 를 맞춘다(appuser 1000 = ubuntu 1000). chmod 777 디렉터리 금지(2026-09-23 에 한 번 썼다).
+원천 행   가능하면 서버로 옮기지 않는다. 대사용 집계는 `feed_source_snapshot_take.py --indep-only`(행 0 · 마스킹 키 · 600).
+종료 후   작업 디렉터리 삭제, 그리고 **이름 패턴이 아니라 시간으로** 스윕한다 — 패턴 스윕은 2026-09-23 에 두 건을 놓쳤다:
+            sudo find /tmp /var/tmp /home/ubuntu /root -xdev -newermt "<작업 시작 시각>" -type f 2>/dev/null
+          나온 파일을 하나씩 분류(우리 것 / 백업 cron / 타 프로젝트)해 우리 것은 repo 사본과 대조 후 삭제, 결과를 실행 기록에 남긴다.
+          워크스테이션 scratchpad 도 같은 방식으로.
+```
+
 ## 9. Estimated runtime (근거 있는 것만)
 
 ```text

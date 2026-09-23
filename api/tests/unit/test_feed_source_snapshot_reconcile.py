@@ -70,3 +70,14 @@ def test_diff_reports_only_differences():
     b.by_farm["y"] = 1
     assert rc.diff(a, a) == {}
     assert rc.diff(a, b) == {"by_farm": {"x": (2, 1), "y": (0, 1)}}
+
+
+def test_indep_serialization_masks_farm_keys_and_lookup_accepts_both():
+    indep = {(2807, "2026-08"): {"kg": Decimal("1.5"), "cost": None, "priced_kg": None, "rows_accepted": 2, "rows_costed": 0, "stages": {}}}
+    masked = rc.serialize_indep(indep, masked=True)
+    raw = rc.serialize_indep(indep, masked=False)
+    assert list(masked) == [f"{rc.mask(2807)}|2026-08"] and "2807" not in next(iter(masked))
+    assert list(raw) == ["2807|2026-08"]
+    assert masked[f"{rc.mask(2807)}|2026-08"]["kg"] == "1.5" and masked[f"{rc.mask(2807)}|2026-08"]["rows_accepted"] == 2
+    assert rc.indep_get(masked, 2807, "2026-08") == rc.indep_get(raw, 2807, "2026-08")
+    assert rc.indep_get(masked, 2807, "2026-07") is None and rc.indep_get(masked, 1, "2026-08") is None
