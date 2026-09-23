@@ -40,6 +40,7 @@ R_NO_COHORT = "no_cohort"                # CLOSED 그룹 0 (not applicable — n
 R_PRIOR_INSUFFICIENT = "prior_insufficient"   # 비교 기간이 INSUFFICIENT
 R_ATTRIBUTION_MISSING = "attribution_missing"  # 그룹 귀속 사료 0 (사료는 있으나 group_id 없음)
 R_CONTEXT_MISSING = "context_missing"    # 기간 길이 불일치 등 계산 전제 미충족
+R_PARTIAL_PERIOD = "partial_period"      # 진행 중인 달 — 완료월끼리만 비교한다(B-1). 엔진은 시계가 없다: 읽기 API 가 농장 현지 날짜로 판정해 붙인다
 
 # ── 스코프 ──────────────────────────────────────────────────────────────────
 Scope = Literal["SOW", "GROUP", "BUILDING", "FARM_UNATTRIBUTED"]

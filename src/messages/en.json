@@ -15,7 +15,51 @@
     "qtyError": "Quantity must be greater than 0.",
     "saveError": "Failed to save.",
     "deleteError": "Failed to delete.",
-    "noFarm": "Select a farm first."
+    "noFarm": "Select a farm first.",
+    "guidance": "Enter the total feed given this month in kg (one row per feed type is fine). Unit cost is per kg.",
+    "unitCost": "Unit cost (per kg)",
+    "unitCostPlaceholder": "optional",
+    "currency": "Currency",
+    "costHint": "Cost totals appear only when every row of the month has a unit cost; otherwise you will see a partial figure and how many rows are missing it.",
+    "costError": "Unit cost must be 0 or more.",
+    "summaryTitle": "Monthly feed",
+    "basisRecorded": "Based on what you recorded here (feed given).",
+    "month": "Month",
+    "noDataMonth": "No feed recorded for this month.",
+    "mQty": "Feed",
+    "mCost": "Feed cost",
+    "mUnitPrice": "Unit price",
+    "mChange": "vs. previous month",
+    "mCostChange": "cost",
+    "mMix": "Mix",
+    "mDominant": "Main type",
+    "costPartial": "partial — {n} row(s) without unit cost",
+    "partialLegend": "partial cost (some rows have no unit cost)",
+    "reason": {
+      "no_data": "no records",
+      "no_cost": "no unit cost entered",
+      "cost_incomplete": "some rows have no unit cost",
+      "currency_mixed": "mixed currencies",
+      "prior_insufficient": "previous month not available",
+      "context_missing": "not comparable",
+      "partial_period": "Month in progress — not compared"
+    },
+    "mtdBadge": "MTD · in progress",
+    "mtdRow": "(MTD)",
+    "fedTitle": "Feed given & consumption",
+    "delivered": {
+      "title": "Feed deliveries · PigPlan link",
+      "basis": "Delivery (purchase) basis — this is not what the pigs ate",
+      "qty": "Delivered",
+      "cost": "Delivery cost",
+      "unitPrice": "Average unit price",
+      "mix": "Feed mix",
+      "costPartial": "Partial only ({pct}% of rows)",
+      "noCost": "No cost data",
+      "noMonth": "No deliveries recorded this month",
+      "asOf": "Data as of {date}",
+      "syncFailed": "Last sync failed"
+    }
   },
   "prrsReport": {
     "title": "PRRS by genetics",
@@ -468,7 +512,9 @@
     "deleteAccount": "Delete account",
     "deleteAccountDesc": "All data is permanently deleted",
     "dataPrivacy": "Data & Privacy",
-    "dataPrivacyDesc": "Consent, data sharing, withdrawal"
+    "dataPrivacyDesc": "Consent, data sharing, withdrawal",
+    "feed": "Feed",
+    "feedDesc": "Record feed and see monthly totals"
   },
   "reports": {
     "selectFarm": "Please select a farm.",

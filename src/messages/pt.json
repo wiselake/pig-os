@@ -15,7 +15,51 @@
     "qtyError": "A quantidade deve ser maior que 0.",
     "saveError": "Falha ao salvar.",
     "deleteError": "Falha ao excluir.",
-    "noFarm": "Selecione uma fazenda primeiro."
+    "noFarm": "Selecione uma fazenda primeiro.",
+    "guidance": "Informe o total de ração fornecida neste mês em kg (pode separar por tipo). O custo unitário é por kg.",
+    "unitCost": "Custo unitário (por kg)",
+    "unitCostPlaceholder": "opcional",
+    "currency": "Moeda",
+    "costHint": "O total de custo só aparece quando todas as linhas do mês têm custo unitário; caso contrário, você verá um valor parcial e quantas linhas faltam.",
+    "costError": "O custo unitário deve ser 0 ou mais.",
+    "summaryTitle": "Ração mensal",
+    "basisRecorded": "Com base no que foi registrado aqui (ração fornecida).",
+    "month": "Mês",
+    "noDataMonth": "Nenhuma ração registrada neste mês.",
+    "mQty": "Ração",
+    "mCost": "Custo de ração",
+    "mUnitPrice": "Preço unitário",
+    "mChange": "vs. mês anterior",
+    "mCostChange": "custo",
+    "mMix": "Composição",
+    "mDominant": "Tipo principal",
+    "costPartial": "parcial — {n} linha(s) sem custo unitário",
+    "partialLegend": "custo parcial (algumas linhas sem custo unitário)",
+    "reason": {
+      "no_data": "sem registros",
+      "no_cost": "sem custo unitário",
+      "cost_incomplete": "algumas linhas sem custo unitário",
+      "currency_mixed": "moedas misturadas",
+      "prior_insufficient": "mês anterior indisponível",
+      "context_missing": "não comparável",
+      "partial_period": "Mês em andamento — sem comparação"
+    },
+    "mtdBadge": "MTD · em andamento",
+    "mtdRow": "(MTD)",
+    "fedTitle": "Ração fornecida e consumo",
+    "delivered": {
+      "title": "Entregas de ração · integração PigPlan",
+      "basis": "Base de entregas (compras) — não é o que os suínos comeram",
+      "qty": "Entregue",
+      "cost": "Custo das entregas",
+      "unitPrice": "Preço unitário médio",
+      "mix": "Composição da ração",
+      "costPartial": "Apenas parcial ({pct}% das linhas)",
+      "noCost": "Sem dados de custo",
+      "noMonth": "Nenhuma entrega registrada neste mês",
+      "asOf": "Dados até {date}",
+      "syncFailed": "A última sincronização falhou"
+    }
   },
   "prrsReport": {
     "title": "PRRS por genética",
@@ -468,7 +512,9 @@
     "deleteAccount": "Excluir conta",
     "deleteAccountDesc": "Todos os dados são excluídos permanentemente",
     "dataPrivacy": "Dados e privacidade",
-    "dataPrivacyDesc": "Consentimento, compartilhamento, retirada"
+    "dataPrivacyDesc": "Consentimento, compartilhamento, retirada",
+    "feed": "Ração",
+    "feedDesc": "Registrar ração e ver totais mensais"
   },
   "reports": {
     "selectFarm": "Selecione uma fazenda.",
