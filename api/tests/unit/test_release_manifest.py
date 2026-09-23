@@ -45,8 +45,9 @@ def _extract(tgz: Path, dest: Path) -> Path:
     return dest
 
 
-def _release(tmp_path: Path, files: dict[str, bytes] | None = None, sha: str = SHA) -> Path:
-    tgz = rm.pack_release(files or _files(), sha, tmp_path / "out")
+def _release(tmp_path: Path, files: dict[str, bytes] | None = None, sha: str = SHA,
+             execs: frozenset[str] = frozenset({"ops/backup_db.sh"})) -> Path:
+    tgz = rm.pack_release(files or _files(), sha, tmp_path / "out", set(execs))
     return _extract(tgz, tmp_path / "pigos")
 
 
@@ -55,6 +56,7 @@ def test_manifest_records_sha_files_and_alembic_head(tmp_path):
     m = json.loads((root / rm.MANIFEST).read_text(encoding="utf-8"))
     assert m["sha"] == SHA and m["alembic_heads"] == ["r2"]
     assert set(m["files"]) == set(_files())
+    assert m["executables"] == ["ops/backup_db.sh"]
 
 
 def _mutate(root: Path, case: str) -> str:
@@ -77,6 +79,10 @@ def _mutate(root: Path, case: str) -> str:
         (root / rm.MANIFEST).unlink()
     elif case == "manifest_corrupt":
         (root / rm.MANIFEST).write_text("{not json", encoding="utf-8")
+    elif case == "manifest_no_executables_key":
+        m = json.loads((root / rm.MANIFEST).read_text(encoding="utf-8"))
+        del m["executables"]
+        (root / rm.MANIFEST).write_text(json.dumps(m), encoding="utf-8")
     elif case == "manifest_wrong_format":
         m = json.loads((root / rm.MANIFEST).read_text(encoding="utf-8"))
         m["format"] = 999
@@ -106,6 +112,7 @@ def _mutate(root: Path, case: str) -> str:
     ("manifest_missing", 3),
     ("manifest_corrupt", 3),
     ("manifest_wrong_format", 3),
+    ("manifest_no_executables_key", 3),
     ("cache_dirs_ok", 0),
     ("outside_covered_ok", 0),
 ])
@@ -114,6 +121,20 @@ def test_verify_matrix(tmp_path, case, expect):
     rc, msgs = rm.verify(root, _mutate(root, case))
     assert rc == expect, (case, msgs)
     assert msgs[0].startswith("OK" if expect == 0 else "REFUSED"), (case, msgs)
+
+
+_POSIX = os.name == "posix"
+
+
+@pytest.mark.skipif(not _POSIX and not os.environ.get("CI"), reason="exec bits are POSIX-only (runs in CI)")
+def test_verify_refuses_lost_exec_bit(tmp_path):
+    """cron runs ~/pigos/ops/backup_db.sh directly; a release that drops its exec bit would silently stop backups."""
+    assert _POSIX, "CI must run this on POSIX - a skip here would hide it"
+    root = _release(tmp_path)
+    assert rm.verify(root, SHA)[0] == 0
+    (root / "ops" / "backup_db.sh").chmod(0o644)
+    rc, msgs = rm.verify(root, SHA)
+    assert rc == 3 and any("not executable ops/backup_db.sh" in x for x in msgs), msgs
 
 
 def test_build_from_real_repo_head_round_trips(tmp_path):
@@ -125,6 +146,8 @@ def test_build_from_real_repo_head_round_trips(tmp_path):
     assert rc == 0, msgs
     m = json.loads((root / rm.MANIFEST).read_text(encoding="utf-8"))
     assert any(p.startswith("ops/") for p in m["files"]) and any(p.startswith("api/app/") for p in m["files"])
+    # git mode 100755 → recorded executable (cron and the gate call these directly)
+    assert {"ops/backup_db.sh", "ops/backup_incremental.sh", "ops/deploy.sh", "ops/check_migration_drift.sh"} <= set(m["executables"])
     assert (tmp_path / "out" / f"{tgz.name}.sha256").read_text(encoding="utf-8").split()[0] == rm._sha256(tgz.read_bytes())
 
 
@@ -172,7 +195,7 @@ def test_deploy_sh_preflight(tmp_path, case, expect):
     assert _CAN_SHELL, "CI must be able to run deploy.sh preflight - a skip here would hide it"
     files = _files()
     files.update({f"ops/{n}": (OPS / n).read_bytes() for n in rm.GATE_FILES})    # the release carries ops/ too
-    root = _release(tmp_path, files)
+    root = _release(tmp_path, files, execs=frozenset({"ops/backup_db.sh", "ops/deploy.sh", "ops/check_migration_drift.sh"}))
     gate = _gate(tmp_path)
     script = gate / "deploy.sh"
     args = ["web", "--expect-sha", SHA, "--preflight-only"]

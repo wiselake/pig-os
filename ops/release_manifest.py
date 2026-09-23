@@ -9,7 +9,8 @@ unpacked over it and nothing noticed for four weeks (docs/feed/runs/goal_2026092
     python3 release_manifest.py verify --root ~/pigos --expect-sha <40-hex sha>
 
 verify refuses (exit 3) when: the manifest is missing or unreadable · its sha != --expect-sha · any listed file is
-missing or its sha256 differs · a file exists under a covered directory but is not listed (caches excepted) ·
+missing or its sha256 differs · a listed executable lost its exec bit (POSIX) · a file exists under a covered
+directory but is not listed (caches excepted) ·
 the tree's alembic head != the manifest's. Files outside the covered paths (.env, backups, other trees) are ignored.
 No switch turns a refusal into a pass.
 
@@ -23,6 +24,7 @@ import argparse
 import hashlib
 import io
 import json
+import os
 import re
 import subprocess
 import sys
@@ -66,11 +68,13 @@ def covered(rel: str) -> bool:
     return rel in COVERED_FILES or parts[0] in COVERED_DIRS
 
 
-def manifest_for(files: dict[str, bytes], sha: str) -> dict:
+def manifest_for(files: dict[str, bytes], sha: str, executables: set[str] | None = None) -> dict:
     listed = {p: _sha256(b) for p, b in sorted(files.items()) if covered(p)}
     return {"format": FORMAT, "sha": sha, "created_utc": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "covered_dirs": list(COVERED_DIRS), "covered_files": list(COVERED_FILES),
-            "alembic_heads": alembic_head(files), "files": listed}
+            "alembic_heads": alembic_head(files), "files": listed,
+            # cron runs ~/pigos/ops/backup_db.sh directly — a lost exec bit silently stops backups
+            "executables": sorted(p for p in (executables or set()) if p in listed)}
 
 
 def _tree_files(root: Path) -> dict[str, bytes]:
@@ -89,8 +93,8 @@ def verify(root: Path, expect_sha: str) -> tuple[int, list[str]]:
     mp = root / MANIFEST
     try:
         m = json.loads(mp.read_text(encoding="utf-8"))
-        files, msha = m["files"], m["sha"]
-        if m.get("format") != FORMAT or not isinstance(files, dict):
+        files, msha, execs = m["files"], m["sha"], m["executables"]
+        if m.get("format") != FORMAT or not isinstance(files, dict) or not isinstance(execs, list):
             raise ValueError("format")
     except FileNotFoundError:
         return 3, [f"REFUSED: {MANIFEST} not found in {root} - the server tree cannot be tied to a commit"]
@@ -107,6 +111,8 @@ def verify(root: Path, expect_sha: str) -> tuple[int, list[str]]:
         elif _sha256(b) != h:
             bad.append(f"modified {p}")
     bad += [f"not in release {p}" for p in sorted(set(tree) - set(files))]
+    if os.name == "posix":                       # exec bits are only meaningful on the server side
+        bad += [f"not executable {p}" for p in execs if p in tree and not (root / p).stat().st_mode & 0o100]
     if bad:
         return 3, [f"REFUSED: server tree differs from release {msha} in {len(bad)} file(s)"] + [f"  {x}" for x in bad[:50]]
     heads = alembic_head(tree)
@@ -121,19 +127,22 @@ def build(ref: str, out: Path) -> Path:
     r = _git("archive", "--format=tar", sha, "--", *paths)
     r.check_returncode()
     raw = r.stdout
-    files = {}
+    files, execs = {}, set()
     with tarfile.open(fileobj=io.BytesIO(raw)) as t:
         for mem in t.getmembers():
             if mem.isfile():
                 files[mem.name] = t.extractfile(mem).read()
-    return pack_release(files, sha, out)
+                if mem.mode & 0o111:                     # git mode 100755
+                    execs.add(mem.name)
+    return pack_release(files, sha, out, execs)
 
 
-def pack_release(files: dict[str, bytes], sha: str, out: Path) -> Path:
-    m = manifest_for(files, sha)
+def pack_release(files: dict[str, bytes], sha: str, out: Path, executables: set[str] | None = None) -> Path:
+    m = manifest_for(files, sha, executables)
     out.mkdir(parents=True, exist_ok=True)
     tgz = out / f"pigos-release-{sha[:12]}.tar.gz"
-    _write_tgz(tgz, {**files, MANIFEST: json.dumps(m, indent=1, sort_keys=True).encode()})
+    _write_tgz(tgz, {**files, MANIFEST: json.dumps(m, indent=1, sort_keys=True).encode()},
+               {p: 0o755 for p in m["executables"]})
     return tgz
 
 
