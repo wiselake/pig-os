@@ -163,30 +163,33 @@ curl -s -o /dev/null -w "%{http_code}\n" https://api.pigos.io/health
 
 **롤백 태그가 없으면** 이 경로는 못 쓴다. 소스를 이전 커밋으로 되돌려 재빌드해야 한다(느리다).
 
-### C-0. ★ a7c9e1f3b5d7 이전 코드로 되돌릴 때 (2026-09-23~)
+### C-0. ★ DB 가 되돌릴 코드보다 앞설 때 — additive 허용 목록 (2026-09-23 결정 D-A)
 
-프로덕션 DB 는 2026-09-23 feed initial load 로 `a7c9e1f3b5d7`(feed_source_rows · feed_source_sync_runs) 이다.
-그 이전 코드(head `f3c6a8d0b2e4`, main `fc96efc` 이하)는 이 리비전을 모른다.
+예: 프로덕션 DB 는 `a7c9e1f3b5d7`(feed initial load), 되돌릴 코드는 그 이전(head `f3c6a8d0b2e4`).
 
-- **순서: D(DB downgrade → `f3c6a8d0b2e4`) 먼저, 그 다음 옛 코드 배포.** 일반 규칙(C 먼저, D 나중)과 **반대**다 —
-  옛 코드는 새 테이블을 쓰지 않으므로 스키마를 먼저 내려도 현재 앱이 깨지지 않지만, 거꾸로 하면
-  코드가 모르는 리비전 위에서 앱이 돈다.
-- `ops/deploy.sh` 0/5 게이트가 거꾸로 된 순서를 **기계적으로 거부**한다(exit 3, "database is ahead of the code").
-  우회 스위치 없음 — 게이트를 끄지 말고 순서를 지킨다. (§C 의 `docker tag … up -d --no-build` 롤백은 게이트를 거치지
-  않으므로 이 순서를 사람이 지켜야 한다.)
-- ★ **이 롤백의 비용 (게이트 규칙이 지금과 같은 동안):**
+**downgrade 가 필요한지는 허용 목록이 판정한다.** 게이트(`check_migration_drift.sh` → `alembic_graph.py --additive-allowlist`)는
+DB 가 코드보다 앞선 리비전을 하나씩 거슬러 올라가며, 그 리비전이 **전부** `additive_revisions.txt` 에 있고 코드 head 에 닿으면 통과시킨다.
+
+```text
+앞선 리비전이 전부 목록에 있음   → downgrade 없이 옛 코드 배포 (게이트 통과, 데이터 보존)
+하나라도 목록에 없음             → 게이트 거부. D(downgrade) 먼저, 그 다음 옛 코드 — 일반 규칙(C 먼저)과 반대
+목록 없음·손상                   → 게이트가 모든 api/worker 배포를 거부 (fail closed). 목록부터 복구
+```
+
+- ★ **목록은 설치된 게이트 쪽 파일을 읽는다** — 배포 대상 트리 안의 `ops/additive_revisions.txt` 가 아니다. 옛 코드에는 자기보다 새로운
+  리비전이 목록에 없기 때문이다. 게이트 설치 위치와 절차: `docs/feed/runs/goal_20260923/` W1·W2 기록.
+- `a7c9e1f3b5d7` 은 목록에 있다(판정 근거 `docs/feed/runs/goal_20260923/evidence/w1_a7c9_additive.txt` — upgrade 는 create_table·create_index 뿐,
+  새 테이블의 farms FK 는 farms 하드 삭제 경로가 없음을 확인). → 설치된 게이트에 이 목록이 들어간 뒤로는 a7c9 이전 코드로의 롤백에
+  downgrade 가 **필요 없다**. 설치 전(또는 목록에서 빠지면)에는 아래 비용이 그대로 적용된다.
+- 목록에 올리는 것은 PR 로만. CI(`api/tests/unit/test_additive_gate.py`)가 각 줄의 migration 존재 · parent 일치 · 정적 additive 판정을 강제한다.
+- §C 의 `docker tag … up -d --no-build` 롤백은 게이트를 거치지 않는다 — 앞선 리비전이 목록에 있는지 사람이 확인한다.
+- **downgrade 가 필요한 경우의 비용** (목록 밖 리비전이거나 게이트에 목록이 없을 때):
   ```text
-  데이터 손실   downgrade 가 feed_source_rows·feed_source_sync_runs 를 drop — 적재된 5,461행과 동기화 원장이 사라진다
-  복구 비용     다시 채우려면 initial load 전체를 다시 한다: Oracle 재추출 + 반출 기록(custody) 절차 재실행
-               + 승인 게이트(기대값·스코프 해시·코드 지문) + 대사. 즉 "옛 코드로 잠깐 돌아가기" 가 데이터 작업이 된다
-  다른 길      데이터만 살리려면: downgrade 전에 두 테이블만 덤프(`pg_dump -t feed_source_rows -t feed_source_sync_runs`)해 두고
-               다시 upgrade 한 뒤 복원 — 이 경로는 **검증하지 않았다**
+  데이터 손실   downgrade 가 그 리비전이 만든 테이블·컬럼을 지운다 (a7c9 면 feed_source_rows·feed_source_sync_runs 와 적재 데이터 전부)
+  복구 비용     a7c9 의 경우 initial load 전체 재실행: Oracle 재추출 + 반출 기록(custody) + 승인 게이트 + 대사
+  다른 길      downgrade 전에 해당 테이블만 덤프해 두고 upgrade 후 복원 — **검증하지 않았다**
   ```
-  a7c9 는 테이블 추가뿐(additive)이라 옛 코드는 새 스키마 위에서 문제없이 돈다 — 데이터를 지워야 하는 이유는
-  스키마가 아니라 게이트 규칙이다. additive 리비전 허용 목록으로 바꿀지는 결정 대기
-  (`docs/feed/releases/FEED_LOAD_FOLLOWUP_DECISIONS_20260923.md` D-A).
-- downgrade 실측 검증: 빈 테이블 `docs/feed/runs/restore_test_20260923/` · **데이터가 든 상태** `docs/feed/runs/restore_test_postload_20260923/`
-  (격리 컨테이너, 5,461행 → downgrade PASS → 스키마가 적재 전과 동일 · 비피드 92 테이블 행 수 불변).
+- downgrade 실측 검증: 빈 테이블 `docs/feed/runs/restore_test_20260923/` · 데이터가 든 상태 `docs/feed/runs/restore_test_postload_20260923/`.
 
 ---
 
@@ -203,7 +206,7 @@ $M current                    # 확인
 
 - `downgrade` 는 데이터를 지울 수 있다. 컬럼·테이블 drop 이 있으면 그 데이터는 사라진다.
 - 코드가 새 스키마를 기대하는 상태에서 스키마만 되돌리면 앱이 깨진다. **C(코드 롤백)를 먼저 하고 D 를 한다.**
-  - 예외: 되돌릴 대상이 `a7c9e1f3b5d7` 이전 코드면 **D 먼저** — §C-0.
+  - 예외: DB 가 되돌릴 코드보다 앞서고 그 앞선 리비전이 additive 허용 목록 밖이면 **D 먼저** — §C-0. 목록 안이면 D 가 필요 없다.
 - 로컬 PG 로 이전(2026-08-25)한 뒤로 `ECHECKOUTTIMEOUT`(풀러 고갈)은 나지 않는다.
   대신 실패하면 **진짜 실패다** — 재시도로 넘기지 말고 메시지를 읽는다.
 - 실패는 트랜잭션째 롤백되니 중간 상태로 남지 않는다.
