@@ -1,0 +1,50 @@
+# W1 negative proofs · generated 2026-09-23T08:06:42Z · code at 0a54cbc
+# each block: mutation -> targeted pytest tail (must show failures) -> git checkout restore -> same tests green
+
+=== M1 fail-closed off: missing allowlist file treated as empty list  (file ops/alembic_graph.py)
+mutation applied
+=========================== short test summary info ===========================
+FAILED tests/unit/test_alembic_graph.py::test_gate_refuses_when_allowlist_file_missing
+======================== 1 failed, 18 passed in 0.24s =========================
+restored: git diff --stat = []
+============================= 19 passed in 0.16s ==============================
+
+=== M2 chain check off: DB ahead by an unlisted revision returns OK  (file ops/alembic_graph.py)
+mutation applied
+FAILED tests/unit/test_alembic_graph.py::test_gate_matrix[ahead_chain_gap-e-a>b>c-allow5-3]
+FAILED tests/unit/test_alembic_graph.py::test_real_repo_gate_today - assert 0...
+======================== 3 failed, 16 passed in 0.25s =========================
+restored: git diff --stat = []
+============================= 19 passed in 0.16s ==============================
+
+=== M3 checker off: op.drop_* treated as additive  (file ops/additive_migration.py)
+mutation applied
+FAILED tests/unit/test_additive_gate.py::test_checker_judgement[op.drop_column('farms', 'name')-False]
+FAILED tests/unit/test_additive_gate.py::test_checker_judgement[op.drop_table('farms')-False]
+=================== 2 failed, 18 passed, 4 skipped in 0.17s ===================
+restored: git diff --stat = []
+======================== 20 passed, 4 skipped in 0.09s ========================
+
+=== M4 allowlist poisoned: a real NON-additive revision listed  (file ops/additive_revisions.txt)
+mutation applied
+=========================== short test summary info ===========================
+FAILED tests/unit/test_additive_gate.py::test_every_allowlisted_revision_is_real_matching_and_additive
+=================== 1 failed, 19 passed, 4 skipped in 0.19s ===================
+restored: git diff --stat = []
+======================== 20 passed, 4 skipped in 0.08s ========================
+
+=== M4b allowlist poisoned with the real parent (so only the additive judgement can catch it)
+    assert ok, f"{rev} is allow-listed but not additive: {reasons}"
+E   AssertionError: a1273623b95d is allow-listed but not additive: ['line 38: op.execute is not additive']
+=================== 1 failed, 19 passed, 4 skipped in 0.16s ===================
+restored: []
+
+=== S  real shell entry point (Git Bash + python3) — old tree (no a7c9 file) vs DB a7c9e1f3b5d7
+old tree revision files: 53
+  [new gate, list listed] exit=0 :: OK: DB is ahead of code head f3c6a8d0b2e4 by additive revision(s) ['a7c9e1f3b5d7'] (allowlisted)
+  [new gate, list missing] exit=3 :: REFUSED: cannot read allowlist C:\Users\bjh\AppData\Local\Temp\tmp.DpXyzvbFau\gate_missing\additive_revisions.txt: FileNotFoundError
+  [new gate, list corrupt] exit=3 :: REFUSED: allowlist line 1 malformed (want '<revision> <parent> <reason>')
+  [new gate, list empty] exit=3 :: REFUSED: DB revision a7c9e1f3b5d7 is ahead of the code (head f3c6a8d0b2e4) and a7c9e1f3b5d7 is not in the additive allowlist - the database is ahead of the code being deployed
+  [gate as on origin/main (before D-A)] exit=3 :: REFUSED: DB revision a7c9e1f3b5d7 does not exist in this code (code head f3c6a8d0b2e4) - the database is ahead of the code being deployed
+
+final: git status of tracked files = []
