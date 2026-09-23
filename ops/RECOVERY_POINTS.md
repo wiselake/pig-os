@@ -6,6 +6,9 @@
 > ★ 로컬 `~/pigos-backups/` 사본은 `backup_db.sh` 보존 정리(`-deploy.sql.gz` 외 `-mtime +7`)로 지워진다 —
 > 오래 남길 복구점은 S3 `pigos-db-backup/pigos-db/recovery-points/` 에 둔다(일반 백업 경로 `pigos-db/` 와 분리).
 > 버킷 수명주기 규칙은 서버 역할(`pigos-ec2-backup-role`)로 조회할 수 없다 — **확인 전까지 S3 영구 보존을 가정하지 않는다.**
+>
+> ★ **S3 수명주기 미확인 — RP-1 로컬 원본의 2026-10-02 03:15 KST 자동 삭제 보류를 권고한다.** 수명주기가 확인되기 전에는 S3 사본만으로
+> 복구점을 보장한다고 말할 수 없다. 보류는 서버 백업 스크립트 변경이 필요해 결정 대기(`docs/feed/runs/goal_20260923/DECISION_QUEUE.md` DQ-2).
 
 ## 복구점
 
