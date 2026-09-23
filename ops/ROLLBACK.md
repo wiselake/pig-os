@@ -163,6 +163,21 @@ curl -s -o /dev/null -w "%{http_code}\n" https://api.pigos.io/health
 
 **롤백 태그가 없으면** 이 경로는 못 쓴다. 소스를 이전 커밋으로 되돌려 재빌드해야 한다(느리다).
 
+### C-0. ★ a7c9e1f3b5d7 이전 코드로 되돌릴 때 (2026-09-23~)
+
+프로덕션 DB 는 2026-09-23 feed initial load 로 `a7c9e1f3b5d7`(feed_source_rows · feed_source_sync_runs) 이다.
+그 이전 코드(head `f3c6a8d0b2e4`, main `fc96efc` 이하)는 이 리비전을 모른다.
+
+- **순서: D(DB downgrade → `f3c6a8d0b2e4`) 먼저, 그 다음 옛 코드 배포.** 일반 규칙(C 먼저, D 나중)과 **반대**다 —
+  옛 코드는 새 테이블을 쓰지 않으므로 스키마를 먼저 내려도 현재 앱이 깨지지 않지만, 거꾸로 하면
+  코드가 모르는 리비전 위에서 앱이 돈다.
+- `ops/deploy.sh` 0/5 게이트가 거꾸로 된 순서를 **기계적으로 거부**한다(exit 3, "database is ahead of the code").
+  우회 스위치 없음 — 게이트를 끄지 말고 순서를 지킨다. (§C 의 `docker tag … up -d --no-build` 롤백은 게이트를 거치지
+  않으므로 이 순서를 사람이 지켜야 한다.)
+- downgrade 는 `feed_source_rows`·`feed_source_sync_runs` 를 **drop 한다** — 적재된 5,461행이 사라진다.
+  되살리려면 initial load 를 승인 경로로 다시 돌린다(런북 `docs/feed/INITIAL_LOAD_RUNBOOK.md`).
+- 이 downgrade 의 실측 검증: `docs/feed/runs/restore_test_20260923/` (격리 컨테이너 복원 리허설). 검증 전까지는 미증명으로 본다.
+
 ---
 
 ## D. 마이그레이션 롤백
@@ -178,6 +193,7 @@ $M current                    # 확인
 
 - `downgrade` 는 데이터를 지울 수 있다. 컬럼·테이블 drop 이 있으면 그 데이터는 사라진다.
 - 코드가 새 스키마를 기대하는 상태에서 스키마만 되돌리면 앱이 깨진다. **C(코드 롤백)를 먼저 하고 D 를 한다.**
+  - 예외: 되돌릴 대상이 `a7c9e1f3b5d7` 이전 코드면 **D 먼저** — §C-0.
 - 로컬 PG 로 이전(2026-08-25)한 뒤로 `ECHECKOUTTIMEOUT`(풀러 고갈)은 나지 않는다.
   대신 실패하면 **진짜 실패다** — 재시도로 넘기지 말고 메시지를 읽는다.
 - 실패는 트랜잭션째 롤백되니 중간 상태로 남지 않는다.
