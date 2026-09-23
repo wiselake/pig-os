@@ -1,0 +1,31 @@
+# CI flake — asyncpg 'attached to a different loop' cascade · generated 2026-09-23T08:46:06Z
+# signature: one job fails with ~276 failed + 1 error starting at the first integration test; the other python job passes on the same commit; a rerun passes
+
+== run 35806811653 · main 599dc55 push attempts=1
+   backend (3.14)=failure
+   frontend=success
+   backend (3.12)=failure
+   loop-error lines in failed log: 1686
+   backend (3.14) | ======= 276 failed, 1212 passed, 1 skipped, 1 error in 182.59s (0:03:02) =======
+   backend (3.12) | ======= 276 failed, 1212 passed, 1 skipped, 1 error in 177.82s (0:02:57) =======
+
+== run 35836540047 · goal/feed-release-prep-20260923 1b1fdc4 pull_request attempts=2
+   backend (3.12)=success
+   frontend=success
+   backend (3.14)=success
+   loop-error lines in failed log: 0
+   backend (3.12) | ================= 1552 passed, 1 skipped in 135.12s (0:02:15) ==================
+   backend (3.14) | ================== 1552 passed, 1 skipped in 85.91s (0:01:25) ==================
+
+== run 35837603871 · feat/feed-read-on-main-20260923 d2158d3 pull_request attempts=1
+   frontend=success
+   backend (3.14)=failure
+   backend (3.12)=success
+   loop-error lines in failed log: 843
+   backend (3.14) | ======= 276 failed, 1218 passed, 1 skipped, 1 error in 181.16s (0:03:01) =======
+   backend (3.12) | ================= 1494 passed, 1 skipped in 136.84s (0:02:16) ==================
+
+== conclusion: pre-existing on main (599dc55 push run), not introduced by this run. Same commit passes on the other python job / on rerun. Root cause: hardening backlog.
+
+== run 35836540047 attempt 1 (before the rerun)
+   conclusion=failure frontend=success backend (3.14)=success backend (3.12)=failure

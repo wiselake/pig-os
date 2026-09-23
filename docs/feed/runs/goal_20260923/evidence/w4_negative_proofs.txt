@@ -1,0 +1,56 @@
+# W4 negative proofs · generated 2026-09-23T08:41:29Z · feed branch at eeea296
+
+=== M12 API: partial check off (period_is_partial always False)
+FAILED tests/integration/test_feed_summary_api.py::test_kst_utc_boundary[UTC-True]
+FAILED tests/integration/test_feed_summary_api.py::test_first_day_of_month
+FAILED tests/integration/test_feed_summary_api.py::test_zero_row_partial_month_says_partial_not_no_data_for_comparison
+FAILED tests/integration/test_feed_summary_api.py::test_unknown_timezone_is_conservative
+FAILED tests/integration/test_feed_summary_api.py::test_months_marks_the_running_month_partial
+======================== 15 failed, 11 passed in 5.70s ========================
+restored api/app/routers/base/feed_summary.py: []
+
+=== M13 API: last day counted as complete again (today < end)
+FAILED tests/unit/test_feed_partial_period.py::test_unknown_timezone_falls_back_to_earliest_date[]
+FAILED tests/unit/test_feed_partial_period.py::test_unknown_timezone_falls_back_to_earliest_date[None]
+FAILED tests/unit/test_feed_partial_period.py::test_unknown_timezone_falls_back_to_earliest_date[../etc/passwd]
+FAILED tests/integration/test_feed_summary_api.py::test_kst_utc_boundary[UTC-True]
+FAILED tests/integration/test_feed_summary_api.py::test_unknown_timezone_is_conservative
+======================== 10 failed, 16 passed in 5.68s ========================
+restored api/app/routers/base/feed_summary.py: []
+
+=== M14 API: farm timezone ignored (always UTC)
+FAILED tests/unit/test_feed_partial_period.py::test_farm_local_completion[now_utc6-America/Mexico_City-expect_today6-True]
+FAILED tests/unit/test_feed_partial_period.py::test_unknown_timezone_falls_back_to_earliest_date[Not/AZone]
+FAILED tests/unit/test_feed_partial_period.py::test_unknown_timezone_falls_back_to_earliest_date[../etc/passwd]
+FAILED tests/integration/test_feed_summary_api.py::test_kst_utc_boundary[Asia/Seoul-False]
+FAILED tests/integration/test_feed_summary_api.py::test_unknown_timezone_is_conservative
+======================== 7 failed, 19 passed in 5.64s =========================
+restored api/app/routers/base/feed_summary.py: []
+
+=== M15 API: partial month still computes the comparison (override removed)
+FAILED tests/integration/test_feed_summary_api.py::test_partial_month_shows_mtd_value_but_no_comparison
+FAILED tests/integration/test_feed_summary_api.py::test_kst_utc_boundary[UTC-True]
+FAILED tests/integration/test_feed_summary_api.py::test_zero_row_partial_month_says_partial_not_no_data_for_comparison
+======================== 3 failed, 11 passed in 5.58s =========================
+restored api/app/routers/base/feed_summary.py: []
+
+=== M16 web: comparison card drawn even when partial
+     × 서버가 partial 이라 하면 MTD 배지를 달고 전월 대비 칸을 그리지 않는다 — 값은 보인다 1031ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  tests/pages/feed.test.tsx > FeedPage 부분월 (B-1, 2026-09-23 결정) — 진행 중인 달은 비교하지 않는다 > 서버가 partial 이라 하면 MTD 배지를 달고 전월 대비 칸을 그리지 않는다 — 값은 보인다
+      Tests  1 failed | 11 passed (12)
+restored src/app/(app)/feed/page.tsx: []
+
+=== M17 web: default period back to the current month
+     × 기본 기간은 직전 완료월이다 (now=2026-09-23T03:00:00Z → 2026-08) 1028ms
+     × 기본 기간은 직전 완료월이다 (now=2027-01-15T03:00:00Z → 2026-12) 1011ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+ FAIL  tests/pages/feed.test.tsx > FeedPage 부분월 (B-1, 2026-09-23 결정) — 진행 중인 달은 비교하지 않는다 > 기본 기간은 직전 완료월이다 (now=2026-09-23T03:00:00Z → 2026-08)
+ FAIL  tests/pages/feed.test.tsx > FeedPage 부분월 (B-1, 2026-09-23 결정) — 진행 중인 달은 비교하지 않는다 > 기본 기간은 직전 완료월이다 (now=2027-01-15T03:00:00Z → 2026-12)
+      Tests  2 failed | 10 passed (12)
+restored src/app/(app)/feed/page.tsx: []
+
+=== restored — all green
+============================= 26 passed in 5.47s ==============================
+      Tests  12 passed (12)
+tracked changes: []
