@@ -1,0 +1,186 @@
+--- /home/ubuntu/restore_test_20260923/schema_s0_restored.sql	2026-09-23 10:41:57.543464847 +0900
++++ /home/ubuntu/restore_test_20260923/schema_s1_upgraded.sql	2026-09-23 10:42:02.962524534 +0900
+@@ -3662,6 +3662,79 @@
+ 
+ 
+ --
++-- Name: feed_source_rows; Type: TABLE; Schema: public; Owner: -
++--
++
++CREATE TABLE public.feed_source_rows (
++    id uuid NOT NULL,
++    source_system character varying(20) NOT NULL,
++    source_dataset character varying(40) NOT NULL,
++    source_row_key character varying(64) NOT NULL,
++    source_contract_version character varying(40) NOT NULL,
++    revision integer NOT NULL,
++    is_current boolean NOT NULL,
++    superseded_at timestamp with time zone,
++    sync_run_id uuid,
++    farm_id uuid NOT NULL,
++    event_date date,
++    event_date_raw character varying(32),
++    quantity_kg numeric(12,3),
++    quantity_unit character varying(8) NOT NULL,
++    quantity_basis character varying(12) NOT NULL,
++    unit_cost numeric(18,8),
++    total_cost numeric(16,2),
++    currency character varying(3) NOT NULL,
++    feed_stage_raw character varying(50),
++    feed_product_raw character varying(200),
++    source_status character varying(10) NOT NULL,
++    quantity_status character varying(12) NOT NULL,
++    cost_status character varying(12) NOT NULL,
++    quality_reasons jsonb,
++    observed_at timestamp with time zone NOT NULL,
++    source_inserted_at timestamp with time zone,
++    source_updated_at timestamp with time zone,
++    payload_hash character varying(64) NOT NULL,
++    payload jsonb,
++    created_at timestamp with time zone DEFAULT now() NOT NULL,
++    CONSTRAINT ck_fsr_basis CHECK (((quantity_basis)::text = ANY ((ARRAY['AS_RECORDED'::character varying, 'DELIVERED'::character varying, 'CONSUMED'::character varying])::text[]))),
++    CONSTRAINT ck_fsr_cost_status CHECK (((cost_status)::text = ANY ((ARRAY['ACCEPTED'::character varying, 'INSUFFICIENT'::character varying, 'EXCLUDED'::character varying])::text[]))),
++    CONSTRAINT ck_fsr_quantity_status CHECK (((quantity_status)::text = ANY ((ARRAY['ACCEPTED'::character varying, 'EXCLUDED'::character varying])::text[]))),
++    CONSTRAINT ck_fsr_revision CHECK ((revision >= 1)),
++    CONSTRAINT ck_fsr_source_status CHECK (((source_status)::text = ANY ((ARRAY['ACTIVE'::character varying, 'INACTIVE'::character varying, 'RETRACTED'::character varying])::text[])))
++);
++
++
++--
++-- Name: feed_source_sync_runs; Type: TABLE; Schema: public; Owner: -
++--
++
++CREATE TABLE public.feed_source_sync_runs (
++    id uuid NOT NULL,
++    source_system character varying(20) NOT NULL,
++    source_dataset character varying(40) NOT NULL,
++    source_contract_version character varying(40) NOT NULL,
++    status character varying(20) NOT NULL,
++    started_at timestamp with time zone DEFAULT now() NOT NULL,
++    completed_at timestamp with time zone,
++    window_start date,
++    window_end date,
++    watermark_from timestamp with time zone,
++    watermark_to timestamp with time zone,
++    lookback_days integer,
++    farms integer NOT NULL,
++    rows_fetched integer NOT NULL,
++    rows_inserted integer NOT NULL,
++    rows_unchanged integer NOT NULL,
++    rows_superseded integer NOT NULL,
++    rows_retracted integer NOT NULL,
++    error text,
++    source_scope_hash character varying(64),
++    notes jsonb,
++    CONSTRAINT ck_fssr_status CHECK (((status)::text = ANY ((ARRAY['RUNNING'::character varying, 'SUCCEEDED'::character varying, 'SOURCE_UNAVAILABLE'::character varying, 'SYNC_FAILED'::character varying])::text[])))
++);
++
++
++--
+ -- Name: finisher_groups; Type: TABLE; Schema: public; Owner: -
+ --
+ 
+@@ -5255,6 +5328,22 @@
+ 
+ 
+ --
++-- Name: feed_source_rows feed_source_rows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
++--
++
++ALTER TABLE ONLY public.feed_source_rows
++    ADD CONSTRAINT feed_source_rows_pkey PRIMARY KEY (id);
++
++
++--
++-- Name: feed_source_sync_runs feed_source_sync_runs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
++--
++
++ALTER TABLE ONLY public.feed_source_sync_runs
++    ADD CONSTRAINT feed_source_sync_runs_pkey PRIMARY KEY (id);
++
++
++--
+ -- Name: finisher_groups finisher_groups_farm_id_group_code_key; Type: CONSTRAINT; Schema: public; Owner: -
+ --
+ 
+@@ -5599,6 +5688,22 @@
+ 
+ 
+ --
++-- Name: feed_source_rows uq_fsr_identity_payload; Type: CONSTRAINT; Schema: public; Owner: -
++--
++
++ALTER TABLE ONLY public.feed_source_rows
++    ADD CONSTRAINT uq_fsr_identity_payload UNIQUE (source_system, source_dataset, source_row_key, payload_hash);
++
++
++--
++-- Name: feed_source_rows uq_fsr_identity_revision; Type: CONSTRAINT; Schema: public; Owner: -
++--
++
++ALTER TABLE ONLY public.feed_source_rows
++    ADD CONSTRAINT uq_fsr_identity_revision UNIQUE (source_system, source_dataset, source_row_key, revision);
++
++
++--
+ -- Name: operational_defaults uq_opdef_scope_rule; Type: CONSTRAINT; Schema: public; Owner: -
+ --
+ 
+@@ -6368,6 +6473,20 @@
+ 
+ 
+ --
++-- Name: idx_fsr_farm_basis_date; Type: INDEX; Schema: public; Owner: -
++--
++
++CREATE INDEX idx_fsr_farm_basis_date ON public.feed_source_rows USING btree (farm_id, quantity_basis, event_date) WHERE (is_current AND ((source_status)::text = 'ACTIVE'::text));
++
++
++--
++-- Name: idx_fssr_source_started; Type: INDEX; Schema: public; Owner: -
++--
++
++CREATE INDEX idx_fssr_source_started ON public.feed_source_sync_runs USING btree (source_system, source_dataset, started_at);
++
++
++--
+ -- Name: idx_health_farm_created; Type: INDEX; Schema: public; Owner: -
+ --
+ 
+@@ -6774,6 +6893,13 @@
+ 
+ 
+ --
++-- Name: uq_fsr_identity_current; Type: INDEX; Schema: public; Owner: -
++--
++
++CREATE UNIQUE INDEX uq_fsr_identity_current ON public.feed_source_rows USING btree (source_system, source_dataset, source_row_key) WHERE is_current;
++
++
++--
+ -- Name: uq_task_open_per_sow_type; Type: INDEX; Schema: public; Owner: -
+ --
+ 
+@@ -7197,6 +7323,22 @@
+ 
+ 
+ --
++-- Name: feed_source_rows feed_source_rows_farm_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
++--
++
++ALTER TABLE ONLY public.feed_source_rows
++    ADD CONSTRAINT feed_source_rows_farm_id_fkey FOREIGN KEY (farm_id) REFERENCES public.farms(id);
++
++
++--
++-- Name: feed_source_rows feed_source_rows_sync_run_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
++--
++
++ALTER TABLE ONLY public.feed_source_rows
++    ADD CONSTRAINT feed_source_rows_sync_run_id_fkey FOREIGN KEY (sync_run_id) REFERENCES public.feed_source_sync_runs(id);
++
++
++--
+ -- Name: finisher_groups finisher_groups_building_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+ --
+ 

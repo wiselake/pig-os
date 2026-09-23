@@ -1,0 +1,47 @@
+ set_config 
+------------
+ 
+(1 row)
+
+ setval 
+--------
+      1
+(1 row)
+
+ setval 
+--------
+     18
+(1 row)
+
+ setval 
+--------
+    101
+(1 row)
+
+ setval 
+--------
+      1
+(1 row)
+
+ setval 
+--------
+     29
+(1 row)
+
+ setval 
+--------
+      1
+(1 row)
+
+ setval 
+--------
+     40
+(1 row)
+
+ setval 
+--------
+      1
+(1 row)
+
+WARNING:  "wal_level" is insufficient to publish logical changes
+HINT:  Set "wal_level" to "logical" before creating subscriptions.
