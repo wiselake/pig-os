@@ -100,3 +100,13 @@ projection 쿼리: partial index scan 0.27 ms / farm-month
 ## 10. STOP conditions
 
 Oracle 쓰기 경로 발견 · 로컬 외 PG 접속 · scope hash 불일치 · mismatch 미분류 · currency ≠ KRW 행 · basis ≠ DELIVERED 행 · alembic heads > 1 · CI red(원인 미상) · 원자료가 repo/log 에 남음.
+
+## 11. 기록 규칙 (2026-09-23 리뷰 반영)
+
+```text
+모든 검증 명령은 --out 으로 파일을 쓴다 — stdout 만 남기는 검증은 금지(TRANSCRIBED 등급이 생긴다)
+실행 기록의 수치는 api/scripts/feed_load_report.py 로만 만든다 — 손으로 쓴 숫자는 CI(test_feed_load_report)가 막는다
+실제로 돌린 스크립트는 run 폴더 ran/ 에 원본 그대로 · 승인본과 다르면 diff 를 함께 둔다
+스냅샷 원자료: 권한 600 · 가능하면 호스트에서 직접 추출(전송 없음) · 폐기 후 검색으로 검증하고 결과를 기록한다
+배포 전: ops/deploy.sh 0/5 드리프트 게이트(DB 리비전 == 코드 head)
+```

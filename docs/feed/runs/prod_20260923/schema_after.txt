@@ -1,0 +1,10 @@
+alembic_version a7c9e1f3b5d7
+feed_source_tables 2
+public_tables 61
+indexes_missing []
+checks_missing []
+unit_cost_precision 18,8
+currency_nullable NO
+feed_source_rows 0
+feed_records 0
+schema_fingerprint_non_feed 417247fce26c8c83b3c139615a2d90c8
