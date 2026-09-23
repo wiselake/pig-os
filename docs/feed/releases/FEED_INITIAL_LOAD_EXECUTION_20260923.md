@@ -163,15 +163,22 @@ main head        f3c6a8d0b2e4 확인(ops/alembic_graph.py --ref origin/main) · 
                  원문 docs/feed/runs/prod_20260923/deploy_gate_preflight.txt · 스크립트 ran/deploy_gate_preflight.sh
                  ★ 호스트 ~/pigos 는 git 체크아웃이 아니다 → "pull 후" 방향은 main 트리를 임시 디렉터리에 두고 확인했다.
                  호스트 소스는 여전히 옛 코드 → 지금 누가 `deploy.sh api` 를 돌리면 게이트가 거부한다(의도된 상태). 소스 동기화는 다음 배포 때
-★ 남은 호스트 드리프트 backup_db.sh · backup_incremental.sh · ROLLBACK.md 도 main 보다 옛 판(2026-08-25). cron 이 쓰는 백업 스크립트라
-                 이번 GO 범위 밖으로 두었다. 동작은 정상: DATABASE_URL 만 읽고 그 값이 로컬 PG17(5434)이라 올바른 DB 를 덤프한다
-                 (주석만 Supabase 시절). 인자 형식(schema|full [tag])도 새 deploy.sh 의 `backup_db.sh full deploy` 와 호환
+백업 스크립트      (2026-09-23 02:08 UTC, GO) backup_db.sh · backup_incremental.sh · ROLLBACK.md 를 main 판으로 교체(옛 판 .bak-20260923/).
+                 교체 직후 cron 과 같은 최소 PATH 로 수동 실행: full exit 0 · 150,207,912 bytes · pg_dump 17 네이티브 ·
+                 incremental exit 0 · 5,481행(feed_source_rows 5,461 포함). ★ 둘 다 S3 오프사이트 사본 OK —
+                 옛 판에는 S3 단계가 없어 **2026-08-25 이후 약 한 달간 오프사이트 사본이 없었다**(버킷·역할은 있었음). 원문 prod_20260923/backup_sync_manual_run.txt
+                 이 수동 full 이 첫 **적재 후 recovery point** 다(그 전 cron full 은 03:40 = 적재 전)
+근본 원인         서버 ~/pigos 가 git 체크아웃이 아니라 SHA 로 말할 수 없다 → 결정 대기 D-B (releases/FEED_LOAD_FOLLOWUP_DECISIONS_20260923.md)
 복원·downgrade    (2026-09-23 01:41–01:42 UTC, GO) 호스트 안 격리 컨테이너(postgres:17-alpine, network none, 포트 0, api env 없음,
                  CPU 1 · 메모리 2G 제한)에 09:18:59 덤프 복원 42초 → alembic f3c6a8d0b2e4 PASS → upgrade a7c9e1f3b5d7 PASS(두 테이블 0행)
                  → downgrade f3c6a8d0b2e4 PASS → 복원 직후와 비교: 스키마 덤프 sha256 동일(1881aa73…) · 사용자 테이블 92개 행 수 전부 동일
                  · 비피드 스키마 지문 417247fc… = 프로덕션 기록값. 컨테이너·볼륨 삭제 확인(0/0).
                  결과 docs/feed/runs/restore_test_20260923/RESULT.md (자동 CHECK 두 줄의 FAIL 표시는 측정 스크립트 결함 — 거기서 분류)
                  한계: upgrade 가 빈 테이블 위에서 돌았다 → 5,461행이 있는 상태의 downgrade 는 DROP TABLE 이라 동일하다고 보지만 실측은 아님
+복원 #2           (2026-09-23 02:11 UTC, GO) 적재 후 덤프 → alembic a7c9 · feed_source_rows 5,461 → **데이터가 든 상태의 downgrade PASS**
+                 → 스키마가 적재 전과 동일(1881aa73…) · 비피드 92 테이블 행 수 불변 → 재upgrade 후 피드 0행(= 롤백 비용 실측).
+                 복원이 CHECK 제약 표기를 바꾼다(의미 동일) — 복원 판정은 해시가 아니라 지문·행 수로. restore_test_postload_20260923/RESULT.md
+보존 위험         적재 전 덤프(09:18:59)는 S3 사본이 없고 2026-10-02 03:15 KST 보존 정리에서 삭제된다 → 결정 대기 D-C
 실질 롤백 순서    데이터만 되돌리기 = feed_source_rows 의 해당 sync_run revision 을 superseded(원장 규칙) ·
                  스키마까지 = downgrade(두 테이블 drop — 데이터 폐기) · 전체 = 덤프 복원(미검증)
 ```

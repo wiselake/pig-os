@@ -174,9 +174,19 @@ curl -s -o /dev/null -w "%{http_code}\n" https://api.pigos.io/health
 - `ops/deploy.sh` 0/5 게이트가 거꾸로 된 순서를 **기계적으로 거부**한다(exit 3, "database is ahead of the code").
   우회 스위치 없음 — 게이트를 끄지 말고 순서를 지킨다. (§C 의 `docker tag … up -d --no-build` 롤백은 게이트를 거치지
   않으므로 이 순서를 사람이 지켜야 한다.)
-- downgrade 는 `feed_source_rows`·`feed_source_sync_runs` 를 **drop 한다** — 적재된 5,461행이 사라진다.
-  되살리려면 initial load 를 승인 경로로 다시 돌린다(런북 `docs/feed/INITIAL_LOAD_RUNBOOK.md`).
-- 이 downgrade 의 실측 검증: `docs/feed/runs/restore_test_20260923/` (격리 컨테이너 복원 리허설). 검증 전까지는 미증명으로 본다.
+- ★ **이 롤백의 비용 (게이트 규칙이 지금과 같은 동안):**
+  ```text
+  데이터 손실   downgrade 가 feed_source_rows·feed_source_sync_runs 를 drop — 적재된 5,461행과 동기화 원장이 사라진다
+  복구 비용     다시 채우려면 initial load 전체를 다시 한다: Oracle 재추출 + 반출 기록(custody) 절차 재실행
+               + 승인 게이트(기대값·스코프 해시·코드 지문) + 대사. 즉 "옛 코드로 잠깐 돌아가기" 가 데이터 작업이 된다
+  다른 길      데이터만 살리려면: downgrade 전에 두 테이블만 덤프(`pg_dump -t feed_source_rows -t feed_source_sync_runs`)해 두고
+               다시 upgrade 한 뒤 복원 — 이 경로는 **검증하지 않았다**
+  ```
+  a7c9 는 테이블 추가뿐(additive)이라 옛 코드는 새 스키마 위에서 문제없이 돈다 — 데이터를 지워야 하는 이유는
+  스키마가 아니라 게이트 규칙이다. additive 리비전 허용 목록으로 바꿀지는 결정 대기
+  (`docs/feed/releases/FEED_LOAD_FOLLOWUP_DECISIONS_20260923.md` D-A).
+- downgrade 실측 검증: 빈 테이블 `docs/feed/runs/restore_test_20260923/` · **데이터가 든 상태** `docs/feed/runs/restore_test_postload_20260923/`
+  (격리 컨테이너, 5,461행 → downgrade PASS → 스키마가 적재 전과 동일 · 비피드 92 테이블 행 수 불변).
 
 ---
 
@@ -276,6 +286,11 @@ comm -23 /tmp/dump_tables.txt /tmp/db_tables.txt     # 비어야 한다 = 복원
 $M current                                   # 마커가 덤프 시점과 맞는지
 curl -s -o /dev/null -w "%{http_code}\n" https://api.pigos.io/health
 ```
+
+★ **스키마 해시로 복원 성공을 판정하지 말 것 (2026-09-23 실측).** 복원은 CHECK 제약 표기를 다시 파싱해 바꾼다
+(`ANY ((ARRAY['A'::character varying, …])::text[])` → `ANY (ARRAY[('A'::character varying)::text, …])`, 의미 동일).
+복원한 DB 의 `pg_dump --schema-only` 해시는 원본과 다르게 나온다. 판정은 테이블 목록 차집합(위) · 테이블별 행 수 ·
+alembic_version · information_schema 컬럼 지문으로 한다. 근거 `docs/feed/runs/restore_test_postload_20260923/RESULT.md`.
 
 ★ **ANALYZE 는 자동으로 돌 때까지 기다리지 말고 직접 친다.** 복원 직후엔 통계가
 없어 플랜이 틀어진다.
