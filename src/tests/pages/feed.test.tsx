@@ -41,6 +41,8 @@ vi.mock("@/lib/api/endpoints/feed", () => ({
     create: vi.fn().mockResolvedValue({}),
     delete: vi.fn(),
     summary: vi.fn().mockImplementation(async () => summaryMock.value),
+    sources: vi.fn().mockResolvedValue({ as_recorded: { rows: 1 },
+      delivered: { visibility: "HIDDEN", rows: null, last_sync: null, latest_run_status: null } }),
     months: vi.fn().mockResolvedValue([
       { period: "2026-07", quantity_basis: "AS_RECORDED", currency: "USD", rows: 1, feed_qty_kg: 900, feed_cost: 900, feed_cost_reason: null, partial_cost: null, unit_price: 1, dominant_type: "grower" },
       { period: "2026-08", quantity_basis: "AS_RECORDED", currency: "USD", rows: 2, feed_qty_kg: 1500, feed_cost: null, feed_cost_reason: "cost_incomplete", partial_cost: 1000, unit_price: 1, dominant_type: "grower" },

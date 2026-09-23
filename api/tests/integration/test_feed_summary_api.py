@@ -89,6 +89,8 @@ async def test_summary_no_data_is_200_with_null_metrics(client: AsyncClient, tes
 
 @pytest.mark.asyncio
 async def test_delivered_basis_reads_source_rows_only(client: AsyncClient, db: AsyncSession, test_farm: Farm, test_user: User, auth_headers):
+    from app.db.models.config import FarmConfig
+    db.add(FarmConfig(farm_id=test_farm.id, config_key="FEED_DELIVERY_VISIBILITY", config_value="REFERENCE_VISIBLE"))  # D-15a 노출 플래그
     await _seed(db, test_farm, test_user)                                    # 수기 행이 있어도
     r = await client.get(f"/api/v1/farms/{test_farm.id}/feed/summary", params={"period": "2026-08", "basis": "DELIVERED"}, headers=auth_headers)
     assert r.status_code == 200

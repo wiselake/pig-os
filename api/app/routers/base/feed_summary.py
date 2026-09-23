@@ -10,6 +10,9 @@ AS_RECORDED = 이 농장의 수기 feed_records. DELIVERED = feed_source_rows(�
 부분월(B-1, 2026-09-23 결정): 진행 중인 달은 값(MTD)은 주되 **비교하지 않는다** — FEED_QTY_CHANGE·FEED_COST_CHANGE 는
 null + reason partial_period. 판정은 농장 현지 날짜: 월말이 **지나야** 완료월(월말 당일도 진행 중 — 그날 입력이 아직 들어온다).
 농장 timezone 이 잘못돼 있으면 지구상 가장 이른 날짜(UTC-12)로 본다 — 완료를 일찍 선언하지 않는다.
+
+노출(D-15a, 2026-09-23): DELIVERED(입고) 조회는 서버가 판정한 노출 상태가 REFERENCE_VISIBLE/CUSTOMER_VISIBLE 일 때만 —
+HIDDEN(기본)이면 404. 클라이언트가 basis=DELIVERED 를 직접 요청해도 같다. 상태는 GET /feed/sources 가 알려 준다.
 """
 from __future__ import annotations
 
@@ -21,12 +24,16 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
+from sqlalchemy import func, select
 
 from app.core.dependencies import DbDep, FarmDep
+from app.db.models.feed_source import FeedSourceRow, FeedSourceSyncRun
+from app.db.models.health import FeedRecord
 from app.engine.feed import metrics as m
 from app.engine.feed.status import deterministic_findings, to_kpi_status
 from app.engine.feed.types import R_PARTIAL_PERIOD, FeedInput, FeedMetricResult, insufficient
 from app.services.feed_engine_service import load_feed_input, load_feed_input_from_source
+from app.services.feed_visibility import delivered_visibility, is_visible
 
 router = APIRouter(prefix="/farms/{farm_id}/feed", tags=["Feed"])
 
@@ -68,6 +75,18 @@ class FeedMonthOut(BaseModel):
     partial: bool                      # 진행 중인 달(MTD) — 화면은 비교하지 않는다
 
 
+class DeliveredSourceOut(BaseModel):
+    visibility: str                    # HIDDEN | REFERENCE_VISIBLE | CUSTOMER_VISIBLE — 서버 판정
+    rows: int | None = None            # 노출될 때만
+    last_sync: dict | None = None      # 마지막 SUCCEEDED 실행 {completed_at, watermark_to} — "데이터 기준일"
+    latest_run_status: str | None = None
+
+
+class FeedSourcesOut(BaseModel):
+    as_recorded: dict                  # {"rows": n} — 이 농장의 수기 기록
+    delivered: DeliveredSourceOut
+
+
 _YM = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
 _EARLIEST = timezone(timedelta(hours=-12))     # 지구상 가장 이른 현재 날짜
 
@@ -97,6 +116,11 @@ def _month(p: str) -> tuple[date, date]:
     start = date(int(p[:4]), int(p[5:7]), 1)
     end = (start.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
     return start, end
+
+
+async def _require_delivered_visible(db, farm) -> None:
+    if not is_visible(await delivered_visibility(db, farm.id)):
+        raise HTTPException(404, "feed deliveries are not available for this farm")
 
 
 async def _inputs(db, farm, start: date, end: date, basis: Basis, *, with_prev: bool) -> tuple[FeedInput, FeedInput | None, dict]:
@@ -130,6 +154,8 @@ async def feed_summary(
     basis: Basis = Query(..., description="AS_RECORDED (수기) | DELIVERED (입고 원장)"),
 ):
     start, end = _month(period)
+    if basis == "DELIVERED":
+        await _require_delivered_visible(db, farm)
     today, tz_used = farm_today(getattr(farm, "timezone", None))
     partial = period_is_partial(end, today)
     cur, prev, prov = await _inputs(db, farm, start, end, basis, with_prev=not partial)
@@ -166,6 +192,8 @@ async def feed_months(
 ):
     s0, _ = _month(from_)
     _, e1 = _month(to)
+    if basis == "DELIVERED":
+        await _require_delivered_visible(db, farm)
     today, _tz = farm_today(getattr(farm, "timezone", None))
     if s0 > e1:
         raise HTTPException(422, "from must be <= to")
@@ -187,3 +215,24 @@ async def feed_months(
         ))
         cursor = me + timedelta(days=1)
     return out
+
+
+@router.get("/sources", response_model=FeedSourcesOut)
+async def feed_sources(farm: FarmDep, db: DbDep):
+    """이 농장에 어떤 사료 데이터가 있는가 + 입고 영역 노출 상태(서버 판정). HIDDEN 이면 입고 쪽은 상태만 — 행 수·동기화 정보도 주지 않는다."""
+    manual = await db.scalar(select(func.count()).select_from(FeedRecord).where(
+        FeedRecord.farm_id == farm.id, FeedRecord.deleted_at.is_(None)))
+    vis = await delivered_visibility(db, farm.id)
+    delivered = DeliveredSourceOut(visibility=vis)
+    if is_visible(vis):
+        delivered.rows = await db.scalar(select(func.count()).select_from(FeedSourceRow).where(
+            FeedSourceRow.farm_id == farm.id, FeedSourceRow.is_current.is_(True), FeedSourceRow.source_status == "ACTIVE",
+            FeedSourceRow.quantity_basis == "DELIVERED"))
+        ok = (await db.execute(select(FeedSourceSyncRun.completed_at, FeedSourceSyncRun.watermark_to)
+                               .where(FeedSourceSyncRun.status == "SUCCEEDED", FeedSourceSyncRun.completed_at.is_not(None))
+                               .order_by(FeedSourceSyncRun.completed_at.desc()).limit(1))).first()
+        if ok:
+            delivered.last_sync = {"completed_at": ok[0].isoformat(), "watermark_to": ok[1].isoformat() if ok[1] else None}
+        delivered.latest_run_status = await db.scalar(
+            select(FeedSourceSyncRun.status).order_by(FeedSourceSyncRun.started_at.desc()).limit(1))
+    return FeedSourcesOut(as_recorded={"rows": manual or 0}, delivered=delivered)

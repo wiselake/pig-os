@@ -111,6 +111,8 @@ piglet_count 1~30
 | API | `GET /farms/{id}/feed/summary` · `/feed/months` — 공개 전(API/UI 게이트 `docs/feed/releases/FEED_API_UI_RELEASE_GATE.md`) |
 | 계약 (B-1) | 진행 중인 달: `period.partial=true` · `FEED_QTY_CHANGE`·`FEED_COST_CHANGE` 는 `value=null` + `reason="partial_period"` · `period.as_of`·`period.timezone`·`period.comparison`(완료월이면 `"previous_calendar_month"`, 진행 중이면 `null`) · `months[].partial` (필드 추가) |
 | 판정 | 서버가 **농장 현지 날짜**로 한다. 월말 당일도 진행 중. 클라이언트는 자기 날짜로 다시 판정하지 않는다 |
+| 노출 (D-15a) | `GET /farms/{id}/feed/sources` → `delivered.visibility` = `HIDDEN`(기본) · `REFERENCE_VISIBLE` · `CUSTOMER_VISIBLE`. HIDDEN 이면 `rows`·`last_sync` 는 null, `basis=DELIVERED` 요약·월별은 **404**. 입고 영역은 visible + `rows>0` 일 때만. 클라이언트가 국가 등으로 다시 판정하지 않는다 |
+| 데이터 기준일 | `delivered.last_sync.completed_at` (마지막 성공 동기화) — 입고 영역에 항상 표시 · `latest_run_status` ≠ SUCCEEDED 면 실패 표시(값은 유지) |
 | 웹 | 기본 기간 = 직전 완료월 · 진행 중이면 MTD 배지 + 비교 UI 없음 |
 | Android · iOS | 화면 없음 |
 | 상태 | **NEEDED (API 공개 시)** — `null` 을 0 으로 그리지 말 것, `partial` 달은 비교하지 말 것, `reason` 은 키로 받아 현지화 |

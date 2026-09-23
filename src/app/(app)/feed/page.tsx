@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { localToday } from "@/lib/date";
 import { feedApi, type CreateFeedRecordRequest, type FeedMetric } from "@/lib/api/endpoints/feed";
+import DeliveredArea from "@/components/feed/DeliveredArea";
 import { farmsApi } from "@/lib/api/endpoints/farms";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { useAuthStore } from "@/store/auth.store";
@@ -144,6 +145,9 @@ export default function FeedPage() {
   return (
     <div className="ml-[220px] max-md:ml-0 p-6 max-w-5xl">
       <h1 className="text-2xl font-extrabold text-text">{t("title")}</h1>
+
+      {/* 영역 A — 서버가 REFERENCE_VISIBLE(또는 CUSTOMER_VISIBLE)이고 입고 행이 있다고 할 때만 그려진다 */}
+      <DeliveredArea farmId={farmId} period={period} />
 
       {/* B-2: 영역 B "사료 급여·소비" — 여기에 기록한 급여량(AS_RECORDED). "FCR 입력원" 부제는 이 영역에만 둔다.
           영역 A "사료 입고 · PigPlan 연계"(DELIVERED)는 서버가 REFERENCE_VISIBLE 로 판정할 때만 따로 그린다(W6). */}
