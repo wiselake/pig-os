@@ -1,0 +1,44 @@
+# W1 — a7c9e1f3b5d7 additive proof · generated 2026-09-23T08:02:51Z · goal HEAD a32d1f5 (+ uncommitted W1 working tree)
+file api/alembic/versions/a7c9e1f3b5d7_feed_source_rows_feed_source_sync_runs_.py sha256 bf7666b6d807f0d18d7e7a54aa4910f41edb46efc861d13644e2f7afbea2a241
+--- 1) static checker (ops/additive_migration.py)
+ADDITIVE a7c9e1f3b5d7_feed_source_rows_feed_source_sync_runs_.py
+rc=0
+--- 2) independent grep of upgrade() body (between 'def upgrade' and 'def downgrade')
+op.* calls in upgrade():       3 op.create_index       2 op.create_table 
+drop/alter/rename/execute/bulk_insert/add_column calls in upgrade(): 0
+--- 3) checker over every repo migration — must say NOT_ADDITIVE on real destructive files, or it has never failed
+rc=1
+ADDITIVE: 17  NOT_ADDITIVE: 37  total files: 54
+ADDITIVE files:
+ADDITIVE 1cbe4adb7e13_add_piglet_transfers_table.py
+ADDITIVE 1e6172486c75_merge_npd_f7a1_tasks_c3e5_heads.py
+ADDITIVE 6cbf1c758818_add_pilot_signups_table.py
+ADDITIVE 8b817ad8587a_merge_governance_f2b4_benchmark_meta_.py
+ADDITIVE a1c3e5b7d9f2_handoff_pigtransfer_softdelete_health_cols.py
+ADDITIVE a7c9e1f3b5d7_feed_source_rows_feed_source_sync_runs_.py
+ADDITIVE a7cda1c25637_add_piglet_groups_table.py
+ADDITIVE a9b3c1d7e2f4_add_user_approval_status.py
+ADDITIVE b2c4e6a8d0f1_add_content_announcements_support.py
+ADDITIVE b7e1c9d3a4f2_add_tasks_table.py
+ADDITIVE c3d5e7f9a1b3_add_rule_configs.py
+ADDITIVE c4f8a1b9e2d7_add_devices_table.py
+ADDITIVE d4a1b2c3e5f7_consent_ledger.py
+ADDITIVE d4f6a8c1e2b3_password_reset_tokens.py
+ADDITIVE f1a2b3c4d5e6_add_llm_usage_logs.py
+ADDITIVE f2b4d6a8c1e5_add_display_order_to_country_kpi_policy.py
+ADDITIVE f36cde9d762c_initial_schema.py
+reason kinds among NOT_ADDITIVE:
+     58   - statement is not a plain op.<call>(...) - cannot prove it additive
+     38   - op.execute is not additive
+      4   - op.bulk_insert is not additive
+      4   - op.alter_column is not additive
+      1   - unique index on <t> table tasks - old writes may start failing
+      1   - unique index on <t> table benchmarks - old writes may start failing
+      1   - op.drop_index is not additive
+      1   - op.drop_column is not additive
+      1   - create_unique_constraint on <t> table users
+      1   - add_column on <t> is NOT NULL without server_default - old INSERTs fail
+--- 4) REVIEW note (FK to existing table) and its confirmation · 2026-09-23T08:03:37Z
+  REVIEW: new table feed_source_rows references existing table farms (FK farms.id) - confirm old code never hard-deletes farms rows
+hard-delete paths on farms in api/app + api/scripts (grep delete(Farm|DELETE FROM farms|db.delete(farm): 0
+account deletion treats farms as: 5 'deactivat' mentions; hard delete() calls there target: delete(UserFarm) delete(model) 

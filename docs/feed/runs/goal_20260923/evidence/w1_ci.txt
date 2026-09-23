@@ -1,0 +1,9 @@
+# W1 CI evidence · generated 2026-09-23T08:11:06Z
+--- run 35824442789 head 9a8aae6a5a602d253c64aec62b0069202766465d conclusion success
+backend (3.14) | ================= 1489 passed, 1 skipped in 114.78s (0:01:54) ==================
+backend (3.12) | ================= 1489 passed, 1 skipped in 119.73s (0:01:59) ==================
+--- run 35835357155 head a408e41300ddd25803c34c900a670e4bb506bbd2 conclusion success
+backend (3.14) | ================= 1526 passed, 1 skipped in 121.06s (0:02:01) ==================
+backend (3.12) | ================= 1526 passed, 1 skipped in 123.52s (0:02:03) ==================
+--- test ids in the goal run log mentioning the shell gate (pytest -q prints no ids on pass; absence of extra skips is the signal)
+baseline skips vs goal skips: see the 'passed, N skipped' lines above — locally the 4 shell-gate cases skip on win32

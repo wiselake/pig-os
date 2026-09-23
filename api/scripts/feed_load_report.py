@@ -11,6 +11,9 @@ Every row carries its provenance:
   MACHINE      written by the load/verify scripts themselves (preflight/load/verify/load2.json)
   CAPTURED     command output tee'd to a file at run time (state_before.txt, schema_after.txt)
   TRANSCRIBED  copied from the terminal after the fact (projection.json, ops_evidence.txt) — lowest trust, labelled as such
+
+If projection_rerun.json exists (the approved validator re-run with --production-read-only --out), the projection rows come
+from it as MACHINE, the shadow cross-check rows are added, and one row states whether the old TRANSCRIBED values agree with it.
 """
 from __future__ import annotations
 
@@ -30,6 +33,47 @@ def _kv(path: Path, sep: str) -> dict[str, str]:
         k, v = line.split(sep, 1)
         out[k.strip()] = v.strip()
     return out
+
+
+# (label, transcribed projection.json key, rerun projection_rerun.json path) — the items both runs measured
+_AGREE = (("projected rows", "projected_rows", ("projected_rows",)), ("lineage checked", "lineage_checked", ("lineage", "checked")),
+          ("lineage failures", "lineage_failures", ("lineage", "failures")), ("compared", "compared", ("recon_vs_oracle_sql", "compared")),
+          ("quantity", "quantity", ("recon_vs_oracle_sql", "quantity")), ("cost", "cost", ("recon_vs_oracle_sql", "cost")),
+          ("unit price", "unit_price", ("recon_vs_oracle_sql", "unit_price")), ("mix", "mix", ("recon_vs_oracle_sql", "mix")),
+          ("change values", "change_values", ("change", "value")), ("variance eligible", "variance_eligible", ("variance", "eligible")),
+          ("variance pass", "variance_identity_pass", ("variance", "identity_pass")))
+
+
+def _get(d: dict, path: tuple[str, ...]):
+    for k in path:
+        d = d[k]
+    return d
+
+
+def _projection_rows(run: Path, proj: dict) -> list[tuple[str, str, str, str]]:
+    rr = run / "projection_rerun.json"
+    if not rr.exists():
+        return [
+            ("projection", "completed farm-months · compared", f'{proj["farm_months_completed"]} · {proj["compared"]}', "TRANSCRIBED projection.json"),
+            ("projection", "quantity · cost · unit price · mix mismatch", f'{proj["quantity"]} · {proj["cost"]} · {proj["unit_price"]} · {proj["mix"]}', "TRANSCRIBED projection.json"),
+            ("projection", "lineage checked · failures", f'{proj["lineage_checked"]} · {proj["lineage_failures"]}', "TRANSCRIBED projection.json"),
+            ("projection", "change values · variance pass/eligible", f'{proj["change_values"]} · {proj["variance_identity_pass"]}/{proj["variance_eligible"]}', "TRANSCRIBED projection.json"),
+        ]
+    r = json.loads(rr.read_text(encoding="utf-8"))
+    o, sh = r["recon_vs_oracle_sql"], r["recon_vs_shadow"]
+    src = "MACHINE projection_rerun.json"
+    diff = [label for label, old, new in _AGREE if proj[old] != _get(r, new)]
+    return [
+        ("projection", "mode · DB alembic", f'{r["mode"]} · {r.get("db_alembic")}', src),
+        ("projection", "① vs Oracle SQL: compared · qty · cost · unit price · mix mismatch", f'{o["compared"]} · {o["quantity"]} · {o["cost"]} · {o["unit_price"]} · {o["mix"]}', src),
+        ("projection", "② vs shadow: compared · qty · cost · unit price · change · variance mismatch",
+         f'{sh["compared"]} · {sh["quantity"]} · {sh["cost"]} · {sh["unit_price"]} · {sh["change"]} · {sh["variance"]}', src),
+        ("projection", "lineage checked · failures", f'{r["lineage"]["checked"]} · {r["lineage"]["failures"]}', src),
+        ("projection", "change values · variance pass/eligible", f'{r["change"]["value"]} · {r["variance"]["identity_pass"]}/{r["variance"]["eligible"]}', src),
+        ("projection", "basis·currency·provenance ok · UNEXPLAINED", f'{r["basis_currency_provenance_ok"]} · {r["classification"]["UNEXPLAINED"]}', src),
+        ("projection", f"당시 ad-hoc 값 = 재실행 ({len(_AGREE)} 항목)", "SAME" if not diff else "DIFFERENT: " + ", ".join(diff),
+         "MACHINE projection_rerun.json vs TRANSCRIBED projection.json"),
+    ]
 
 
 def render(run: Path) -> str:
@@ -65,10 +109,7 @@ def render(run: Path) -> str:
         ("verify", "current total · mismatch", f'{ver["observed_current_total"]} · {json.dumps(ver["mismatch"])}', "MACHINE verify.json"),
         ("verify", "hash NULL · non-KRW · non-DELIVERED · current/identity · identities · max rev",
          f'{vi["payload_hash_null"]} · {vi["currency_not_krw"]} · {vi["basis_not_delivered"]} · {vi["current_per_identity_max"]} · {vi["identities"]} · {vi["max_revision"]}', "MACHINE verify.json"),
-        ("projection", "completed farm-months · compared", f'{proj["farm_months_completed"]} · {proj["compared"]}', "TRANSCRIBED projection.json"),
-        ("projection", "quantity · cost · unit price · mix mismatch", f'{proj["quantity"]} · {proj["cost"]} · {proj["unit_price"]} · {proj["mix"]}', "TRANSCRIBED projection.json"),
-        ("projection", "lineage checked · failures", f'{proj["lineage_checked"]} · {proj["lineage_failures"]}', "TRANSCRIBED projection.json"),
-        ("projection", "change values · variance pass/eligible", f'{proj["change_values"]} · {proj["variance_identity_pass"]}/{proj["variance_eligible"]}', "TRANSCRIBED projection.json"),
+        *_projection_rows(run, proj),
         ("projection", "partial-month rows (persisted, qty ACCEPTED)", str(proj["partial_month_rows"]), "TRANSCRIBED projection.json"),
         ("idempotency", "2nd apply inserted · unchanged · revisions", f'{load2["sync"]["inserted"]} · {load2["sync"]["unchanged"]} · {load2["invariants"]["rows_all_revisions"]}', "MACHINE load2.json"),
         ("idempotency", "sync_runs", " , ".join(f'{r["status"]}(+{r["inserted"]})' for r in load2["invariants"]["sync_runs"]), "MACHINE load2.json"),

@@ -55,7 +55,21 @@ B-1 결정 + 반영 · B-2 문구 계약 · D-15/B-7 결재 · PLATFORM_PARITY �
 그리고 DELIVERED 를 고객에게 보일 경우: 적재 완료 + 대사 0 + "입고" 라벨 강제
 ```
 
-## 5. 리뷰 권고 (2026-09-23) — 결재 대기, 아직 반영 안 함
+## 5-0. 결정 (2026-09-23) — 코드 반영 전
+
+```text
+B-1   완료월 비교에서 제외. 당월 값은 "MTD · 집계 중"으로 표시 가능 · 전월 대비 없음 · variance 는 완료월만
+      → API: 부분월이면 CHANGE 계열 null + reason partial_period (테스트) · 웹 기본 기간 = 직전 완료월
+B-2   DELIVERED(입고·구매·배송) 와 급여·소비·FCR 입력원 분리 — "사료 입고 · PigPlan 연계" / "사료 급여·소비" 두 영역
+D-15a Feed Delivery Intelligence = REFERENCE_VISIBLE (KR PigPlan 레퍼런스·내부 계정) · 글로벌 상용 고객 = HIDDEN
+      ≠ CUSTOMER_VISIBLE · ≠ 과금 공개. 노출 상태 3단계 HIDDEN / REFERENCE_VISIBLE / CUSTOMER_VISIBLE
+D-15b FCR 보류 — CONSUMED / GROUP_ATTRIBUTED 계열 데이터가 생겼을 때만
+```
+
+화면 정의: `../FEED_SCREEN_SPEC_DRAFT.md` v0.2 · 결정 원본: `FEED_LOAD_FOLLOWUP_DECISIONS_20260923.md`.
+§4 통과 조건 중 "B-1 결정 · B-2 문구 계약 · D-15 결재"는 결정 완료 → 남은 것은 **반영(코드·테스트·8 로케일) + PARITY 행 + 검증**.
+
+## 5. 리뷰 권고 (2026-09-23) — 위 §5-0 으로 결정됨 (기록 보존)
 
 ### B-1 → 권고: **부분월은 비교하지 않는다**
 ```text

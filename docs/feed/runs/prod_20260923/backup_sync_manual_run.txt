@@ -1,0 +1,27 @@
+== full 2026-09-23T02:08:31Z
+[2026-09-23 11:08:31] full 백업 시작 → /home/ubuntu/pigos-backups/pigos-full-20260923-110831-postload.sql.gz
+  덤프 도구: /usr/lib/postgresql/17/bin/pg_dump
+[2026-09-23 11:09:03] 완료 144M
+  오프사이트 사본 OK → s3://pigos-db-backup/pigos-db/pigos-full-20260923-110831-postload.sql.gz
+보관 현황:
+-rw-rw-r-- 1 ubuntu ubuntu  37K Sep 16 03:15 pigos-schema-20260916-031501.sql.gz
+-rw-rw-r-- 1 ubuntu ubuntu  37K Sep 17 03:15 pigos-schema-20260917-031501.sql.gz
+-rw-rw-r-- 1 ubuntu ubuntu  37K Sep 18 03:15 pigos-schema-20260918-031501.sql.gz
+-rw-rw-r-- 1 ubuntu ubuntu  37K Sep 19 03:15 pigos-schema-20260919-031501.sql.gz
+-rw-rw-r-- 1 ubuntu ubuntu  37K Sep 20 03:15 pigos-schema-20260920-031501.sql.gz
+-rw-rw-r-- 1 ubuntu ubuntu  37K Sep 21 03:15 pigos-schema-20260921-031501.sql.gz
+-rw-rw-r-- 1 ubuntu ubuntu  37K Sep 22 03:15 pigos-schema-20260922-031501.sql.gz
+-rw-rw-r-- 1 ubuntu ubuntu  37K Sep 23 03:15 pigos-schema-20260923-031501.sql.gz
+full_exit=0
+== incremental 2026-09-23T02:09:06Z
+[2026-09-23 11:09:06] 증분 백업 (최근 2일)
+  farm_configs                      3행 (updated_at)
+  farms                             2행 (updated_at)
+  feed_source_rows               5461행 (created_at)
+  notifications                     4행 (created_at)
+  organizations                     2행 (updated_at)
+  refresh_tokens                    7행 (created_at)
+  users                             2행 (created_at)
+[2026-09-23 11:09:43] 완료 492K / 총 5481행
+  오프사이트 사본 OK → s3://pigos-db-backup/pigos-db/incremental/inc-20260923-110906.tar.gz
+inc_exit=0

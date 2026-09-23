@@ -23,6 +23,17 @@ def mask(farm_no: int) -> str:
     return hashlib.sha256(f"PP-{farm_no}".encode()).hexdigest()[:12]
 
 
+def serialize_indep(indep: dict[tuple[int, str], dict[str, Any]], *, masked: bool) -> dict[str, dict[str, Any]]:
+    """Oracle 독립 집계(farm×month) → JSON. masked=True 면 키에 원천 농장번호 대신 mask() — 서버로 옮길 때는 이것만 쓴다."""
+    return {f"{mask(k[0]) if masked else k[0]}|{k[1]}": {kk: (str(vv) if vv is not None and not isinstance(vv, (int, dict)) else vv)
+                                                          for kk, vv in v.items()} for k, v in indep.items()}
+
+
+def indep_get(indep: dict[str, Any], farm_no: int, ym: str) -> dict[str, Any] | None:
+    """원시 키(repo 밖 로컬 스냅샷)와 마스킹 키(프로덕션 읽기 전용 검증) 둘 다 받는다."""
+    return indep.get(f"{farm_no}|{ym}") or indep.get(f"{mask(farm_no)}|{ym}")
+
+
 @dataclass
 class Expected:
     total: int = 0

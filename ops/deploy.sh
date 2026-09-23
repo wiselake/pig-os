@@ -7,25 +7,55 @@
 #   3) compose 파일 하나만 쓰면 포트 매핑이 빠져 502 → 두 파일 강제
 #   4) api 재기동마다 커넥션을 새로 맺어 수십 초 느려진다 → 불필요한 재기동 금지
 #
-# 서버에서 실행:  ./deploy.sh [api|web|worker|all]
+# 서버에서 실행 (게이트 설치 위치에서 — 앱 트리 안의 사본이 아니다):
+#   ~/pigos-gate/deploy.sh <api|web|worker|all> --expect-sha <40자리 커밋 sha> [--preflight-only]
+#   --preflight-only  게이트(G·A·0)만 돌리고 끝낸다 — 백업·빌드·재기동 없음
+#
+# 2026-09-23 결정 D-A·D-B:
+#   G) 게이트 자신이 GATE_SOURCE.json 과 같은가 (게이트 파일 변조 거부)
+#   A) 서버 앱 트리(~/pigos)가 배포 대상 커밋과 파일 단위로 같은가 (RELEASE_MANIFEST.json, ops/ 포함)
+#   0) DB 리비전 ↔ 코드 alembic head — DB 가 앞서면 additive 허용 목록(게이트 쪽 파일)으로만 통과
+#   게이트는 앱 트리 밖에 둔다: 롤백 때 앱 트리는 DB 보다 옛것이라 새 리비전을 모른다.
 set -euo pipefail
 
-SVC="${1:-all}"
+usage() { echo "usage: $0 <api|web|worker|all> --expect-sha <40-hex> [--preflight-only]"; exit 2; }
+SVC="${1:-}"; shift || true
+EXPECT_SHA=""; PREFLIGHT_ONLY=0
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --expect-sha) EXPECT_SHA="${2:-}"; shift 2 || usage ;;
+    --preflight-only) PREFLIGHT_ONLY=1; shift ;;
+    *) usage ;;
+  esac
+done
+[ -n "$EXPECT_SHA" ] || usage
 ROOT="${PIGOS_ROOT:-$HOME/pigos}"
+GATE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMPOSE="-f $ROOT/docker-compose.prod.yml -f $ROOT/docker-compose.deploy.yml"
 TS=$(date +%Y%m%d-%H%M%S)
 KEEP_ROLLBACKS="${KEEP_ROLLBACKS:-3}"
 
-cd "$ROOT"
 case "$SVC" in
   all) SERVICES="api worker web" ;;
   api|web|worker) SERVICES="$SVC" ;;
-  *) echo "usage: $0 [api|web|worker|all]"; exit 2 ;;
+  *) usage ;;
 esac
 
+if [ "$(cd "$ROOT" && pwd)/ops" = "$GATE" ]; then
+  echo "❌ 거부 (APP_TREE) — 앱 트리 안의 deploy.sh($GATE)로 실행했다. 게이트 설치 위치(~/pigos-gate)에서 실행하라"; exit 3
+fi
+
+echo "════ G/5 게이트 무결성 ════"
+python3 "$GATE/release_manifest.py" verify-gate --dir "$GATE" || { echo "❌ 배포 거부 — 게이트 파일이 기록과 다르다"; exit 3; }
+
+echo "════ A/5 서버 소스 == 배포 대상 커밋 ════"
+python3 "$GATE/release_manifest.py" verify --root "$ROOT" --expect-sha "$EXPECT_SHA" \
+  || { echo "❌ 배포 거부 — 서버 앱 트리가 배포 대상 커밋 $EXPECT_SHA 와 다르다"; exit 3; }
+
+cd "$ROOT"
 echo "════ 0/5 DB 리비전 ↔ 코드 alembic head ════"
 # ★ 2026-09-23: 프로덕션 DB(a7c9e1f3b5d7)가 main 코드보다 앞선 상태가 생겼다. api/worker 를 배포할 때
-#   DB 리비전이 배포될 코드의 유일한 head 와 같지 않으면 거부한다(ops/check_migration_drift.sh). 우회 없음.
+#   DB 리비전이 배포될 코드의 유일한 head 와 같지 않으면 거부한다 — 단 앞선 리비전이 전부 additive 허용 목록에 있으면 통과(D-A).
 case " $SERVICES " in
   *" api "*|*" worker "*)
     DBREV=$(sudo docker exec -i pigos-api python - <<'PY' 2>/dev/null | tail -1
@@ -41,10 +71,15 @@ asyncio.run(m())
 PY
 ) || DBREV=""
     echo "  DB revision: ${DBREV:-<unknown>}"
-    "$ROOT/ops/check_migration_drift.sh" "${DBREV}" || { echo "❌ 배포 거부 — DB 리비전과 코드 alembic head 불일치"; exit 3; }
+    "$GATE/check_migration_drift.sh" "${DBREV}" "$ROOT/api/alembic/versions" \
+      || { echo "❌ 배포 거부 — DB 리비전과 코드 alembic head 불일치"; exit 3; }
     ;;
   *) echo "  web 만 배포 — 생략" ;;
 esac
+
+if [ "$PREFLIGHT_ONLY" = "1" ]; then
+  echo "✅ preflight 통과 (--preflight-only: 백업·빌드·재기동 없이 종료)"; exit 0
+fi
 
 echo "════ 1/5 배포 전 DB 스냅샷 ════"
 if [ -x "$ROOT/ops/backup_db.sh" ]; then

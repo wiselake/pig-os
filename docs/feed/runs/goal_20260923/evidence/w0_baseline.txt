@@ -1,0 +1,26 @@
+# W0 baseline — generated 2026-09-23T07:59:22Z
+origin/main                     599dc5578c6e44204f9da3f13715ae2634a8589c
+local main (after align)         599dc5578c6e44204f9da3f13715ae2634a8589c
+local main before align (backup) e0286deeef0642a7a139b36e08797a8666780f93  [branch backup/local-main-e0286de; all its commits are on remotes: 0 local-only]
+PR #9 head (docs/feed-load-followups) 9a8aae6a5a602d253c64aec62b0069202766465d
+PR #9 CI run: 35824442789 9a8aae6 success
+feat/feed-engine-v1-core        7311da170f2926d779480b1cea5535c81c52b8ec
+core commits not patch-equivalent in main:
+  4882427 feat(feed): read-only feed summary API — GET /farms/{id}/feed/summary · /months (basis required, null≠0, no cohort/FCR, no raw rows)
+  89c1e70 feat(web): feed page — unit cost + currency inputs, monthly feed summary (engine-backed, null≠0), mobile 'more' entry, 8 locales
+  ecd1ae8 docs(feed): overnight results — final regression 1467, part B (API+web) recorded, cleanup logged
+goal branch base = PR #9 head; feed branch base = origin/main
+--- server ~/pigos/ops sha256
+46c12d39ab3cc85f6c78d4c9056fc735aec75258a9b7bd46a15bd05b4e436edb  ROLLBACK.md
+129cda2088c1bb3b99e33c9fd0b3b6fa5a093640ec47a702bbf2d57f15d832eb  alembic_graph.py
+123e614d4a8fd3130c660e6a3f6cb04153676c0f01c5b9d8558bdff4e7dc5bf3  backup_db.sh
+dab377fd9a445533430e4cedbfd5803f4bd32828328694488010cd5d7702babe  backup_incremental.sh
+25426a4c989160ccc661d2a674c301f56bcdf0b64c615f71083310a550548a1b  check_migration_drift.sh
+075aa1b9bdcc59de1a518f7ce0234e3e7ff1179f90948938be04120fef4d5194  deploy.sh
+--- origin/main ops sha256
+46c12d39ab3cc85f6c78d4c9056fc735aec75258a9b7bd46a15bd05b4e436edb  ROLLBACK.md
+129cda2088c1bb3b99e33c9fd0b3b6fa5a093640ec47a702bbf2d57f15d832eb  alembic_graph.py
+123e614d4a8fd3130c660e6a3f6cb04153676c0f01c5b9d8558bdff4e7dc5bf3  backup_db.sh
+dab377fd9a445533430e4cedbfd5803f4bd32828328694488010cd5d7702babe  backup_incremental.sh
+25426a4c989160ccc661d2a674c301f56bcdf0b64c615f71083310a550548a1b  check_migration_drift.sh
+075aa1b9bdcc59de1a518f7ce0234e3e7ff1179f90948938be04120fef4d5194  deploy.sh

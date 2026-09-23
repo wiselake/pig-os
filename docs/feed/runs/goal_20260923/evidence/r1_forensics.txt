@@ -1,0 +1,66 @@
+# R1 — 2026-08-25 overwrite forensics · generated 2026-09-23T08:12:25Z · read-only
+# Facts only. 'who' has no record.
+
+## 1. host backup_db.sh (before the 2026-09-23 sync, preserved with cp -p in ops/.bak-20260923/)
+blob 747935f1a81651b827bac0979303b5b530c84459
+commits that add/remove this blob (git log --all --find-object):
+  de3a005 2026-08-25T10:19:09+09:00 perf(db): 커넥션 keepalive + 백업 스크립트 세션모드 고정
+  32b0995 2026-08-24T14:45:24+09:00 ops: 프로덕션 백업·배포·롤백 절차 신설 — 2026-08-24 장애 후속
+S3 step commits: b374e0d 2026-08-25T13:21:13+09:00 (b374e0d) · e530dca 2026-08-25T13:47:42+09:00 (e530dca)
+
+## 2. files on the server whose mtime is exactly 2026-08-25 14:43:15 KST, and their ctime (actual write time)
+count 24
+  ctime 2026-08-25 14:53:17: 20 files
+  ctime 2026-09-23 10:38:15: 1 files  (ops/.bak copies: ctime = 2026-09-23 copy)
+  ctime 2026-09-23 11:08:22: 3 files  (ops/.bak copies: ctime = 2026-09-23 copy)
+files:
+  docker-compose.prod.yml
+  ops/.bak-20260923/ROLLBACK.md.host-20260825
+  ops/.bak-20260923/backup_db.sh.host-20260825
+  ops/.bak-20260923/backup_incremental.sh.host-20260825
+  ops/.bak-20260923/deploy.sh.host-20260825
+  src/tests/components/AmendmentBanner.test.tsx
+  src/tests/components/ConsentForm.interaction.test.tsx
+  src/tests/components/ConsentForm.test.tsx
+  src/tests/components/accountMenu.test.tsx
+  src/tests/lib/adminNav.test.ts
+  src/tests/lib/alertsMeta.test.ts
+  src/tests/lib/date.test.ts
+  src/tests/lib/eventSchemas.test.ts
+  src/tests/lib/kpiPresentation.test.ts
+  src/tests/lib/kpiStatus.test.ts
+  src/tests/lib/statusObservation.test.ts
+  src/tests/lib/units.test.ts
+  src/tests/pages/addons.test.tsx
+  src/tests/pages/announcements.test.tsx
+  src/tests/pages/chat.test.tsx
+  src/tests/pages/forgot-password.test.tsx
+  src/tests/pages/legal.test.tsx
+  src/tests/pages/notifications-filter.test.tsx
+  src/tests/pages/settings-data.test.tsx
+
+## 3. write batches — ctime minute histogram of all app files (api/ src/ ops/ nginx/ compose)
+  2026-07-22 08:06  1
+  2026-08-21 08:00  26
+  2026-08-25 14:53  122
+  2026-08-26 15:37  135
+  2026-09-21 16:01  450
+  2026-09-23 10:38  4
+  2026-09-23 11:08  6
+
+## 4. commits whose committer time is 2026-08-25 14:43:15 +09:00 (git archive stamps files with the commit time)
+  1ee6acb author 2026-08-25T14:32:14+09:00 · committer 2026-08-25T14:43:15+09:00 · fix(chat): intent 분류 7개 언어 확장 + 미분류 질문에 unknown 폴백
+  948c035 author 2026-08-25T14:06:40+09:00 · committer 2026-08-25T14:43:15+09:00 · fix(chat): 템플릿 렌더러 7개 로케일 지원 — zh/es/vi/th/pt 영어 폴백 버그 수정
+  bbd5168 author 2026-07-06T07:27:35+09:00 · committer 2026-08-25T14:43:15+09:00 · feat(legal): 앱 개인정보처리방침 서빙 — GET /legal/privacy (Play Data Safety 정합)
+  1ee6acb has b374e0d as ancestor: no · has e530dca: no
+  948c035 has b374e0d as ancestor: no · has e530dca: no
+  bbd5168 has b374e0d as ancestor: no · has e530dca: no
+blob equality of the 14:43:15-stamped server files against each candidate (ops/* from the .bak copies):
+  1ee6acb: 24/24 equal
+  948c035: 24/24 equal
+  bbd5168: 24/24 equal
+
+## 5. conclusion (facts)
+- the files were written on the server at the ctime shown in §2 from a tree whose files carry the §4 commit time (consistent with extracting a git archive of one of the §4 commits)
+- none of the §4 commits has the S3 commits as ancestors; the host backup_db.sh equals the blob first added by the §1 commit, i.e. a pre-S3 version
+- which of the §4 commits was archived cannot be told from these files (equal across candidates). who ran it: no record

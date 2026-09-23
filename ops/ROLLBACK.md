@@ -163,6 +163,34 @@ curl -s -o /dev/null -w "%{http_code}\n" https://api.pigos.io/health
 
 **롤백 태그가 없으면** 이 경로는 못 쓴다. 소스를 이전 커밋으로 되돌려 재빌드해야 한다(느리다).
 
+### C-0. ★ DB 가 되돌릴 코드보다 앞설 때 — additive 허용 목록 (2026-09-23 결정 D-A)
+
+예: 프로덕션 DB 는 `a7c9e1f3b5d7`(feed initial load), 되돌릴 코드는 그 이전(head `f3c6a8d0b2e4`).
+
+**downgrade 가 필요한지는 허용 목록이 판정한다.** 게이트(`check_migration_drift.sh` → `alembic_graph.py --additive-allowlist`)는
+DB 가 코드보다 앞선 리비전을 하나씩 거슬러 올라가며, 그 리비전이 **전부** `additive_revisions.txt` 에 있고 코드 head 에 닿으면 통과시킨다.
+
+```text
+앞선 리비전이 전부 목록에 있음   → downgrade 없이 옛 코드 배포 (게이트 통과, 데이터 보존)
+하나라도 목록에 없음             → 게이트 거부. D(downgrade) 먼저, 그 다음 옛 코드 — 일반 규칙(C 먼저)과 반대
+목록 없음·손상                   → 게이트가 모든 api/worker 배포를 거부 (fail closed). 목록부터 복구
+```
+
+- ★ **목록은 설치된 게이트 쪽 파일을 읽는다** — 배포 대상 트리 안의 `ops/additive_revisions.txt` 가 아니다. 옛 코드에는 자기보다 새로운
+  리비전이 목록에 없기 때문이다. 게이트 설치 위치와 절차: `docs/feed/runs/goal_20260923/` W1·W2 기록.
+- `a7c9e1f3b5d7` 은 목록에 있다(판정 근거 `docs/feed/runs/goal_20260923/evidence/w1_a7c9_additive.txt` — upgrade 는 create_table·create_index 뿐,
+  새 테이블의 farms FK 는 farms 하드 삭제 경로가 없음을 확인). → 설치된 게이트에 이 목록이 들어간 뒤로는 a7c9 이전 코드로의 롤백에
+  downgrade 가 **필요 없다**. 설치 전(또는 목록에서 빠지면)에는 아래 비용이 그대로 적용된다.
+- 목록에 올리는 것은 PR 로만. CI(`api/tests/unit/test_additive_gate.py`)가 각 줄의 migration 존재 · parent 일치 · 정적 additive 판정을 강제한다.
+- §C 의 `docker tag … up -d --no-build` 롤백은 게이트를 거치지 않는다 — 앞선 리비전이 목록에 있는지 사람이 확인한다.
+- **downgrade 가 필요한 경우의 비용** (목록 밖 리비전이거나 게이트에 목록이 없을 때):
+  ```text
+  데이터 손실   downgrade 가 그 리비전이 만든 테이블·컬럼을 지운다 (a7c9 면 feed_source_rows·feed_source_sync_runs 와 적재 데이터 전부)
+  복구 비용     a7c9 의 경우 initial load 전체 재실행: Oracle 재추출 + 반출 기록(custody) + 승인 게이트 + 대사
+  다른 길      downgrade 전에 해당 테이블만 덤프해 두고 upgrade 후 복원 — **검증하지 않았다**
+  ```
+- downgrade 실측 검증: 빈 테이블 `docs/feed/runs/restore_test_20260923/` · 데이터가 든 상태 `docs/feed/runs/restore_test_postload_20260923/`.
+
 ---
 
 ## D. 마이그레이션 롤백
@@ -178,6 +206,7 @@ $M current                    # 확인
 
 - `downgrade` 는 데이터를 지울 수 있다. 컬럼·테이블 drop 이 있으면 그 데이터는 사라진다.
 - 코드가 새 스키마를 기대하는 상태에서 스키마만 되돌리면 앱이 깨진다. **C(코드 롤백)를 먼저 하고 D 를 한다.**
+  - 예외: DB 가 되돌릴 코드보다 앞서고 그 앞선 리비전이 additive 허용 목록 밖이면 **D 먼저** — §C-0. 목록 안이면 D 가 필요 없다.
 - 로컬 PG 로 이전(2026-08-25)한 뒤로 `ECHECKOUTTIMEOUT`(풀러 고갈)은 나지 않는다.
   대신 실패하면 **진짜 실패다** — 재시도로 넘기지 말고 메시지를 읽는다.
 - 실패는 트랜잭션째 롤백되니 중간 상태로 남지 않는다.
@@ -261,6 +290,11 @@ $M current                                   # 마커가 덤프 시점과 맞는
 curl -s -o /dev/null -w "%{http_code}\n" https://api.pigos.io/health
 ```
 
+★ **스키마 해시로 복원 성공을 판정하지 말 것 (2026-09-23 실측).** 복원은 CHECK 제약 표기를 다시 파싱해 바꾼다
+(`ANY ((ARRAY['A'::character varying, …])::text[])` → `ANY (ARRAY[('A'::character varying)::text, …])`, 의미 동일).
+복원한 DB 의 `pg_dump --schema-only` 해시는 원본과 다르게 나온다. 판정은 테이블 목록 차집합(위) · 테이블별 행 수 ·
+alembic_version · information_schema 컬럼 지문으로 한다. 근거 `docs/feed/runs/restore_test_postload_20260923/RESULT.md`.
+
 ★ **ANALYZE 는 자동으로 돌 때까지 기다리지 말고 직접 친다.** 복원 직후엔 통계가
 없어 플랜이 틀어진다.
 
@@ -309,3 +343,14 @@ $P -c "DROP DATABASE pigos_restore_test"       # ★ 반드시 정리 — 디스
 > 원인이 두 개였고 하나만 고친 상태였던 것이다(나머지는 `farrowings` by-sow 인덱스
 > 누락, 3.7초). 교훈: **증상 하나에 원인 하나라고 가정하지 말 것.** 옮긴 뒤에도
 > 반드시 다시 재고, 단계별로 쪼개서 잰다(B-2).
+>
+> 2026-09-23 발견 — **오프사이트(S3) 백업 공백.** (포렌식 `docs/feed/runs/goal_20260923/evidence/r1_forensics.txt`)
+> 영향 기간: 2026-08-25 14:53 KST ~ 2026-09-23 11:08 KST. S3 버킷·IAM 역할·`.env` 설정은 있었고, repo 에는 2026-08-25 13:21(`b374e0d`)부터
+> S3 단계가 있었으며 그날 오후 S3 업로드도 실제로 됐다(버킷에 그 시각 객체들).
+> 무슨 일: 2026-08-25 14:53:17 KST(파일 ctime)에 서버 `~/pigos` 에 앱 파일 묶음이 풀렸다. 그 파일들의 mtime 은 커밋 시각 14:43:15 —
+> `git archive` 가 파일에 찍는 커밋 시각이다. 그 시각에 커밋된 세 커밋(같은 rebase)은 어느 것도 S3 커밋을 조상으로 갖지 않고,
+> 서버의 `backup_db.sh` 는 S3 이전 판(32b0995 에서 처음 생긴 blob)이 됐다. 셋 중 어느 커밋을 풀었는지는 파일로 구분되지 않는다. 누가: 기록 없음.
+> 그 뒤로 백업은 DB 와 같은 EBS 볼륨에만 있었다.
+> 원인 한 줄: 서버 소스가 SHA 로 고정되지 않아, S3 커밋이 빠진 트리가 풀려도 아무것도 잡지 못했다.
+> 현재: 2026-09-23 main 판으로 교체, 수동 실행으로 S3 업로드 확인 · 적재 전 복구점도 S3 에 보존(`RECOVERY_POINTS.md` RP-1).
+> 재발 방지: 서버 배포물 SHA manifest + deploy gate 대조(결정 D-B) — `ops/` 스크립트도 manifest 에 포함해 백업 스크립트 드리프트를 같은 대조로 잡는다.

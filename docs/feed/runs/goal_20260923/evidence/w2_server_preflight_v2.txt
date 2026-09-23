@@ -1,0 +1,100 @@
+# W2 server install + two-way preflight · started 2026-09-23T08:26:41Z · host ip-172-31-11-155
+## tarball integrity (sha256 recorded at build on the workstation)
+pigos-gate-69b313f66272.tar.gz: OK
+pigos-release-599dc5578c6e.tar.gz: OK
+pigos-release-69b313f66272.tar.gz: OK
+pigos-release-fc96efcf359b.tar.gz: OK
+
+## install gate → ~/pigos-gate
+previous gate kept as ~/pigos-gate.prev-1b1fdc40cef0
+  drwx------ .
+  drwxr-x--- ..
+  -rw------- GATE_SOURCE.json
+  -rw------- additive_revisions.txt
+  -rwx------ alembic_graph.py
+  -rwx------ check_migration_drift.sh
+  -rwx------ deploy.sh
+  -rwx------ release_manifest.py
+OK: gate == source 69b313f662722cad23826a0c7ce50eff39c8ed3d
+gate source sha in GATE_SOURCE.json: 69b313f662722cad23826a0c7ce50eff39c8ed3d
+app tree ~/pigos/ops untouched: 075aa1b9bdcc deploy.sh · 25426a4c9891 check_migration_drift.sh · 129cda2088c1 alembic_graph.py · 
+
+## release trees for the pass direction (temp, deleted at the end)
+main tree alembic heads: ['a7c9e1f3b5d7'] · old tree: ['f3c6a8d0b2e4']
+
+## preflight (all --preflight-only)
+
+### P1 refuse: current server tree ~/pigos (no manifest), target = main — expect exit 3 → exit 3  [AS_EXPECTED]
+    ════ G/5 게이트 무결성 ════
+    OK: gate == source 69b313f662722cad23826a0c7ce50eff39c8ed3d
+    ════ A/5 서버 소스 == 배포 대상 커밋 ════
+    REFUSED: RELEASE_MANIFEST.json not found in /home/ubuntu/pigos - the server tree cannot be tied to a commit
+    ❌ 배포 거부 — 서버 앱 트리가 배포 대상 커밋 599dc5578c6e44204f9da3f13715ae2634a8589c 와 다르다
+
+### P2 pass: release tree of main 599dc5578c6e44204f9da3f13715ae2634a8589c, DB == head — expect exit 0 → exit 0  [AS_EXPECTED]
+    ════ G/5 게이트 무결성 ════
+    OK: gate == source 69b313f662722cad23826a0c7ce50eff39c8ed3d
+    ════ A/5 서버 소스 == 배포 대상 커밋 ════
+    OK: server tree == release 599dc5578c6e44204f9da3f13715ae2634a8589c (749 files, alembic head ['a7c9e1f3b5d7'])
+    ════ 0/5 DB 리비전 ↔ 코드 alembic head ════
+      DB revision: a7c9e1f3b5d7
+    OK: DB revision == code head a7c9e1f3b5d7
+    ✅ preflight 통과 (--preflight-only: 백업·빌드·재기동 없이 종료)
+
+### P3 pass: release tree of fc96efcf359b5931fc866d663fccfb6288d10222 (head f3c6), DB a7c9 ahead but allowlisted — expect exit 0 → exit 0  [AS_EXPECTED]
+    ════ G/5 게이트 무결성 ════
+    OK: gate == source 69b313f662722cad23826a0c7ce50eff39c8ed3d
+    ════ A/5 서버 소스 == 배포 대상 커밋 ════
+    OK: server tree == release fc96efcf359b5931fc866d663fccfb6288d10222 (710 files, alembic head ['f3c6a8d0b2e4'])
+    ════ 0/5 DB 리비전 ↔ 코드 alembic head ════
+      DB revision: a7c9e1f3b5d7
+    OK: DB is ahead of code head f3c6a8d0b2e4 by additive revision(s) ['a7c9e1f3b5d7'] (allowlisted)
+    ✅ preflight 통과 (--preflight-only: 백업·빌드·재기동 없이 종료)
+
+### P4 refuse: same old tree with one file edited (ops/backup_db.sh) — expect exit 3 → exit 3  [AS_EXPECTED]
+    ════ G/5 게이트 무결성 ════
+    OK: gate == source 69b313f662722cad23826a0c7ce50eff39c8ed3d
+    ════ A/5 서버 소스 == 배포 대상 커밋 ════
+    REFUSED: server tree differs from release fc96efcf359b5931fc866d663fccfb6288d10222 in 1 file(s)
+    ❌ 배포 거부 — 서버 앱 트리가 배포 대상 커밋 fc96efcf359b5931fc866d663fccfb6288d10222 와 다르다
+
+### P5 refuse: old tree, target sha = main (wrong commit) — expect exit 3 → exit 3  [AS_EXPECTED]
+    ════ G/5 게이트 무결성 ════
+    OK: gate == source 69b313f662722cad23826a0c7ce50eff39c8ed3d
+    ════ A/5 서버 소스 == 배포 대상 커밋 ════
+    REFUSED: server tree is fc96efcf359b5931fc866d663fccfb6288d10222, deploy target is 599dc5578c6e44204f9da3f13715ae2634a8589c
+    ❌ 배포 거부 — 서버 앱 트리가 배포 대상 커밋 599dc5578c6e44204f9da3f13715ae2634a8589c 와 다르다
+
+### P6 refuse (APP_TREE): goal release tree's own ops/deploy.sh — expect exit 3 → exit 3  [AS_EXPECTED]
+    ❌ 거부 (APP_TREE) — 앱 트리 안의 deploy.sh(/tmp/tmp.eIZJoFU6Kg/goal/ops)로 실행했다. 게이트 설치 위치(~/pigos-gate)에서 실행하라
+
+### P9a pass: goal release tree, web (exec bits survive tar + umask 077) — expect exit 0 → exit 0  [AS_EXPECTED]
+    ════ G/5 게이트 무결성 ════
+    OK: gate == source 69b313f662722cad23826a0c7ce50eff39c8ed3d
+    ════ A/5 서버 소스 == 배포 대상 커밋 ════
+    OK: server tree == release 69b313f662722cad23826a0c7ce50eff39c8ed3d (755 files, alembic head ['a7c9e1f3b5d7'])
+    ════ 0/5 DB 리비전 ↔ 코드 alembic head ════
+    ✅ preflight 통과 (--preflight-only: 백업·빌드·재기동 없이 종료)
+    goal tree ops/*.sh modes: 700 ops/backup_db.sh 700 ops/backup_incremental.sh 700 ops/check_migration_drift.sh 700 ops/deploy.sh 
+
+### P9b refuse: goal release tree with ops/backup_db.sh exec bit removed — expect exit 3 → exit 3  [AS_EXPECTED]
+    ════ G/5 게이트 무결성 ════
+    OK: gate == source 69b313f662722cad23826a0c7ce50eff39c8ed3d
+    ════ A/5 서버 소스 == 배포 대상 커밋 ════
+    REFUSED: server tree differs from release 69b313f662722cad23826a0c7ce50eff39c8ed3d in 1 file(s)
+      not executable ops/backup_db.sh
+    ❌ 배포 거부 — 서버 앱 트리가 배포 대상 커밋 69b313f662722cad23826a0c7ce50eff39c8ed3d 와 다르다
+
+### P7 refuse: gate copy with an edited allowlist — expect exit 3 → exit 3  [AS_EXPECTED]
+    ════ G/5 게이트 무결성 ════
+    REFUSED: gate files differ from gate source 69b313f662722cad23826a0c7ce50eff39c8ed3d
+    ❌ 배포 거부 — 게이트 파일이 기록과 다르다
+
+### P8 reference: the gate installed today in ~/pigos/ops (origin/main, before D-A) on the old tree + DB a7c9
+    exit 3 :: REFUSED: DB revision a7c9e1f3b5d7 does not exist in this code (code head f3c6a8d0b2e4) - the database is ahead of the code being deployed
+
+## cleanup
+temp dir removed: yes
+files written since 2026-09-23 17:26:41 outside ~/pigos-gate (time sweep):
+containers: pigos-worker Up 2 days;pigos-api Up 2 days (healthy);pigos-web Up 4 weeks;pigos-redis Up 2 months;
+# finished 2026-09-23T08:26:49Z

@@ -1,0 +1,190 @@
+# R2 — server ~/pigos vs origin/main, file by file · generated 2026-09-23T08:12:29Z · read-only
+server files 744 (mypy cache excluded) · origin/main files 749
+identical 686 · content differs 24 · only on server 34 · only in origin/main 39
+
+## content differs — by dir
+     8 src/messages
+     5 src/app
+     3 api/app
+     3 src/components
+     3 src/lib
+     1 docker-compose.prod.yml
+     1 src/types
+## content differs — files
+  api/app/db/models/__init__.py
+  api/app/schemas/feed.py
+  api/app/services/feed_service.py
+  docker-compose.prod.yml
+  src/app/(app)/kpi/page.tsx
+  src/app/(app)/page.tsx
+  src/app/(app)/record/page.tsx
+  src/app/admin/data-monitor/page.tsx
+  src/app/admin/master-data/page.tsx
+  src/components/InsightBanner.tsx
+  src/components/RecentEventsSection.tsx
+  src/components/ui.tsx
+  src/lib/api/endpoints/kpi.ts
+  src/lib/api/queryKeys.ts
+  src/lib/kpi/cardRegistry.ts
+  src/messages/en.json
+  src/messages/es.json
+  src/messages/ko.json
+  src/messages/pt.json
+  src/messages/ru.json
+  src/messages/th.json
+  src/messages/vi.json
+  src/messages/zh.json
+  src/types/api.types.ts
+
+## only on server — by dir
+    20 src/e2e-live
+     4 ops/.bak-20260923
+     1 api/_backend.log
+     1 api/_be_err.log
+     1 api/_be_out.log
+     1 src/.env.local
+     1 src/dev-server-3000.err.log
+     1 src/dev-server-3000.log
+     1 src/dev-server-3010.err.log
+     1 src/dev-server-3010.log
+     1 src/test-results
+     1 src/tsconfig.tsbuildinfo
+## only on server — files
+  api/_backend.log
+  api/_be_err.log
+  api/_be_out.log
+  ops/.bak-20260923/ROLLBACK.md.host-20260825
+  ops/.bak-20260923/backup_db.sh.host-20260825
+  ops/.bak-20260923/backup_incremental.sh.host-20260825
+  ops/.bak-20260923/deploy.sh.host-20260825
+  src/.env.local
+  src/dev-server-3000.err.log
+  src/dev-server-3000.log
+  src/dev-server-3010.err.log
+  src/dev-server-3010.log
+  src/e2e-live/_uat_tmp/i18n-lang-switch.live.spec.ts
+  src/e2e-live/_uat_tmp/market-cn-zh.live.spec.ts
+  src/e2e-live/_uat_tmp/p0-client-validation.live.spec.ts
+  src/e2e-live/_uat_tmp/shots/dash_en.png
+  src/e2e-live/_uat_tmp/shots/dash_es.png
+  src/e2e-live/_uat_tmp/shots/dash_ko.png
+  src/e2e-live/_uat_tmp/shots/dash_pt.png
+  src/e2e-live/_uat_tmp/shots/dash_th.png
+  src/e2e-live/_uat_tmp/shots/dash_vi.png
+  src/e2e-live/_uat_tmp/shots/dash_zh.png
+  src/e2e-live/_uat_tmp/shots/market_cn_dash_zh.png
+  src/e2e-live/_uat_tmp/shots/market_cn_reports_zh.png
+  src/e2e-live/_uat_tmp/shots/market_cn_sows_zh.png
+  src/e2e-live/_uat_tmp/shots/sows_en.png
+  src/e2e-live/_uat_tmp/shots/sows_es.png
+  src/e2e-live/_uat_tmp/shots/sows_ko.png
+  src/e2e-live/_uat_tmp/shots/sows_pt.png
+  src/e2e-live/_uat_tmp/shots/sows_th.png
+  src/e2e-live/_uat_tmp/shots/sows_vi.png
+  src/e2e-live/_uat_tmp/shots/sows_zh.png
+  src/test-results/.last-run.json
+  src/tsconfig.tsbuildinfo
+
+## only in origin/main — by dir
+    15 api/app
+    12 api/tests
+     9 api/scripts
+     1 api/alembic
+     1 ops/DEPLOY_PLAN_2026-08-26.md
+     1 src/tests
+## only in origin/main — files
+  api/alembic/versions/a7c9e1f3b5d7_feed_source_rows_feed_source_sync_runs_.py
+  api/app/db/models/feed_source.py
+  api/app/engine/feed/__init__.py
+  api/app/engine/feed/metrics.py
+  api/app/engine/feed/normalize.py
+  api/app/engine/feed/status.py
+  api/app/engine/feed/types.py
+  api/app/engine/feed/variance.py
+  api/app/engine/feed_metrics.py
+  api/app/harvest/feed_load_guard.py
+  api/app/harvest/feed_source_reconcile.py
+  api/app/harvest/feed_source_snapshot.py
+  api/app/harvest/feed_source_sync.py
+  api/app/harvest/pigplan_feed_delivery.py
+  api/app/repositories/feed_source_repo.py
+  api/app/services/feed_engine_service.py
+  api/scripts/__init__.py
+  api/scripts/feed_engine_real_data_audit.py
+  api/scripts/feed_input_adoption_readonly.py
+  api/scripts/feed_load_report.py
+  api/scripts/feed_oracle_shadow_run.py
+  api/scripts/feed_source_initial_load.py
+  api/scripts/feed_source_projection_validate.py
+  api/scripts/feed_source_revision_drill.py
+  api/scripts/feed_source_snapshot_take.py
+  api/tests/integration/test_feed_cohort.py
+  api/tests/integration/test_feed_engine_service.py
+  api/tests/integration/test_feed_source_persistence.py
+  api/tests/unit/test_alembic_graph.py
+  api/tests/unit/test_feed_engine.py
+  api/tests/unit/test_feed_engine_basis.py
+  api/tests/unit/test_feed_engine_purity.py
+  api/tests/unit/test_feed_load_guard.py
+  api/tests/unit/test_feed_load_report.py
+  api/tests/unit/test_feed_metrics.py
+  api/tests/unit/test_feed_source_snapshot_reconcile.py
+  api/tests/unit/test_pigplan_feed_delivery.py
+  ops/DEPLOY_PLAN_2026-08-26.md
+  src/tests/apiErrors.test.ts
+
+## best-matching commit per subtree (commits since 2026-07-01 on main + feature/release refs)
+
+## api/ — best commits (matching files / server files / commit files)
+   450/ 453/ 450  93dadecc5  2026-09-21T16:51  docs(feed): F0 — Feed Engine V1 canonical contract + F1/F2 implementat
+   450/ 453/ 450  fc96efcf3  2026-09-21T16:00  merge: worker-only ARQ result-semantics hotfix (2e372b1 + 92e30bf) ont
+   450/ 453/ 450  480ca8133  2026-09-21T15:52  style: sort imports in test_job_result_semantics (ruff I001, as on the
+   449/ 453/ 453  503c5df65  2026-09-21T16:51  test(feed): parity must cover the withheld set, not just the values; F
+   449/ 453/ 453  3298a7db9  2026-09-21T16:51  feat(feed): canonical Feed Basic formulas and cohort loader, not yet e
+
+## src/ — best commits (matching files / server files / commit files)
+   224/ 242/ 252  5abb8a435  2026-08-27T16:15  fix(kpi): /kpi/trend 의 npd 노출 중단 — WEI 가 NPD 로 표시되고 있었다
+   224/ 242/ 252  0f149a56d  2026-08-27T15:57  audit: CANONICAL_FORMULA_SPEC — CONFIRMED 전건 강등 + 판정기준 신설
+   224/ 242/ 252  e50f8bcbd  2026-08-27T15:50  chore: 세션 내내 미커밋으로 남아 있던 3건 정리
+   224/ 242/ 252  df2b1470d  2026-08-27T15:02  audit: Codex 독립검증 반영 — 반증 3건·과장 6건 정정, D-13 재실사 필요
+   224/ 242/ 252  d99a8c9b3  2026-08-27T14:24  P0-2: 사산 결정표(산식+임계 묶음) + D-19 정정 — US 는 이미 임계가 있다
+
+## ops/ — best commits (matching files / server files / commit files)
+     6/  10/   7  66be67f90  2026-09-23T10:46  feat(feed): production read-only mode for the approved projection vali
+     6/  10/   7  599dc5578  2026-09-23T10:33  Merge PR #8: feed initial load — persistence + one-shot guard + drift 
+     6/  10/   7  dcc0b0942  2026-09-23T09:58  feat(ops,feed): migration drift gate in deploy.sh + generated executio
+     6/  10/   7  7311da170  2026-09-23T09:57  feat(ops,feed): migration drift gate in deploy.sh + generated executio
+     5/  10/   8  9a8aae6a5  2026-09-23T14:55  docs(feed): record 2026-09-23 decisions - B-1 no partial-month compari
+
+## docker-compose.prod.yml — best commits (matching files / server files / commit files)
+     1/   1/   1  1c3bbcd2c  2026-08-26T14:29  Revert "legal: 개인정보 보호책임자 확정 반영 — 진교문(Grant Jin)·대표이사·경영지원팀"
+     1/   1/   1  383d0e5da  2026-08-26T13:19  legal: 개인정보 보호책임자 확정 반영 — 진교문(Grant Jin)·대표이사·경영지원팀
+     1/   1/   1  1ee6acbff  2026-08-25T14:43  fix(chat): intent 분류 7개 언어 확장 + 미분류 질문에 unknown 폴백
+     1/   1/   1  948c0351c  2026-08-25T14:43  fix(chat): 템플릿 렌더러 7개 로케일 지원 — zh/es/vi/th/pt 영어 폴백 버그 수정
+     1/   1/   1  bbd5168cc  2026-08-25T14:43  feat(legal): 앱 개인정보처리방침 서빙 — GET /legal/privacy (Play Data Safety 정합)
+
+## other trees and files at ~/pigos top level (not compared)
+  drwxrwxr-x 2026-09-21 .
+  drwxr-x--- 2026-09-23 ..
+  -rw-rw-r-- 2026-08-25 .env
+  -rw------- 2026-08-25 .env.bak-20260825-082815
+  -rw------- 2026-08-11 .env.bak-qb
+  -rw------- 2026-08-25 .env.bak-revert-114027
+  -rw-rw-r-- 2026-08-25 .env.bak-supabase-115628
+  -rw-rw-r-- 2026-08-25 .env.bak-txmode-083224
+  -rw------- 2026-06-18 .env.prod
+  drwxrwxr-x 2026-09-21 api
+  drwxr-xr-x 2026-07-20 api.bak-20260821-075902
+  drwxr-xr-x 2026-08-26 api.bak-predeploy-20260831-095111
+  drwxrwxr-x 2026-08-28 api.bak-predeploy-20260921-142630
+  drwxrwxr-x 2026-09-21 api.bak-predeploy-20260921-160114
+  drwxr-xr-x 2026-07-20 api.old-20260721-100859
+  -rw-r--r-- 2026-06-19 docker-compose.deploy.yml
+  -rw-r--r-- 2026-08-25 docker-compose.prod.yml
+  -rw-r--r-- 2026-08-11 docker-compose.prod.yml.bak-20260821-075902
+  -rw-r--r-- 2026-08-11 docker-compose.prod.yml.bak-qb
+  drwxr-xr-x 2026-06-24 nginx
+  drwxr-xr-x 2026-09-23 ops
+  drwxrwxr-x 2026-08-26 src
+  drwxr-xr-x 2026-07-16 src.bak-20260821-075902
+  drwxr-xr-x 2026-07-16 src.old-20260721-083621

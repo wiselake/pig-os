@@ -1,0 +1,43 @@
+# W2 negative proofs · generated 2026-09-23T08:19:04Z · code at 8f1f66a
+
+=== M5 content check off: modified files accepted  (file ops/release_manifest.py)
+mutation applied
+FAILED tests/unit/test_release_manifest.py::test_verify_matrix[modified_file-3]
+=================== 1 failed, 18 passed, 7 skipped in 2.77s ===================
+restored: []
+======================== 19 passed, 7 skipped in 2.64s ========================
+
+=== M6 extras check off: unlisted files under covered dirs accepted  (file ops/release_manifest.py)
+mutation applied
+FAILED tests/unit/test_release_manifest.py::test_verify_matrix[extra_file_covered-3]
+=================== 1 failed, 18 passed, 7 skipped in 2.76s ===================
+restored: []
+======================== 19 passed, 7 skipped in 2.64s ========================
+
+=== M7 sha check off: manifest of another commit accepted  (file ops/release_manifest.py)
+mutation applied
+FAILED tests/unit/test_release_manifest.py::test_verify_matrix[wrong_sha-3]
+=================== 1 failed, 18 passed, 7 skipped in 2.63s ===================
+restored: []
+======================== 19 passed, 7 skipped in 2.55s ========================
+
+=== M8 gate self-check off: tampered gate accepted  (file ops/release_manifest.py)
+mutation applied
+FAILED tests/unit/test_release_manifest.py::test_gate_refuses_when_tampered[modified]
+=================== 1 failed, 18 passed, 7 skipped in 2.73s ===================
+restored: []
+======================== 19 passed, 7 skipped in 2.52s ========================
+
+=== S  real deploy.sh --preflight-only (Git Bash + python3), service web (no DB step, no docker)
+release + gate extracted
+  [pass] exit=0 :: ✅ preflight 통과 (--preflight-only: 백업·빌드·재기동 없이 종료)
+  [wrong sha] exit=3 :: ❌ 배포 거부 — 서버 앱 트리가 배포 대상 커밋 bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb 와 다르다
+  [no --expect-sha] exit=2 :: usage: /tmp/tmp.JjH6CKSltH/gate/deploy.sh <api|web|worker|all> --expect-sha <40-hex> [--preflight-only]
+  [run from app tree] exit=3 :: ❌ 거부 — 앱 트리 안의 deploy.sh(/tmp/tmp.JjH6CKSltH/pigos/ops)로 실행했다. 게이트 설치 위치(~/pigos-gate)에서 실행하라
+  [tampered tree (ops/deploy.sh)] exit=3 :: ❌ 배포 거부 — 서버 앱 트리가 배포 대상 커밋 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 와 다르다
+  [tampered gate (allowlist)] exit=3 :: ❌ 배포 거부 — 게이트 파일이 기록과 다르다
+  [no manifest] exit=3 :: ❌ 배포 거부 — 서버 앱 트리가 배포 대상 커밋 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 와 다르다
+  [extra file under api/] exit=3 :: ❌ 배포 거부 — 서버 앱 트리가 배포 대상 커밋 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa 와 다르다
+  [pass again (restored)] exit=0 :: ✅ preflight 통과 (--preflight-only: 백업·빌드·재기동 없이 종료)
+
+final: tracked changes = []

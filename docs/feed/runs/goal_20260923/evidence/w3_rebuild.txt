@@ -1,0 +1,29 @@
+# W3 rebuild proof · generated 2026-09-23T08:30:54Z
+new branch feat/feed-read-on-main-20260923 = origin/main 599dc55 + cherry-pick -x of the three core-only commits
+  d2158d3 docs(feed): overnight results — final regression 1467, part B (API+web) recorded, cleanup logged
+  e29f784 feat(web): feed page — unit cost + currency inputs, monthly feed summary (engine-backed, null≠0), mobile 'more' entry, 8 locales
+  7e6483b feat(feed): read-only feed summary API — GET /farms/{id}/feed/summary · /months (basis required, null≠0, no cohort/FCR, no raw rows)
+
+## 1) patch-id equality: picked commits vs originals (git cherry: '-' = same patch already present)
+  - 70e0dc2586ea94716109dac821acac03fd15ac71 feat(feed): one-shot production load guard — --apply requires five matching expectations, default refuse
+  - 854765aa3e58be112d1140a96608ca5a4b744d66 docs(feed): initial-load approval packet + separate API/UI release gate (2 blockers recorded)
+  - 310b69f573f091439620fe4ee24ac942ada4207e docs(feed): approval packet — record the D9 CI time-boundary and the draft PR #8 evidence path
+  - c3794f35c209dc0b09bbabd007d7b4c4a4738a87 docs(feed): production initial load executed — migration a7c9e1f3b5d7 + 5,461 rows, reconciled 0, idempotent re-run 0 new
+  - dcc0b0942c233e2e1dc48d4fb8a2bd139d98b95f feat(ops,feed): migration drift gate in deploy.sh + generated execution numbers + run provenance (review ①–④)
+  - 7e6483b2006e1a719c0154732aba77406dc4a8f9 feat(feed): read-only feed summary API — GET /farms/{id}/feed/summary · /months (basis required, null≠0, no cohort/FCR, no raw rows)
+  - e29f78406a216b7f3571f36efc3462179c61c2e3 feat(web): feed page — unit cost + currency inputs, monthly feed summary (engine-backed, null≠0), mobile 'more' entry, 8 locales
+  - d2158d3e72454cd97f9ba8f72f2780cab9d8ce3d docs(feed): overnight results — final regression 1467, part B (API+web) recorded, cleanup logged
+  4882427 vs 7e6483b patch-id: 80aad6c23a3f / 80aad6c23a3f
+  89c1e70 vs e29f784 patch-id: 92d5ed823c9a / 92d5ed823c9a
+  ecd1ae8 vs d2158d3 patch-id: a1ade6287105 / a1ade6287105
+
+## 2) every path that differs from origin/main is one the three commits touched (no main-side file reverted)
+  paths differing from main: 17 · paths touched by the picks: 17
+  differing but not touched by the picks (must be empty): []
+
+## 3) new branch vs the old core branch tip — what remains different is main-side work the core branch lacked
+  files: 
+
+## 4) for files the picks touched, main-side changes after the core branch point are preserved
+  docs/feed/runs/OVERNIGHT_RESULTS_20260922.md changed on main since base; main-side hunks present in new branch: yes
+  (no output above = no picked file was also changed on main)
