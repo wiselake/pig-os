@@ -1,0 +1,16 @@
+# W2 Linux proof (python:3.12-slim, CI=1) · 2026-09-23T08:24:26Z · python 3.12.14 · bash 5.2.37(1)-release
+
+=== baseline (no mutation): nothing may be skipped
+69 passed, 2 deselected in 0.99s
+
+=== M9 exec-bit check off
+1 failed, 68 passed, 2 deselected in 1.69s
+
+=== M10 deploy.sh app-tree check off
+1 failed, 68 passed, 2 deselected in 0.97s
+
+=== M11 deploy.sh step A (tree == commit) removed
+3 failed, 66 passed, 2 deselected in 0.85s
+
+=== restored
+69 passed, 2 deselected in 0.94s
