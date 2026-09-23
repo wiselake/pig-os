@@ -45,7 +45,21 @@
       "partial_period": "本月尚未结束 — 不作比较"
     },
     "mtdBadge": "本月至今 · 统计中",
-    "mtdRow": "(本月至今)"
+    "mtdRow": "(本月至今)",
+    "fedTitle": "饲喂与消耗",
+    "delivered": {
+      "title": "饲料入库 · PigPlan 对接",
+      "basis": "按配送（入库）计 — 不是猪实际吃掉的量",
+      "qty": "入库量",
+      "cost": "入库费用",
+      "unitPrice": "平均单价",
+      "mix": "饲料构成",
+      "costPartial": "仅部分（{pct}% 行）",
+      "noCost": "无成本数据",
+      "noMonth": "本月无入库记录",
+      "asOf": "数据截至 {date}",
+      "syncFailed": "上次同步失败"
+    }
   },
   "prrsReport": {
     "title": "按基因的PRRS",

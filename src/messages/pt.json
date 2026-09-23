@@ -45,7 +45,21 @@
       "partial_period": "Mês em andamento — sem comparação"
     },
     "mtdBadge": "MTD · em andamento",
-    "mtdRow": "(MTD)"
+    "mtdRow": "(MTD)",
+    "fedTitle": "Ração fornecida e consumo",
+    "delivered": {
+      "title": "Entregas de ração · integração PigPlan",
+      "basis": "Base de entregas (compras) — não é o que os suínos comeram",
+      "qty": "Entregue",
+      "cost": "Custo das entregas",
+      "unitPrice": "Preço unitário médio",
+      "mix": "Composição da ração",
+      "costPartial": "Apenas parcial ({pct}% das linhas)",
+      "noCost": "Sem dados de custo",
+      "noMonth": "Nenhuma entrega registrada neste mês",
+      "asOf": "Dados até {date}",
+      "syncFailed": "A última sincronização falhou"
+    }
   },
   "prrsReport": {
     "title": "PRRS por genética",

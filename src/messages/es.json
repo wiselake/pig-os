@@ -45,7 +45,21 @@
       "partial_period": "Mes en curso — sin comparación"
     },
     "mtdBadge": "MTD · en curso",
-    "mtdRow": "(MTD)"
+    "mtdRow": "(MTD)",
+    "fedTitle": "Alimento suministrado y consumo",
+    "delivered": {
+      "title": "Entregas de pienso · enlace PigPlan",
+      "basis": "Base de entregas (compras) — no es lo que comieron los cerdos",
+      "qty": "Entregado",
+      "cost": "Costo de entregas",
+      "unitPrice": "Precio unitario medio",
+      "mix": "Composición del pienso",
+      "costPartial": "Solo parcial ({pct}% de filas)",
+      "noCost": "Sin datos de costo",
+      "noMonth": "Sin entregas registradas este mes",
+      "asOf": "Datos al {date}",
+      "syncFailed": "Falló la última sincronización"
+    }
   },
   "prrsReport": {
     "title": "PRRS por genética",

@@ -192,3 +192,19 @@ describe("FeedPage 부분월 (B-1, 2026-09-23 결정) — 진행 중인 달은 �
     expect(rows[1].textContent).toContain("mtdRow");
   });
 });
+
+describe("FeedPage 영역 분리 (B-2, 2026-09-23 결정)", () => {
+  beforeEach(() => {
+    h.role = "FARM_WORKER";
+    summaryMock.value = JSON.parse(JSON.stringify(BASE_SUMMARY));
+  });
+
+  it("급여·소비 영역이 제목과 'FCR 입력원' 부제를 갖고, 부제는 그 영역 밖에 없다", async () => {
+    renderWithClient(<FeedPage />);
+    const area = await screen.findByTestId("feed-area-fed");
+    expect(area).toHaveTextContent("fedTitle");
+    expect(area).toHaveTextContent("subtitle");
+    const outside = document.body.textContent!.replace(area.textContent!, "");
+    expect(outside).not.toContain("subtitle");
+  });
+});

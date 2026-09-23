@@ -45,7 +45,21 @@
       "partial_period": "Month in progress — not compared"
     },
     "mtdBadge": "MTD · in progress",
-    "mtdRow": "(MTD)"
+    "mtdRow": "(MTD)",
+    "fedTitle": "Feed given & consumption",
+    "delivered": {
+      "title": "Feed deliveries · PigPlan link",
+      "basis": "Delivery (purchase) basis — this is not what the pigs ate",
+      "qty": "Delivered",
+      "cost": "Delivery cost",
+      "unitPrice": "Average unit price",
+      "mix": "Feed mix",
+      "costPartial": "Partial only ({pct}% of rows)",
+      "noCost": "No cost data",
+      "noMonth": "No deliveries recorded this month",
+      "asOf": "Data as of {date}",
+      "syncFailed": "Last sync failed"
+    }
   },
   "prrsReport": {
     "title": "PRRS by genetics",

@@ -1,6 +1,6 @@
 {
   "feed": {
-    "title": "사료 급여",
+    "title": "사료",
     "subtitle": "급여한 사료량 기록 — FCR 계산 입력원.",
     "add": "사료 기록 추가",
     "recordDate": "날짜",
@@ -45,7 +45,21 @@
       "partial_period": "진행 중인 달 — 비교하지 않음"
     },
     "mtdBadge": "MTD · 집계 중",
-    "mtdRow": "(MTD)"
+    "mtdRow": "(MTD)",
+    "fedTitle": "사료 급여·소비",
+    "delivered": {
+      "title": "사료 입고 · PigPlan 연계",
+      "basis": "배송(입고) 기준 — 돼지가 먹은 양이 아닙니다",
+      "qty": "입고량",
+      "cost": "입고비",
+      "unitPrice": "평균 단가",
+      "mix": "사료 구성",
+      "costPartial": "일부만 있음 (행 {pct}%)",
+      "noCost": "원가 정보 없음",
+      "noMonth": "이 달에는 입고 기록이 없습니다",
+      "asOf": "데이터 기준일 {date}",
+      "syncFailed": "마지막 동기화 실패"
+    }
   },
   "prrsReport": {
     "title": "유전자별 PRRS",

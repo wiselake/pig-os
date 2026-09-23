@@ -144,6 +144,11 @@ export default function FeedPage() {
   return (
     <div className="ml-[220px] max-md:ml-0 p-6 max-w-5xl">
       <h1 className="text-2xl font-extrabold text-text">{t("title")}</h1>
+
+      {/* B-2: 영역 B "사료 급여·소비" — 여기에 기록한 급여량(AS_RECORDED). "FCR 입력원" 부제는 이 영역에만 둔다.
+          영역 A "사료 입고 · PigPlan 연계"(DELIVERED)는 서버가 REFERENCE_VISIBLE 로 판정할 때만 따로 그린다(W6). */}
+      <section data-testid="feed-area-fed" className="mt-4">
+      <h2 className="text-lg font-bold text-text">{t("fedTitle")}</h2>
       <p className="text-sm text-text3 mt-1">{t("subtitle")}</p>
 
       {canWrite && (
@@ -304,6 +309,7 @@ export default function FeedPage() {
           </div>
         )}
       </div>
+      </section>
     </div>
   );
 }
