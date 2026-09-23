@@ -42,7 +42,8 @@ export interface FeedMetric {
 
 export interface FeedSummary {
   farm_id: string;
-  period: { start: string; end: string; grain: string; partial: boolean };
+  // partial = 진행 중인 달(농장 현지 날짜 기준, B-1). partial 이면 CHANGE 계열은 null + reason partial_period — 화면은 비교하지 않는다.
+  period: { start: string; end: string; grain: string; partial: boolean; as_of?: string; timezone?: string; comparison?: string | null };
   quantity_basis: FeedBasis;
   currency: string | null;
   formula_version: string;
@@ -63,6 +64,7 @@ export interface FeedMonth {
   partial_cost: number | null;
   unit_price: number | null;
   dominant_type: string | null;
+  partial: boolean;
 }
 
 const base = (farmId: string) => `/api/v1/farms/${farmId}/feed-records`;

@@ -41,8 +41,11 @@
       "cost_incomplete": "단가 없는 행 있음",
       "currency_mixed": "통화 혼합",
       "prior_insufficient": "전월 자료 없음",
-      "context_missing": "비교 불가"
-    }
+      "context_missing": "비교 불가",
+      "partial_period": "진행 중인 달 — 비교하지 않음"
+    },
+    "mtdBadge": "MTD · 집계 중",
+    "mtdRow": "(MTD)"
   },
   "prrsReport": {
     "title": "유전자별 PRRS",

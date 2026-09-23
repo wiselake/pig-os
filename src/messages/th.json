@@ -41,8 +41,11 @@
       "cost_incomplete": "บางแถวไม่มีราคาต่อหน่วย",
       "currency_mixed": "สกุลเงินปะปน",
       "prior_insufficient": "ไม่มีข้อมูลเดือนก่อน",
-      "context_missing": "เปรียบเทียบไม่ได้"
-    }
+      "context_missing": "เปรียบเทียบไม่ได้",
+      "partial_period": "เดือนยังไม่สิ้นสุด — ไม่เปรียบเทียบ"
+    },
+    "mtdBadge": "ตั้งแต่ต้นเดือน · กำลังรวบรวม",
+    "mtdRow": "(ตั้งแต่ต้นเดือน)"
   },
   "prrsReport": {
     "title": "PRRS ตามสายพันธุ์",

@@ -41,8 +41,11 @@
       "cost_incomplete": "có dòng thiếu đơn giá",
       "currency_mixed": "lẫn tiền tệ",
       "prior_insufficient": "không có dữ liệu tháng trước",
-      "context_missing": "không so sánh được"
-    }
+      "context_missing": "không so sánh được",
+      "partial_period": "Tháng chưa kết thúc — không so sánh"
+    },
+    "mtdBadge": "Từ đầu tháng · đang tổng hợp",
+    "mtdRow": "(từ đầu tháng)"
   },
   "prrsReport": {
     "title": "PRRS theo di truyền",

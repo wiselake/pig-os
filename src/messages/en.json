@@ -41,8 +41,11 @@
       "cost_incomplete": "some rows have no unit cost",
       "currency_mixed": "mixed currencies",
       "prior_insufficient": "previous month not available",
-      "context_missing": "not comparable"
-    }
+      "context_missing": "not comparable",
+      "partial_period": "Month in progress — not compared"
+    },
+    "mtdBadge": "MTD · in progress",
+    "mtdRow": "(MTD)"
   },
   "prrsReport": {
     "title": "PRRS by genetics",

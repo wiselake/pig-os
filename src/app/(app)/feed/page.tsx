@@ -55,7 +55,8 @@ export default function FeedPage() {
   const [unitCost, setUnitCost] = useState("");
   const [currency, setCurrency] = useState<string>("");
   const [err, setErr] = useState<string | null>(null);
-  const [period, setPeriod] = useState(ym(localToday()));
+  // B-1: 기본 기간 = 직전 완료월. 진행 중인 달인지는 서버가 농장 현지 날짜로 판정한다(summary.period.partial).
+  const [period, setPeriod] = useState(prevMonth(ym(localToday())));
 
   const { data: records = [], isLoading } = useQuery({
     queryKey: ["feed", farmId],
@@ -138,6 +139,7 @@ export default function FeedPage() {
   const qtyChange = m["FEED_QTY_CHANGE"];
   const costChange = m["FEED_COST_CHANGE"];
   const cur = summary?.currency ?? farmCurrency;
+  const partial = summary?.period?.partial === true;
 
   return (
     <div className="ml-[220px] max-md:ml-0 p-6 max-w-5xl">
@@ -197,6 +199,11 @@ export default function FeedPage() {
           <div>
             <div className="text-sm font-bold text-text">{t("summaryTitle")}</div>
             <div className="text-[11px] text-text3">{t("basisRecorded")}</div>
+            {partial && (
+              <span data-testid="feed-mtd-badge" className="inline-block mt-1 rounded-full bg-bg2 px-2 py-0.5 text-[11px] font-semibold text-warning">
+                {t("mtdBadge")}
+              </span>
+            )}
           </div>
           <input type="month" value={period} aria-label={t("month")} onChange={(e) => e.target.value && setPeriod(e.target.value)}
                  className="rounded-lg border border-border bg-bg px-3 py-1.5 text-sm" />
@@ -211,8 +218,10 @@ export default function FeedPage() {
                     ? (partialCost != null ? t("costPartial", { n: uncosted ?? 0 }) : reasonText(costMetric))
                     : ""} warn={costMetric?.value == null && partialCost != null} />
             <Stat label={t("mUnitPrice")} value={fmtNum(m["FEED_UNIT_PRICE"]?.value, 2)} unit={`${cur}/kg`} note={reasonText(m["FEED_UNIT_PRICE"])} />
-            <Stat label={t("mChange")} value={qtyChange?.value != null ? `${qtyChange.value > 0 ? "+" : ""}${fmtNum(qtyChange.value, 1)}` : "—"} unit="kg"
-                  note={qtyChange?.value == null ? reasonText(qtyChange) : (costChange?.value != null ? `${t("mCostChange")} ${costChange.value > 0 ? "+" : ""}${fmtNum(costChange.value, 0)} ${cur}` : "")} />
+            {!partial && (   /* B-1: 진행 중인 달은 비교 UI 를 그리지 않는다 */
+              <Stat label={t("mChange")} value={qtyChange?.value != null ? `${qtyChange.value > 0 ? "+" : ""}${fmtNum(qtyChange.value, 1)}` : "—"} unit="kg"
+                    note={qtyChange?.value == null ? reasonText(qtyChange) : (costChange?.value != null ? `${t("mCostChange")} ${costChange.value > 0 ? "+" : ""}${fmtNum(costChange.value, 0)} ${cur}` : "")} />
+            )}
           </div>
         )}
         {!summary?.no_data && Object.keys(shares).length > 0 && (
@@ -235,7 +244,10 @@ export default function FeedPage() {
             <tbody>
               {months.map((mo) => (
                 <tr key={mo.period} className="border-t border-border">
-                  <td className="py-1 font-mono">{mo.period}</td>
+                  <td className="py-1 font-mono">
+                    {mo.period}
+                    {mo.partial && <span className="ml-1 font-sans text-[10px] text-warning">{t("mtdRow")}</span>}
+                  </td>
                   <td className="py-1 text-right font-mono">{fmtNum(mo.feed_qty_kg, 1)}</td>
                   <td className="py-1 text-right font-mono">
                     {mo.feed_cost != null ? fmtNum(mo.feed_cost, 0) : mo.partial_cost != null ? `${fmtNum(mo.partial_cost, 0)}*` : "—"}

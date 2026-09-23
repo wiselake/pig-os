@@ -50,6 +50,9 @@ vi.mock("@/lib/api/endpoints/feed", () => ({
 
 import FeedPage from "@/app/(app)/feed/page";
 
+// 앞선 테스트가 summaryMock.value 를 바꾼다 — B-1 테스트는 import 시점 기준값에서 시작한다
+const BASE_SUMMARY = JSON.parse(JSON.stringify(summaryMock.value));
+
 describe("FeedPage 권한 게이팅 (H4)", () => {
   beforeEach(() => { h.role = "FARM_WORKER"; });
 
@@ -126,5 +129,66 @@ describe("FeedPage 월 결과 — null 은 0 이 아니다", () => {
     const box = await screen.findByTestId("feed-summary");
     await waitFor(() => expect(box).toHaveTextContent("noDataMonth"));
     expect(box.textContent).not.toContain("+600");        // 카드 없음 — 월 표(이력)는 그대로 남는다
+  });
+});
+
+
+describe("FeedPage 부분월 (B-1, 2026-09-23 결정) — 진행 중인 달은 비교하지 않는다", () => {
+  beforeEach(() => {
+    h.role = "FARM_WORKER";
+    summaryMock.value = JSON.parse(JSON.stringify(BASE_SUMMARY));
+    vi.mocked(feedApi.summary).mockClear();
+  });
+
+  it.each([
+    ["2026-09-23T03:00:00Z", "2026-08"],
+    ["2027-01-15T03:00:00Z", "2026-12"],          // 연 경계
+  ])("기본 기간은 직전 완료월이다 (now=%s → %s)", async (now, expected) => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(now));
+    try {
+      renderWithClient(<FeedPage />);
+      await waitFor(() => expect(feedApi.summary).toHaveBeenCalledWith("farm-1", expected, "AS_RECORDED"));
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("서버가 partial 이라 하면 MTD 배지를 달고 전월 대비 칸을 그리지 않는다 — 값은 보인다", async () => {
+    summaryMock.value = {
+      ...summaryMock.value,
+      period: { ...summaryMock.value.period, partial: true, comparison: null },
+      metrics: {
+        ...summaryMock.value.metrics,
+        FEED_QTY_CHANGE: { value: null, unit: "kg", provenance: "INSUFFICIENT", reason: "partial_period", evidence: {}, status: null },
+        FEED_COST_CHANGE: { value: null, unit: "currency", provenance: "INSUFFICIENT", reason: "partial_period", evidence: {}, status: null },
+      },
+    };
+    renderWithClient(<FeedPage />);
+    const box = await screen.findByTestId("feed-summary");
+    await waitFor(() => expect(box).toHaveTextContent("1,500"));        // MTD 값
+    expect(screen.getByTestId("feed-mtd-badge")).toHaveTextContent("mtdBadge");
+    expect(box.textContent).not.toContain("mChange");                    // 비교 UI 0
+    expect(box.textContent).not.toContain("+600");
+  });
+
+  it("완료월이면 배지가 없고 전월 대비가 보인다", async () => {
+    renderWithClient(<FeedPage />);
+    const box = await screen.findByTestId("feed-summary");
+    await waitFor(() => expect(box).toHaveTextContent("+600"));
+    expect(screen.queryByTestId("feed-mtd-badge")).toBeNull();
+  });
+
+  it("월별 표의 진행 중인 달에 MTD 표시를 붙인다", async () => {
+    vi.mocked(feedApi.months).mockResolvedValueOnce([
+      { period: "2026-08", quantity_basis: "AS_RECORDED", currency: "USD", rows: 2, feed_qty_kg: 1500, feed_cost: 1500, feed_cost_reason: null, partial_cost: null, unit_price: 1, dominant_type: "grower", partial: false },
+      { period: "2026-09", quantity_basis: "AS_RECORDED", currency: "USD", rows: 1, feed_qty_kg: 300, feed_cost: 300, feed_cost_reason: null, partial_cost: null, unit_price: 1, dominant_type: "grower", partial: true },
+    ]);
+    renderWithClient(<FeedPage />);
+    const box = await screen.findByTestId("feed-summary");
+    await waitFor(() => expect(box).toHaveTextContent("2026-09"));
+    const rows = box.querySelectorAll("tbody tr");
+    expect(rows[0].textContent).not.toContain("mtdRow");
+    expect(rows[1].textContent).toContain("mtdRow");
   });
 });

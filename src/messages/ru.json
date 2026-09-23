@@ -41,8 +41,11 @@
       "cost_incomplete": "в некоторых строках нет цены",
       "currency_mixed": "смешанные валюты",
       "prior_insufficient": "нет данных за прошлый месяц",
-      "context_missing": "несопоставимо"
-    }
+      "context_missing": "несопоставимо",
+      "partial_period": "Месяц не завершён — без сравнения"
+    },
+    "mtdBadge": "С начала месяца · идёт сбор",
+    "mtdRow": "(с начала месяца)"
   },
   "prrsReport": {
     "title": "РРСС по генетике",

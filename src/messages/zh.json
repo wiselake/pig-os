@@ -41,8 +41,11 @@
       "cost_incomplete": "部分行无单价",
       "currency_mixed": "货币混合",
       "prior_insufficient": "上月无数据",
-      "context_missing": "不可比较"
-    }
+      "context_missing": "不可比较",
+      "partial_period": "本月尚未结束 — 不作比较"
+    },
+    "mtdBadge": "本月至今 · 统计中",
+    "mtdRow": "(本月至今)"
   },
   "prrsReport": {
     "title": "按基因的PRRS",

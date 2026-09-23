@@ -41,8 +41,11 @@
       "cost_incomplete": "algunas filas sin costo unitario",
       "currency_mixed": "monedas mezcladas",
       "prior_insufficient": "mes anterior no disponible",
-      "context_missing": "no comparable"
-    }
+      "context_missing": "no comparable",
+      "partial_period": "Mes en curso — sin comparación"
+    },
+    "mtdBadge": "MTD · en curso",
+    "mtdRow": "(MTD)"
   },
   "prrsReport": {
     "title": "PRRS por genética",

@@ -4,7 +4,7 @@ basis 필수 · null≠0 · no_data 는 200 · 부분원가는 evidence · basis
 """
 from __future__ import annotations
 
-from datetime import date
+from datetime import UTC, date, datetime
 
 import pytest
 import pytest_asyncio
@@ -14,6 +14,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import create_access_token
 from app.db.models.health import FeedRecord
 from app.db.models.platform import Farm, User, UserFarm
+from app.routers.base import feed_summary as fs
+
+NOW = datetime(2026, 9, 23, 3, 0, tzinfo=UTC)          # 고정 — "8월은 완료월" 이 실제 날짜에 기대지 않게
+
+
+@pytest.fixture(autouse=True)
+def _frozen_now(monkeypatch):
+    monkeypatch.setattr(fs, "_now", lambda: NOW)
 
 
 @pytest_asyncio.fixture
@@ -101,3 +109,89 @@ async def test_months_series(client: AsyncClient, db: AsyncSession, test_farm: F
     assert j[2]["feed_qty_kg"] == 1500.0 and j[2]["feed_cost"] is None and j[2]["partial_cost"] == 1000.0
     r = await client.get(f"/api/v1/farms/{test_farm.id}/feed/months", params={"from": "2026-09", "to": "2026-08", "basis": "AS_RECORDED"}, headers=auth_headers)
     assert r.status_code == 422
+
+
+# ── B-1 부분월 (2026-09-23 결정): 진행 중인 달은 값(MTD)만, 비교 없음 ─────────────────────────────────────────────
+async def _get(client, farm, headers, period, **kw):
+    r = await client.get(f"/api/v1/farms/{farm.id}/feed/summary", params={"period": period, "basis": "AS_RECORDED", **kw}, headers=headers)
+    assert r.status_code == 200, r.text
+    return r.json()
+
+
+async def _tz(db: AsyncSession, farm: Farm, tz: str) -> None:
+    farm.timezone = tz
+    await db.flush()
+
+
+@pytest.mark.asyncio
+async def test_partial_month_shows_mtd_value_but_no_comparison(client, db, test_farm, test_user, auth_headers, monkeypatch):
+    await _seed(db, test_farm, test_user)
+    await _tz(db, test_farm, "Asia/Seoul")
+    monkeypatch.setattr(fs, "_now", lambda: datetime(2026, 8, 20, 3, 0, tzinfo=UTC))
+    j = await _get(client, test_farm, auth_headers, "2026-08")
+    assert j["period"]["partial"] is True and j["period"]["comparison"] is None and j["period"]["as_of"] == "2026-08-20"
+    mt = j["metrics"]
+    assert mt["FEED_QTY"]["value"] == 1500.0                                     # 값은 준다 (MTD)
+    for k in ("FEED_QTY_CHANGE", "FEED_COST_CHANGE"):
+        assert mt[k]["value"] is None and mt[k]["provenance"] == "INSUFFICIENT" and mt[k]["reason"] == "partial_period", k
+        assert mt[k]["evidence"]["period_end"] == "2026-08-31" and mt[k]["evidence"]["timezone"] == "Asia/Seoul"
+
+
+@pytest.mark.asyncio
+async def test_completed_month_compares_with_previous_month(client, db, test_farm, test_user, auth_headers):
+    await _seed(db, test_farm, test_user)
+    j = await _get(client, test_farm, auth_headers, "2026-08")
+    assert j["period"]["partial"] is False and j["period"]["comparison"] == "previous_calendar_month"
+    assert j["metrics"]["FEED_QTY_CHANGE"]["value"] == 600.0
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("tz,partial", [("Asia/Seoul", False), ("UTC", True)])
+async def test_kst_utc_boundary(client, db, test_farm, test_user, auth_headers, monkeypatch, tz, partial):
+    """2026-08-31 15:30 UTC = 2026-09-01 00:30 KST: August is complete for a Seoul farm, still running for a UTC farm."""
+    await _seed(db, test_farm, test_user)
+    await _tz(db, test_farm, tz)
+    monkeypatch.setattr(fs, "_now", lambda: datetime(2026, 8, 31, 15, 30, tzinfo=UTC))
+    j = await _get(client, test_farm, auth_headers, "2026-08")
+    assert j["period"]["partial"] is partial
+    ch = j["metrics"]["FEED_QTY_CHANGE"]
+    assert (ch["reason"] == "partial_period") is partial and (ch["value"] == 600.0) is (not partial)
+
+
+@pytest.mark.asyncio
+async def test_first_day_of_month(client, db, test_farm, test_user, auth_headers, monkeypatch):
+    """1 Sep (UTC farm): August is now a completed month; September is partial with no rows."""
+    await _seed(db, test_farm, test_user)
+    await _tz(db, test_farm, "UTC")
+    monkeypatch.setattr(fs, "_now", lambda: datetime(2026, 9, 1, 0, 0, 5, tzinfo=UTC))
+    assert (await _get(client, test_farm, auth_headers, "2026-08"))["period"]["partial"] is False
+    j = await _get(client, test_farm, auth_headers, "2026-09")
+    assert j["period"]["partial"] is True and j["no_data"] is True
+
+
+@pytest.mark.asyncio
+async def test_zero_row_partial_month_says_partial_not_no_data_for_comparison(client, db, test_farm, test_user, auth_headers, monkeypatch):
+    await _seed(db, test_farm, test_user)
+    monkeypatch.setattr(fs, "_now", lambda: datetime(2026, 9, 10, 3, 0, tzinfo=UTC))
+    j = await _get(client, test_farm, auth_headers, "2026-09")
+    assert j["no_data"] is True and j["period"]["partial"] is True
+    assert j["metrics"]["FEED_QTY"]["reason"] == "no_data"                      # 값: 행이 없다
+    assert j["metrics"]["FEED_QTY_CHANGE"]["reason"] == "partial_period"        # 비교: 진행 중이라 하지 않는다
+
+
+@pytest.mark.asyncio
+async def test_unknown_timezone_is_conservative(client, db, test_farm, test_user, auth_headers, monkeypatch):
+    await _seed(db, test_farm, test_user)
+    await _tz(db, test_farm, "Not/AZone")
+    monkeypatch.setattr(fs, "_now", lambda: datetime(2026, 9, 1, 5, 0, tzinfo=UTC))   # UTC-12 에서는 아직 8/31
+    j = await _get(client, test_farm, auth_headers, "2026-08")
+    assert j["period"]["partial"] is True and j["period"]["timezone"] == "UTC-12(fallback)"
+
+
+@pytest.mark.asyncio
+async def test_months_marks_the_running_month_partial(client, db, test_farm, test_user, auth_headers, monkeypatch):
+    await _seed(db, test_farm, test_user)
+    monkeypatch.setattr(fs, "_now", lambda: datetime(2026, 9, 10, 3, 0, tzinfo=UTC))
+    r = await client.get(f"/api/v1/farms/{test_farm.id}/feed/months", params={"from": "2026-07", "to": "2026-09", "basis": "AS_RECORDED"}, headers=auth_headers)
+    assert r.status_code == 200
+    assert [(x["period"], x["partial"]) for x in r.json()] == [("2026-07", False), ("2026-08", False), ("2026-09", True)]
