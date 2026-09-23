@@ -1,0 +1,98 @@
+{
+ "snapshot_content_hash": "705d8a06d301025b762bc07642c0c77742a1695922762cd7bef4fafbf48e32ba",
+ "scenarios": {
+  "ABCE_correction_inactive_missing": {
+   "expected": {
+    "superseded": 298,
+    "inserted": 298,
+    "retracted": 103,
+    "overlap_keys": 11
+   },
+   "sync": {
+    "status": "SUCCEEDED",
+    "inserted": 298,
+    "unchanged": 5060,
+    "superseded": 298,
+    "retracted": 103
+   },
+   "after": {
+    "rows_all_revisions": 5862,
+    "current": 5461,
+    "current_by_status": {
+     "RETRACTED": 103,
+     "ACTIVE": 5003,
+     "INACTIVE": 355
+    },
+    "max_revision": 2,
+    "identities": 5461
+   },
+   "checks": {
+    "inserted_matches": true,
+    "superseded_matches": true,
+    "retracted_matches": true,
+    "history_retained": true,
+    "identities_unchanged": true,
+    "physical_deletes": 0,
+    "current_inactive_delta": 96,
+    "current_retracted": 103
+   }
+  },
+  "D_revive_original": {
+   "sync": {
+    "status": "SUCCEEDED",
+    "inserted": 401,
+    "unchanged": 5060,
+    "superseded": 401,
+    "retracted": 0
+   },
+   "after": {
+    "rows_all_revisions": 5862,
+    "current": 5461,
+    "current_by_status": {
+     "INACTIVE": 259,
+     "ACTIVE": 5202
+    },
+    "max_revision": 2,
+    "identities": 5461
+   },
+   "checks": {
+    "no_new_rows_on_revive": true,
+    "current_back_to_before": true,
+    "revived_count": 401,
+    "expected_revived": 401
+   }
+  },
+  "G_empty_source_result": {
+   "sync": {
+    "status": "SUCCEEDED",
+    "retracted": 0,
+    "inserted": 0
+   },
+   "checks": {
+    "nothing_retracted": true,
+    "status_succeeded_not_unavailable": true
+   }
+  }
+ },
+ "before": {
+  "rows_all_revisions": 5461,
+  "current": 5461,
+  "current_by_status": {
+   "INACTIVE": 259,
+   "ACTIVE": 5202
+  },
+  "max_revision": 1,
+  "identities": 5461
+ },
+ "final": {
+  "rows_all_revisions": 5862,
+  "current": 5461,
+  "current_by_status": {
+   "INACTIVE": 259,
+   "ACTIVE": 5202
+  },
+  "max_revision": 2,
+  "identities": 5461
+ },
+ "final_equals_before_current": true
+}
