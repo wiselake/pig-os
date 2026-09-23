@@ -60,7 +60,7 @@ DATABASE_URL=<local> python scripts/feed_source_projection_validate.py --indep /
 
 ```text
 로컬 실측 2026-09-22 (9농장 · 2025-09-01~2026-09-22): source 5,461 · gen-1 5,461 · ACTIVE 5,202 · INACTIVE 259
-quantity ACCEPTED 5,198 · cost ACCEPTED 4,364 · 재실행 unchanged 5,461 · 정정 시 새 revision = 정정 행 수 · 소실 = RETRACTED
+quantity ACCEPTED 5,198 · cost ACCEPTED 4,312 (정정: 이전 4,364 는 옮겨 적기 오류) · 재실행 unchanged 5,461 · 정정 시 새 revision = 정정 행 수 · 소실 = RETRACTED
 ```
 
 ## 5. Reconciliation (자동, 스크립트 내장)

@@ -42,7 +42,7 @@ FILES  app/db/models/feed_source.py(+source_scope_hash, notes) · alembic a7c9e1
        app/harvest/feed_source_sync.py(scope_hash·error_class·철회 가드·batch) · app/repositories/feed_source_repo.py(batch·chunked lookups)
 TESTS  unit test_feed_source_snapshot_reconcile 5 · integration persistence 9→12
 EXECUTION  fail-closed: RDS 호스트 URL → REFUSED ✓ · --dry-run: DB write 0 ✓(count 0) · bootstrap 42 PP- 농장(합성, currency USD 로 일부러 다르게)
-SOURCE ROWS 5,461 → TARGET gen-1 5,461 · ACTIVE 5,202 / INACTIVE 259 · quantity ACCEPTED 5,198 / EXCLUDED 263 · cost ACCEPTED 4,364 / INSUFFICIENT 834
+SOURCE ROWS 5,461 → TARGET gen-1 5,461 · ACTIVE 5,202 / INACTIVE 259 · quantity ACCEPTED 5,198 / EXCLUDED 263 · cost ACCEPTED 4,312 / INSUFFICIENT 886 / EXCLUDED 263  (정정 2026-09-23: 이전 4,364/834 는 옮겨 적기 오류 — L1 JSON·프로덕션 preflight 모두 4,312/886)
 MISMATCHES total 0 · farm 0 · month 0 · farm×month 0 · status 0 · invariants: hash NULL 0 · currency NULL 0 · non-KRW 0 · non-DELIVERED 0 · current/identity max 1 · sync_run scope_hash 있음 · watermark 있음
 FIX ATTEMPTS 2  ① reconcile 중첩 집계 SQL(GroupingError) → 서브쿼리  ② PERSISTENCE_BUG: asyncpg 바인드 32,767 상한(2,000행×30열) → statement 당 행수 = min(batch, 32000//열수)
               (①② 모두 원장에 SYNC_FAILED · data_changed=false · 0행으로 남음 — 부분 커밋 없음 증명)
