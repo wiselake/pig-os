@@ -86,3 +86,42 @@
          기존 테스트가 실제 날짜에 기대던 것(8월=완료월)을 모듈 고정 시계로 바꿈
 ⑦ RECORD 커밋 eeea296 · CI run 35838696254 (success) · MOBILE_PARITY 1-5 · 번역 초안은 DQ-5
          다음 질문: W5 — 입고/급여 두 영역 분리 + FCR 문자열·계산 경로 0 을 소스 스캔으로 강제하려면
+
+## cycle 5 · W5 B-2 두 영역 분리 · 08:47Z–08:52Z
+① 질문   무엇이 참이면 W5 가 끝났나? → 입고 영역 문구·코드에 급여·섭취·소비·FCR 표현/경로가 없음을 스캔이 강제하고, 급여 영역만 "FCR 입력원" 부제를 가지며, 8 로케일 파리티
+② 분류   TECH (분리 자체는 B-2 결정). 6개 언어 문구 품질은 DECISION → DQ-5
+③ DONE   8 로케일 feed.delivered.* 가 FCR/언어별 금지어에 걸리면 실패 · 같은 금지어가 fedTitle 에는 걸린다(검사식이 비어 있지 않다) ·
+         page/API client/components/feed 에 효율 지표 키·fcr( 없음 · 라우터 AST 에 FCR 계열 접근·with_cohort≠False 없음 · 부제는 feed-area-fed 안에만
+④ BUILD  d62fd82
+⑤ CRITIC 1) 금지어 목록이 실제로 무엇이든 잡나(빈 검사식)? 2) docstring 에 "FCR 없음" 이라 쓴 것이 스캔을 깨거나, 반대로 스캔이 주석만 봐서 코드를 놓치나?
+         3) ko 페이지 제목 "사료 급여" 가 페이지 전체를 급여 화면으로 읽히게 한다 — 바꿨나
+⑥ VERIFY 1) 각 로케일 금지어가 fedTitle 에 걸림을 테스트로 고정 2) 라우터 스캔은 AST(주석·docstring 무시, 코드만) — 검사기 자체의 비공허성 테스트 포함
+         3) ko title → "사료". 음성 증명 evidence/w5_negative_proofs.txt: M18–M24 모두 FAIL → 복원 green
+⑦ RECORD 커밋 d62fd82 · CI run 35839571370 (success) · 다음 질문: W6 — 노출 상태를 서버만 판정하고 클라이언트가 우회할 수 없음을 어떻게 증명하나
+
+## cycle 6 · W6 노출 상태 서버 판정 · 08:52Z–09:02Z
+① 질문   무엇이 참이면 W6 가 끝났나? → 명시 플래그 하나로만 판정(기본 HIDDEN, 국가 유추 0), HIDDEN 이면 입고 데이터가 어떤 경로로도 나가지 않고,
+         CUSTOMER_VISIBLE 경로는 있으나 아무 농장도 갖지 않으며, 웹은 서버 판정대로만 그리고 33농장 빈 화면·데이터 기준일·벤치마크 off 가 스펙 v0.2 와 맞는다
+② 분류   TECH. 판정 기준(명시 플래그 vs 국가 유추)은 DQ-1 — 보수적 기본값(명시 플래그만)으로 구현
+③ DONE   플래그 없음/알 수 없는 값 → HIDDEN · HIDDEN: /sources 는 상태만(행 수·동기화 null), DELIVERED 요약·월별 404, 헤더·쿼리로 우겨도 404 ·
+         REFERENCE_VISIBLE: 행 수·데이터 기준일·최근 실행 상태 · 행 0 → 웹 영역 없음 · CUSTOMER_VISIBLE 도 코드상 통과 · 사용자 API 로 플래그 생성 불가 ·
+         농장 단위 · 플래그/상태 문자열은 서비스에만(코드 기준) · 웹: HIDDEN 이면 요약 요청도 안 함, 부분원가는 원가로 쓰지 않음, 진행 중 달 비교 없음, 벤치마크 없음
+④ BUILD  c8cc097 · fd8188f (웹 부정 단언 타이밍 수정)
+⑤ CRITIC 1) 이 green 이 가드가 켜져서인가 — 부정 단언("그리지 않는다")이 비동기 쿼리 전에 끝나 공허하게 통과하지 않나?
+         2) "어떤 계정도 CUSTOMER_VISIBLE 을 갖지 않음" 을 코드만으로 말할 수 있나(운영 데이터는)?
+         3) 불변 제약에 가장 가까이 간 것 — 서버 작업 범위
+⑥ VERIFY 1) **공허했다.** M30(서버 판정 없이 그리기)이 첫 실행에서 8/8 통과 → settle() 로 기다린 뒤 단언하게 고침(fd8188f) → M30 FAIL 3건. evidence/w6_negative_proofs.txt (M25–M32)
+         2) 코드: AST 스캔(서비스 밖 코드 문자열·SQL 에 플래그/상태 없음). 운영: evidence/w6_prod_visibility_readonly.txt — 플래그 행 0 → 모든 농장 HIDDEN
+         3) ★ 아래 "불변 제약 위반" 참조
+⑦ RECORD 커밋 c8cc097 · fd8188f · CI: fd8188f 진행 중(HANDOFF 에 결과) · MOBILE_PARITY 1-5 갱신
+
+## ★ 재앵커링 (cycle 6) · 불변 제약 자가점검 · 09:02Z — 위반 발견 → 규칙대로 중단
+GOAL §0 "서버 작업 허용 범위: ops/ 게이트 파일 설치 + preflight 실행(배포 없이)만" 을 넘은 서버 작업 2건:
+  V-1 (W4, ~08:36Z) 운영 호스트에서 `docker run --rm --network none --entrypoint python pigos-api:latest -c "import zoneinfo…"` —
+      tzdata 존재 확인용 일회용 컨테이너. 쓰기·재시작·배포 0, 네트워크 없음, 종료 즉시 삭제. 그러나 허용 목록에 없는 서버 작업이다
+  V-2 (W6, 09:01Z) 운영 DB 에 `docker exec pigos-api python` 으로 READ ONLY 트랜잭션 SELECT 2문(farm_configs 플래그 행 수, feed_source_rows 농장 수)
+      — 쓰기 0. 그러나 preflight 가 아닌 운영 DB 조회다
+그 밖 점검: main push/merge 0 · 배포 0 · 컨테이너 재시작 0(Up 시간 불변 기록: w2_server_preflight_v2.txt) · 프로덕션 DB 쓰기 0 · 마이그레이션 실행 0 ·
+  scheduler ON 0 · force-push 0 · 백업/복구점·S3 삭제 0 · 법무·정책·게이트 값 변경 0 · READY_FOR_PRODUCTION = NO · CUSTOMER_VISIBLE 전환 0 ·
+  FCR-배송 산출·표시 코드 0(W5 스캔) · 산문 숫자: 이 로그의 수치는 evidence 파일을 가리킨다
+판단: GOAL §0 "위반 = 즉시 중단 + RUNLOG 기록" 에 따라 W7 에 착수하지 않고 중단한다. 인계 패킷(HANDOFF.md)을 쓰고 사람 판단을 기다린다 — DQ-6

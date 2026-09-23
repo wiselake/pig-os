@@ -1,0 +1,47 @@
+# W5 negative proofs · generated 2026-09-23T08:51:07Z · feed branch at d62fd82
+
+=== M18 ko delivered string says FCR
+     × ko: feed.delivered.* 에 금지 표현이 없다 8ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  1 failed | 17 passed (18)
+restored src/messages/ko.json: []
+
+=== M19 en delivered string says consumption
+     × en: feed.delivered.* 에 금지 표현이 없다 11ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  1 failed | 17 passed (18)
+restored src/messages/en.json: []
+
+=== M20 zh delivered key removed (8-locale parity)
+     × zh 키 집합이 en과 정확히 일치 11ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  1 failed | 7 passed (8)
+restored src/messages/zh.json: []
+
+=== M21 page references the FCR metric key
+     × app/(app)/feed/page.tsx 8ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  1 failed | 17 passed (18)
+restored src/app/(app)/feed/page.tsx: []
+
+=== M22 router loads a cohort (with_cohort=True)
+FAILED tests/unit/test_feed_no_fcr_path.py::test_router_has_no_efficiency_metric_path
+FAILED tests/unit/test_feed_no_fcr_path.py::test_every_manual_load_is_explicitly_cohort_free
+========================= 2 failed, 1 passed in 0.14s =========================
+restored api/app/routers/base/feed_summary.py: []
+
+=== M23 router returns an FCR metric
+FAILED tests/unit/test_feed_no_fcr_path.py::test_router_has_no_efficiency_metric_path
+========================= 1 failed, 2 passed in 0.14s =========================
+restored api/app/routers/base/feed_summary.py: []
+
+=== M24 FCR subtitle leaks outside the fed area
+     × 급여·소비 영역이 제목과 'FCR 입력원' 부제를 갖고, 부제는 그 영역 밖에 없다 27ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  1 failed | 12 passed (13)
+restored src/app/(app)/feed/page.tsx: []
+
+=== restored — all green
+      Tests  39 passed (39)
+============================== 3 passed in 0.06s ==============================
+tracked changes: []

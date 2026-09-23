@@ -29,3 +29,10 @@
 
 == run 35836540047 attempt 1 (before the rerun)
    conclusion=failure frontend=success backend (3.14)=success backend (3.12)=failure
+
+== run 35840526271 · feed fd8188f (W6) — attempt 1 and 2
+   attempt 1 conclusion=failure backend (3.12)=success backend (3.14)=failure frontend=success
+   attempt 2 conclusion=failure backend (3.14)=failure frontend=success backend (3.12)=success
+   backend (3.14) | ======= 276 failed, 1257 passed, 1 skipped, 1 error in 138.24s (0:02:18) =======
+   backend (3.12) | ================= 1533 passed, 1 skipped in 130.03s (0:02:10) ==================
+   first error in the failed job: ERROR at teardown of test_withdraw_without_prior_record_is_404 (tests/integration/test_consent_withdraw_edge.py) — db fixture rollback: another operation is in progress

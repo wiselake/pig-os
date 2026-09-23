@@ -1,0 +1,59 @@
+# W6 negative proofs · generated 2026-09-23T09:00:23Z · feed branch at fd8188f
+
+=== M25 default flipped: no flag -> REFERENCE_VISIBLE
+FAILED tests/integration/test_feed_visibility_api.py::test_unknown_flag_value_is_hidden[HIDDEN]
+FAILED tests/integration/test_feed_visibility_api.py::test_unknown_flag_value_is_hidden[PUBLIC]
+FAILED tests/integration/test_feed_visibility_api.py::test_client_cannot_self_declare_visibility
+FAILED tests/integration/test_feed_visibility_api.py::test_no_user_api_can_set_the_flag
+FAILED tests/integration/test_feed_visibility_api.py::test_visibility_is_per_farm
+========================= 9 failed, 7 passed in 6.38s =========================
+restored api/app/services/feed_visibility.py: []
+
+=== M26 DELIVERED summary no longer gated
+FAILED tests/integration/test_feed_visibility_api.py::test_unknown_flag_value_is_hidden[reference_visible]
+FAILED tests/integration/test_feed_visibility_api.py::test_unknown_flag_value_is_hidden[]
+FAILED tests/integration/test_feed_visibility_api.py::test_unknown_flag_value_is_hidden[HIDDEN]
+FAILED tests/integration/test_feed_visibility_api.py::test_unknown_flag_value_is_hidden[PUBLIC]
+FAILED tests/integration/test_feed_visibility_api.py::test_client_cannot_self_declare_visibility
+========================= 7 failed, 9 passed in 6.25s =========================
+restored api/app/routers/base/feed_summary.py: []
+
+=== M27 country inference added to the decision
+FAILED tests/unit/test_feed_visibility_guard.py::test_decision_does_not_infer_from_country
+======================== 1 failed, 15 passed in 6.30s =========================
+restored api/app/services/feed_visibility.py: []
+
+=== M28 a seed-like writer of CUSTOMER_VISIBLE appears in app/
+FAILED tests/unit/test_feed_visibility_guard.py::test_flag_and_states_are_code_only_in_the_service
+========================= 1 failed, 3 passed in 1.47s =========================
+removed api/app/seeds_tmp_proof: [ls: cannot access 'api/app/seeds_tmp_proof': No such file or directory]
+
+=== M29 /sources leaks row counts while HIDDEN
+FAILED tests/integration/test_feed_visibility_api.py::test_no_flag_is_hidden_and_delivered_is_404
+======================== 1 failed, 11 passed in 5.42s =========================
+restored api/app/routers/base/feed_summary.py: []
+
+=== M30 web renders the deliveries area without the server's visibility
+     × HIDDEN 이면 아무것도 그리지 않고 입고 요약을 요청하지도 않는다 102ms
+     × 응답 조작: 서버가 HIDDEN 이면 요약 응답에 데이터가 있어도 그리지 않는다 77ms
+     × 노출이어도 입고 행이 0 이면(매핑 42 중 33 농장) 영역이 없다 — 0 kg 로 그리지 않는다 74ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  3 failed | 5 passed (8)
+restored src/components/feed/DeliveredArea.tsx: []
+
+=== M31 web shows the partial sum as the cost
+     × 노출 + 행 있음: 제목·배송 기준·데이터 기준일·입고량, 원가는 부분합이 아니라 '일부만 있음(행 %)' 65ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  1 failed | 7 passed (8)
+restored src/components/feed/DeliveredArea.tsx: []
+
+=== M32 web decides visibility from the farm country
+     × 국가·관할·시장으로 판정하는 코드가 없다 6ms
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+      Tests  1 failed | 7 passed (8)
+restored src/components/feed/DeliveredArea.tsx: []
+
+=== restored — all green
+============================= 30 passed in 9.83s ==============================
+      Tests  8 passed (8)
+tracked changes: []

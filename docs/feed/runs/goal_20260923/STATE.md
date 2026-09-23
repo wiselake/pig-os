@@ -4,9 +4,9 @@
 
 started_utc        2026-09-23T07:58:22Z   (evidence/w0_baseline.txt 생성 시각 07:59:22Z)
 ends_utc           2026-09-26T07:58:22Z   (+72h)
-current_item       W5
-current_cycle      5
-last_reanchor      cycle 0 (start)
+current_item       HALTED (cycle 6 reanchor: V-1·V-2 → DQ-6)
+current_cycle      6
+last_reanchor      cycle 6 · 2026-09-23T09:02Z — 위반 2건 발견, 중단 (RUNLOG)
 
 ## 브랜치
 goal 브랜치   goal/feed-release-prep-20260923   base = PR #9 head 9a8aae6 · worktree C:/dev/PigOS-wt-goal · ops(W1·W2)·문서·증거
@@ -14,6 +14,7 @@ feed 브랜치   feat/feed-read-on-main-20260923   base = origin/main 599dc55 ·
 CI           main 대상 PR 에서만 돈다(ci.yml) → 각 브랜치 draft PR 로 run id 확보. merge 0
 
 ## 마지막 green
+feed d62fd82 · run 35839571370 (W5) · W6 fd8188f run 35840526271 = 3.12 green / 3.14 red ×2 (불안정 서명)
 feed eeea296 · run 35838696254 (W3+W4) · PR #11 draft
 goal 0636963 · run 35837521979 (W2) · PR #10 draft
 goal a408e41 · run 35835357155 (W1)
@@ -27,7 +28,7 @@ D9  main 기반 브랜치는 15:00–24:00 UTC 에 시간 경계 테스트가 �
     → CI green 판정은 가능하면 00:00–15:00 UTC 에
 
 ## 항목 상태
-W0 DONE · W1 DONE · W2 DONE (서버 ~/pigos-gate 설치, 첫 manifest 배포는 사람 GO) · W3 DONE · W4 DONE · W5 IN_PROGRESS
+W0 DONE · W1 DONE · W2 DONE (서버 ~/pigos-gate 설치, 첫 manifest 배포는 사람 GO) · W3 DONE · W4 DONE · W5 DONE · W6 UNVERIFIED(CI 3.14) · W7 NOT_STARTED
 R1 DONE · R2 DONE · R3 DONE(권고 기재, 보류 자체는 DQ-2)
 
 ## 열린 질문 / 결정 큐

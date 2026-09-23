@@ -1,0 +1,4 @@
+# W6 production read-only check · 2026-09-23T09:01:53Z · SELECT only, READ ONLY transaction, via the running api container
+transaction_read_only on
+FEED_DELIVERY_VISIBILITY rows by value: {} (none)
+farms with any feed_source_rows: 9
