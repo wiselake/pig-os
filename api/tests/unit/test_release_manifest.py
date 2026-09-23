@@ -214,3 +214,8 @@ def test_deploy_sh_preflight(tmp_path, case, expect):
     r = subprocess.run(["bash", str(script), *args], capture_output=True, text=True,
                        env={**os.environ, "PIGOS_ROOT": str(root)})
     assert r.returncode == expect, r.stdout + r.stderr
+    # the refusal must come from the intended step, not from an earlier one that happens to refuse too
+    reason = {"wrong_sha": "deploy target is", "tampered_tree": "differs from release", "no_manifest": "not found",
+              "tampered_gate": "gate files differ", "run_from_app_tree": "APP_TREE", "no_expect_sha": "usage:"}.get(case)
+    if reason:
+        assert reason in r.stdout, (case, r.stdout)

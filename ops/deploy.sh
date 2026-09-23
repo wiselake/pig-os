@@ -42,7 +42,7 @@ case "$SVC" in
 esac
 
 if [ "$(cd "$ROOT" && pwd)/ops" = "$GATE" ]; then
-  echo "❌ 거부 — 앱 트리 안의 deploy.sh($GATE)로 실행했다. 게이트 설치 위치(~/pigos-gate)에서 실행하라"; exit 3
+  echo "❌ 거부 (APP_TREE) — 앱 트리 안의 deploy.sh($GATE)로 실행했다. 게이트 설치 위치(~/pigos-gate)에서 실행하라"; exit 3
 fi
 
 echo "════ G/5 게이트 무결성 ════"
