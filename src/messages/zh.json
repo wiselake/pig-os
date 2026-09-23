@@ -15,7 +15,34 @@
     "qtyError": "数量必须大于 0。",
     "saveError": "保存失败。",
     "deleteError": "删除失败。",
-    "noFarm": "请先选择猪场。"
+    "noFarm": "请先选择猪场。",
+    "guidance": "输入本月投喂的饲料总量（kg，可按饲料类型分行）。单价按每 kg 计。",
+    "unitCost": "单价（每 kg）",
+    "unitCostPlaceholder": "可选",
+    "currency": "货币",
+    "costHint": "只有当本月所有记录都填写单价时才显示成本合计；否则显示部分金额及缺少单价的行数。",
+    "costError": "单价必须大于或等于 0。",
+    "summaryTitle": "月度饲料",
+    "basisRecorded": "基于此处记录的投喂量。",
+    "month": "月份",
+    "noDataMonth": "本月没有饲料记录。",
+    "mQty": "饲料量",
+    "mCost": "饲料成本",
+    "mUnitPrice": "单价",
+    "mChange": "环比",
+    "mCostChange": "成本",
+    "mMix": "构成",
+    "mDominant": "主要类型",
+    "costPartial": "部分 — {n} 行缺少单价",
+    "partialLegend": "部分成本（部分行无单价）",
+    "reason": {
+      "no_data": "无记录",
+      "no_cost": "未填写单价",
+      "cost_incomplete": "部分行无单价",
+      "currency_mixed": "货币混合",
+      "prior_insufficient": "上月无数据",
+      "context_missing": "不可比较"
+    }
   },
   "prrsReport": {
     "title": "按基因的PRRS",
@@ -468,7 +495,9 @@
     "deleteAccount": "删除账户",
     "deleteAccountDesc": "所有数据将被永久删除",
     "dataPrivacy": "数据与隐私",
-    "dataPrivacyDesc": "同意、数据共享、撤回"
+    "dataPrivacyDesc": "同意、数据共享、撤回",
+    "feed": "饲料",
+    "feedDesc": "记录饲料并查看月度汇总"
   },
   "reports": {
     "selectFarm": "请选择猪场。",

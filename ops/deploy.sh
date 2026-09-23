@@ -23,6 +23,29 @@ case "$SVC" in
   *) echo "usage: $0 [api|web|worker|all]"; exit 2 ;;
 esac
 
+echo "════ 0/5 DB 리비전 ↔ 코드 alembic head ════"
+# ★ 2026-09-23: 프로덕션 DB(a7c9e1f3b5d7)가 main 코드보다 앞선 상태가 생겼다. api/worker 를 배포할 때
+#   DB 리비전이 배포될 코드의 유일한 head 와 같지 않으면 거부한다(ops/check_migration_drift.sh). 우회 없음.
+case " $SERVICES " in
+  *" api "*|*" worker "*)
+    DBREV=$(sudo docker exec -i pigos-api python - <<'PY' 2>/dev/null | tail -1
+import asyncio, os
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import create_async_engine
+async def m():
+    e = create_async_engine(os.environ["DATABASE_URL"])
+    async with e.connect() as c:
+        print((await c.execute(text("SELECT version_num FROM alembic_version"))).scalar())
+    await e.dispose()
+asyncio.run(m())
+PY
+) || DBREV=""
+    echo "  DB revision: ${DBREV:-<unknown>}"
+    "$ROOT/ops/check_migration_drift.sh" "${DBREV}" || { echo "❌ 배포 거부 — DB 리비전과 코드 alembic head 불일치"; exit 3; }
+    ;;
+  *) echo "  web 만 배포 — 생략" ;;
+esac
+
 echo "════ 1/5 배포 전 DB 스냅샷 ════"
 if [ -x "$ROOT/ops/backup_db.sh" ]; then
   "$ROOT/ops/backup_db.sh" full deploy

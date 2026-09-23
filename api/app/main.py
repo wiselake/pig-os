@@ -34,6 +34,7 @@ from app.routers.base import (
     events,
     farms,
     feed,
+    feed_summary,
     finishers,
     kpi,
     members,
@@ -138,6 +139,7 @@ app.include_router(chat.router,        prefix=V1)
 app.include_router(sync.router,        prefix=V1)
 app.include_router(finishers.router,   prefix=V1)
 app.include_router(feed.router,        prefix=V1)
+app.include_router(feed_summary.router, prefix=V1)
 app.include_router(piglets.router,     prefix=V1)
 app.include_router(boars.router,       prefix=V1)
 app.include_router(alerts.router,      prefix=V1)

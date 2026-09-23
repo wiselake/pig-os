@@ -29,6 +29,7 @@ from app.db.models.events import (  # noqa: F401
     ReproductiveEvent,
     Weaning,
 )
+from app.db.models.feed_source import FeedSourceRow, FeedSourceSyncRun  # noqa: F401
 from app.db.models.health import FeedRecord, HealthEvent, Removal  # noqa: F401
 from app.db.models.kpi_policy import CountryKpiPolicy  # noqa: F401
 from app.db.models.kpi_presentation import CountryKpiPresentation  # noqa: F401

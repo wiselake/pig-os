@@ -1,0 +1,90 @@
+{
+ "mode": "target-local",
+ "source_mode": "SNAPSHOT",
+ "target": "localhost/pigos_feedload",
+ "window": [
+  "2025-09-01",
+  "2026-09-22"
+ ],
+ "source_scope_hash": "7eb1e1536ef129664927b2799e88dfdb43602b869e3be885de705ec40ea9c273",
+ "farms_in_scope": 9,
+ "source_rows_fetched": 5461,
+ "expected": {
+  "total": 5461,
+  "by_month": {
+   "2025-09": 392,
+   "2025-10": 464,
+   "2025-11": 426,
+   "2025-12": 504,
+   "2026-01": 464,
+   "2026-02": 398,
+   "2026-03": 455,
+   "2026-04": 478,
+   "2026-05": 485,
+   "2026-06": 465,
+   "2026-07": 436,
+   "2026-08": 372,
+   "2026-09": 122
+  },
+  "source_status": {
+   "ACTIVE": 5202,
+   "INACTIVE": 259
+  },
+  "quantity_status": {
+   "ACCEPTED": 5198,
+   "EXCLUDED": 263
+  },
+  "cost_status": {
+   "INSUFFICIENT": 886,
+   "EXCLUDED": 263,
+   "ACCEPTED": 4312
+  },
+  "farms": 9
+ },
+ "sync": {
+  "status": "SUCCEEDED",
+  "fetched": 5461,
+  "inserted": 5461,
+  "unchanged": 0,
+  "superseded": 0,
+  "retracted": 0,
+  "error": null
+ },
+ "observed_generation1_total": 5461,
+ "invariants": {
+  "payload_hash_null": 0,
+  "currency_null": 0,
+  "currency_not_krw": 0,
+  "basis_not_delivered": 0,
+  "current_per_identity_max": 1,
+  "rows_all_revisions": 5461,
+  "identities": 5461,
+  "max_revision": 1,
+  "sync_runs": [
+   {
+    "status": "SUCCEEDED",
+    "fetched": 5461,
+    "inserted": 5461,
+    "unchanged": 0,
+    "superseded": 0,
+    "retracted": 0,
+    "watermark_to": "2026-09-21T18:32:45+00:00",
+    "scope_hash": "7eb1e1536ef129664927b2799e88dfdb43602b869e3be885de705ec40ea9c273",
+    "notes": {
+     "batch_size": 2000,
+     "empty_source": false,
+     "observations": 5461,
+     "retraction_skipped_farms": 0
+    }
+   }
+  ]
+ },
+ "mismatch": {},
+ "db_size_delta_bytes": 5406720,
+ "performance": {
+  "elapsed_s": 18.9,
+  "rows_per_s": 289.0,
+  "peak_py_mem_mb": 47.4,
+  "batch_size": 2000
+ }
+}

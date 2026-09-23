@@ -5,9 +5,11 @@ FCR(kpi_service)·grow-finish 리포트가 SUM(feed_records.quantity_kg)을 읽�
 """
 from __future__ import annotations
 
+from datetime import date
+from decimal import Decimal
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, ValidationError
@@ -15,6 +17,7 @@ from app.core.farm_time import farm_today_by_id
 from app.db.models.health import FeedRecord
 from app.db.models.ops import FinisherGroup
 from app.db.models.sow import Building, Sow
+from app.engine.feed_metrics import FeedCohort
 from app.schemas.feed import FeedRecordCreate
 from app.services.event_service import _ensure_period_unlocked
 
@@ -73,6 +76,55 @@ async def create_feed_record(
     await db.commit()
     await db.refresh(rec)
     return rec
+
+
+async def load_feed_cohort(
+    db: AsyncSession, farm_id: UUID, start: date, end: date, *, farm_currency: str | None = None,
+) -> FeedCohort:
+    """Feed Basic 코호트 — CLOSED **적격** finisher_groups 집합 (F-0011).
+
+    적격 = end_date ∈ [start, end] AND head_count_out·avg_entry·avg_exit 전부 있음. 분모(gain·head_out)와
+    분자(그룹 귀속 사료 전생애 합)가 **같은 그룹 집합**에서 나온다.
+
+    ★ 2026-09-22 정정 (Codex 리뷰 MAJOR): 이전 판은 분자 조인이 `end_date` 만 보고 체중·head_out 조건을
+      빼놓아, 체중 없는 CLOSED 그룹의 사료가 분자에만 들어가 FCR 을 부풀렸다. kpi_service:443-449 는
+      아직 같은 결함을 갖고 있다 — 거기서는 고치지 않고 test_feed_engine_service 가 차이를 고정한다.
+    ★ farm_currency 를 주면 통화 NULL 행을 그 통화로 귀속한다(엔진 계약 SPEC §4). 주지 않으면 이전처럼
+      NULL 을 집합에서 뺀다(PR #2 호환).
+
+    원가는 unit_cost 있는 행만 합산하고 없는 행은 **센다**. 채우지 않는다.
+    ★ 어느 라우터에도 연결돼 있지 않다 (F-0011 범위 결정 (나)).
+    """
+    p = {"fid": farm_id, "s": start, "e": end}
+    eligible = (
+        "g.farm_id=:fid AND g.deleted_at IS NULL AND g.end_date IS NOT NULL "
+        "AND g.head_count_out IS NOT NULL AND g.avg_exit_weight_kg IS NOT NULL "
+        "AND g.avg_entry_weight_kg IS NOT NULL AND g.end_date BETWEEN :s AND :e"
+    )
+    gf = (await db.execute(text(
+        "SELECT coalesce(sum(g.head_count_out),0) hout, "
+        "coalesce(sum((g.avg_exit_weight_kg - g.avg_entry_weight_kg) * g.head_count_out),0) gain "
+        f"FROM finisher_groups g WHERE {eligible}"), p)).one()
+    ccy_expr = "coalesce(fr.currency, :ccy)" if farm_currency else "fr.currency"
+    if farm_currency:
+        p = {**p, "ccy": farm_currency.upper()}
+    fr = (await db.execute(text(
+        "SELECT coalesce(sum(fr.quantity_kg),0) feed_kg, "
+        "sum(fr.quantity_kg * fr.unit_cost) FILTER (WHERE fr.unit_cost IS NOT NULL) feed_cost, "
+        "count(*) FILTER (WHERE fr.unit_cost IS NOT NULL) costed, "
+        "count(*) FILTER (WHERE fr.unit_cost IS NULL) uncosted, "
+        f"array_remove(array_agg(DISTINCT {ccy_expr}) FILTER (WHERE fr.unit_cost IS NOT NULL), NULL) currencies "
+        "FROM feed_records fr JOIN finisher_groups g ON g.id = fr.group_id "
+        f"WHERE fr.farm_id=:fid AND fr.deleted_at IS NULL AND {eligible}"), p)).one()
+    return FeedCohort(
+        feed_kg=Decimal(str(fr.feed_kg)),
+        gain_kg=Decimal(str(gf.gain)),
+        head_out=int(gf.hout),
+        feed_cost=Decimal(str(fr.feed_cost)) if fr.feed_cost is not None else None,
+        costed_rows=int(fr.costed),
+        uncosted_rows=int(fr.uncosted),
+        currencies=frozenset(fr.currencies or ()),
+    )
 
 
 async def list_feed_records(

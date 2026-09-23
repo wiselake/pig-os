@@ -1,0 +1,81 @@
+{
+  "months": 12,
+  "window": [
+    "2025-10-01",
+    "2026-09-30"
+  ],
+  "farms_active": 80,
+  "farm_months": 960,
+  "status_distribution": [
+    {
+      "metric": "ADG",
+      "provenance": "INSUFFICIENT",
+      "reason": "no_cohort",
+      "n": 960
+    },
+    {
+      "metric": "FCR",
+      "provenance": "INSUFFICIENT",
+      "reason": "no_cohort",
+      "n": 960
+    },
+    {
+      "metric": "FEED_COST",
+      "provenance": "INSUFFICIENT",
+      "reason": "no_data",
+      "n": 960
+    },
+    {
+      "metric": "FEED_COST_CHANGE",
+      "provenance": "INSUFFICIENT",
+      "reason": "no_data",
+      "n": 960
+    },
+    {
+      "metric": "FEED_COST_PER_KG_GAIN",
+      "provenance": "INSUFFICIENT",
+      "reason": "no_cohort",
+      "n": 960
+    },
+    {
+      "metric": "FEED_COST_PER_PIG",
+      "provenance": "INSUFFICIENT",
+      "reason": "no_cohort",
+      "n": 960
+    },
+    {
+      "metric": "FEED_MIX_SHARE",
+      "provenance": "INSUFFICIENT",
+      "reason": "no_data",
+      "n": 960
+    },
+    {
+      "metric": "FEED_QTY",
+      "provenance": "INSUFFICIENT",
+      "reason": "no_data",
+      "n": 960
+    },
+    {
+      "metric": "FEED_QTY_CHANGE",
+      "provenance": "INSUFFICIENT",
+      "reason": "no_data",
+      "n": 960
+    },
+    {
+      "metric": "FEED_QTY_PER_HEAD",
+      "provenance": "INSUFFICIENT",
+      "reason": "no_cohort",
+      "n": 960
+    },
+    {
+      "metric": "FEED_UNIT_PRICE",
+      "provenance": "INSUFFICIENT",
+      "reason": "no_data",
+      "n": 960
+    }
+  ],
+  "findings": {},
+  "farms_with_any_feed_month": 0,
+  "farms_with_any_fcr_value": 0,
+  "independent_sql_mismatches": []
+}

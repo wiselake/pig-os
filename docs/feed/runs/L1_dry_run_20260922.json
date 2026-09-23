@@ -1,0 +1,50 @@
+{
+ "mode": "dry-run",
+ "source_mode": "SNAPSHOT",
+ "target": "localhost/pigos_feedload",
+ "window": [
+  "2025-09-01",
+  "2026-09-22"
+ ],
+ "source_scope_hash": "7eb1e1536ef129664927b2799e88dfdb43602b869e3be885de705ec40ea9c273",
+ "farms_in_scope": 9,
+ "source_rows_fetched": 5461,
+ "expected": {
+  "total": 5461,
+  "by_month": {
+   "2025-09": 392,
+   "2025-10": 464,
+   "2025-11": 426,
+   "2025-12": 504,
+   "2026-01": 464,
+   "2026-02": 398,
+   "2026-03": 455,
+   "2026-04": 478,
+   "2026-05": 485,
+   "2026-06": 465,
+   "2026-07": 436,
+   "2026-08": 372,
+   "2026-09": 122
+  },
+  "source_status": {
+   "ACTIVE": 5202,
+   "INACTIVE": 259
+  },
+  "quantity_status": {
+   "ACCEPTED": 5198,
+   "EXCLUDED": 263
+  },
+  "cost_status": {
+   "INSUFFICIENT": 886,
+   "EXCLUDED": 263,
+   "ACCEPTED": 4312
+  },
+  "farms": 9
+ },
+ "performance": {
+  "elapsed_s": 0.56,
+  "rows_per_s": 9726.6,
+  "peak_py_mem_mb": 5.1,
+  "batch_size": 2000
+ }
+}

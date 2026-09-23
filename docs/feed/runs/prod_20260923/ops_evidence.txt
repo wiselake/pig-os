@@ -1,0 +1,15 @@
+# TRANSCRIBED — terminal output lines copied verbatim from the 2026-09-23 session after the fact (no file was written at run time).
+# Lower trust than MACHINE/CAPTURED files. Each line is `key: value` exactly as the command printed it.
+image: sha256:25d6c036db11347620f1aa5129c20789d9269454d81bde9e3d7338d4c3dbcde4
+fingerprint_in_container: b5d97396bad7e7b826f3e057422695b724d4354da67586350b9ac874e491c491
+backup_file: pigos-full-20260923-091859-feedload-initial-load.sql.gz
+backup_bytes: 149733226
+alembic_before: f3c6a8d0b2e4
+alembic_heads_code: a7c9e1f3b5d7
+alembic_upgrade_log: Running upgrade f3c6a8d0b2e4 -> a7c9e1f3b5d7
+alembic_after: a7c9e1f3b5d7
+api_health_http: 200
+feed_summary_http: 404
+worker_jobs_mentioning_feed_source: 0
+snapshot_sha256_prefix_local: 04d267125d0bb07f
+snapshot_sha256_prefix_host: 04d267125d0bb07f
